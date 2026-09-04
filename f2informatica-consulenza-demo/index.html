@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlowSense IoT Platform</title>
+<style>
+:root{
+  --primary:#1e88e5;
+  --primary-dark:#1565c0;
+  --bg:#f4f6fa;
+  --card:#ffffff;
+  --text:#1e2a3a;
+  --muted:#6b7789;
+  --border:#e3e8ef;
+  --green:#2e9e5b;
+  --yellow:#e0b528;
+  --orange:#e08a1e;
+  --red:#d94141;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+.app{display:flex;min-height:100vh}
+/* Sidebar */
+.sidebar{width:240px;background:#0f1e2e;color:#c7d2de;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100;transition:.3s}
+.brand{padding:20px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.08)}
+.brand .logo{width:36px;height:36px;border-radius:9px;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.brand b{font-size:16px;color:#fff}
+.brand small{display:block;color:#7d8 da0;font-size:10px;color:#8394a8}
+.nav{flex:1;padding:12px 0;overflow-y:auto}
+.nav a{display:flex;align-items:center;gap:12px;padding:12px 20px;color:#b3c0cf;cursor:pointer;text-decoration:none;font-size:14px;border-left:3px solid transparent}
+.nav a:hover{background:rgba(255,255,255,.05);color:#fff}
+.nav a.active{background:rgba(30,136,229,.15);color:#fff;border-left-color:var(--primary)}
+.nav a .ic{font-size:18px}
+.sidebar-foot{padding:14px 20px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:#7d8da0}
+/* Main */
+.main{flex:1;margin-left:240px;display:flex;flex-direction:column;min-width:0}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
+.topbar h1{font-size:18px;font-weight:600}
+.demo-badge{background:#ffe9a8;color:#8a6d00;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.5px}
+.topbar .spacer{flex:1}
+.topbar .user{display:flex;align-items:center;gap:10px;font-size:13px}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600}
+.burger{display:none;font-size:22px;cursor:pointer;background:none;border:none;color:var(--text)}
+.content{padding:24px;flex:1}
+.demo-note{background:#eef4fd;border:1px solid #cfe0f7;color:#2c5985;padding:8px 14px;border-radius:8px;font-size:12px;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.view{display:none}
+.view.active{display:block}
+/* Cards & grid */
+.grid{display:grid;gap:18px}
+.kpi-grid{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px}
+.kpi{display:flex;flex-direction:column;gap:6px}
+.kpi .lbl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+.kpi .val{font-size:26px;font-weight:700}
+.kpi .sub{font-size:12px;color:var(--muted)}
+.kpi .ic{font-size:22px}
+.kpi-head{display:flex;justify-content:space-between;align-items:center}
+.card h3{font-size:15px;margin-bottom:14px;font-weight:600}
+.two-col{grid-template-columns:2fr 1fr}
+.three-col{grid-template-columns:2fr 1fr}
+/* Chart */
+.chart-wrap{width:100%;height:180px}
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.b-green{background:#e4f6ec;color:var(--green)}
+.b-yellow{background:#fbf3d6;color:#977900}
+.b-orange{background:#fdeed9;color:var(--orange)}
+.b-red{background:#fbe3e3;color:var(--red)}
+.b-gray{background:#eceff3;color:#7a8798}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.d-green{background:var(--green)}.d-yellow{background:var(--yellow)}.d-red{background:var(--red)}.d-gray{background:#b3bcc7}
+/* Lists */
+.alert-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.alert-item:last-child{border:none}
+.alert-item .dev{font-weight:600}
+.alert-item .cond{color:var(--muted);font-size:12px}
+.alert-item .tm{margin-left:auto;color:var(--muted);font-size:11px;white-space:nowrap}
+.site-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.site-item:last-child{border:none}
+.site-item .nm{flex:1}
+/* Table */
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:11px 12px;font-size:13px;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px;background:#fafbfc}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:#f6f9fd}
+.filters{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+select,input[type=text]{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff;color:var(--text)}
+.btn{padding:8px 14px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-size:13px;cursor:pointer;font-weight:500}
+.btn:hover{background:var(--primary-dark)}
+.btn.ghost{background:#eef2f7;color:var(--text)}
+.btn.ghost:hover{background:#e0e6ee}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn.danger{background:var(--red)}
+/* Drawer */
+.drawer-back{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:none}
+.drawer-back.open{display:block}
+.drawer{position:fixed;top:0;right:0;width:420px;max-width:90vw;height:100vh;background:#fff;z-index:210;transform:translateX(100%);transition:.3s;overflow-y:auto;box-shadow:-4px 0 24px rgba(0,0,0,.15)}
+.drawer.open{transform:translateX(0)}
+.drawer-head{padding:20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start}
+.drawer-body{padding:20px}
+.drawer .close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted)}
+.meta-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.meta-row .k{color:var(--muted)}
+.tag{display:inline-block;background:#eef2f7;color:#5a6a7d;padding:3px 9px;border-radius:6px;font-size:11px;margin:3px 4px 0 0}
+/* Live */
+.live-tag{display:inline-flex;align-items:center;gap:6px;background:#fbe3e3;color:var(--red);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 1.4s infinite}
+@keyframes pulse{0%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}100%{opacity:1;transform:scale(1)}}
+.tele-grid{grid-template-columns:repeat(3,1fr)}
+.tele-val{font-size:28px;font-weight:700;margin:6px 0}
+.range-tabs{display:flex;gap:6px}
+.range-tabs button{padding:6px 14px;border:1px solid var(--border);background:#fff;border-radius:8px;cursor:pointer;font-size:12px}
+.range-tabs button.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+/* Rules */
+.rule-card{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px}
+.rule-card .txt{flex:1}
+.rule-card .txt b{display:block}
+.rule-card .txt small{color:var(--muted)}
+.switch{position:relative;width:44px;height:24px;flex-shrink:0}
+.switch input{display:none}
+.slider{position:absolute;inset:0;background:#ccc;border-radius:24px;cursor:pointer;transition:.3s}
+.slider:before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+.switch input:checked+.slider{background:var(--green)}
+.switch input:checked+.slider:before{transform:translateX(20px)}
+.color-swatch{width:38px;height:38px;border-radius:8px;border:2px solid #fff;box-shadow:0 0 0 1px var(--border);cursor:pointer;padding:0}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:600}
+.field input{width:100%}
+.logo-prev{width:60px;height:60px;border-radius:10px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;object-fit:cover}
+.section-title{font-size:16px;font-weight:600;margin:26px 0 14px}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:12px}
+.bar-row .nm{width:110px;color:var(--muted)}
+.bar-track{flex:1;height:12px;background:#eef2f7;border-radius:6px;overflow:hidden}
+.bar-fill{height:100%;background:var(--primary);border-radius:6px}
+@media(max-width:1000px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .two-col,.three-col{grid-template-columns:1fr}
+  .tele-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:720px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .burger{display:block}
+  .kpi-grid,.tele-grid{grid-template-columns:1fr}
+  table{font-size:12px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo" id="brandLogo">📡</div>
+      <div>
+        <b id="brandName">FlowSense</b>
+        <small>IoT Platform</small>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <a data-view="overview" class="active"><span class="ic">📊</span> Overview</a>
+      <a data-view="devices"><span class="ic">🔌</span> Dispositivi</a>
+      <a data-view="telemetry"><span class="ic">📈</span> Telemetria Real-time</a>
+      <a data-view="alerts"><span class="ic">🚨</span> Alerting &amp; Regole</a>
+      <a data-view="settings"><span class="ic">⚙️</span> Impostazioni</a>
+    </nav>
+    <div class="sidebar-foot">
+      White-label demo<br>© 2024 FlowSense
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <button class="burger" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+      <h1 id="pageTitle">Overview</h1>
+      <span class="demo-badge">DEMO</span>
+      <div class="spacer"></div>
+      <div class="user">
+        <span>Marco Ferretti</span>
+        <div class="avatar">MF</div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="demo-note">ℹ️ <b>Ambiente dimostrativo</b> — Dati di esempio, nessuna connessione reale ai dispositivi.</div>
+
+      <!-- OVERVIEW -->
+      <section class="view active" id="overview">
+        <div class="grid kpi-grid">
+          <div class="card kpi">
+            <div class="kpi-head"><span class="lbl">Dispositivi attivi</span><span class="ic">🔌</span></div>
+            <span class="val">248 <span style="font-size:16px;color:var(--muted)">/ 260</span></span>
+            <span class="sub" style="color:var(--green)">▲ 95,4% online</span>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-head"><span class="lbl">Messaggi / min</span><span class="ic">📨</span></div>
+            <span class="val" id="kpiMsg">14.320</span>
+            <span class="sub" style="color:var(--green)">▲ +6,2% vs media</span>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-head"><span class="lbl">Alert aperti</span><span class="ic">🚨</span></div>
+            <span class="val" style="color:var(--red)">7</span>
+            <span class="sub">2 critici · 3 warning</span>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-head"><span class="lbl">Uptime piattaforma</span><span class="ic">✅</span></div>
+            <span class="val">99,97%</span>
+            <span class="sub">ultimi 30 giorni</span>
+          </div>
+        </div>
+
+        <div class="grid two-col" style="margin-top:18px">
+          <div class="card">
+            <h3>Throughput ingestion — ultime 24h</h3>
+            <div class="chart-wrap" id="lineChart"></div>
+          </div>
+          <div class="card">
+            <h3>Messaggi per gateway</h3>
+            <div style="margin-top:10px">
+              <div class="bar-row"><span class="nm">MQTT-01 Nord</span><div class="bar-track"><div class="bar-fill" style="width:88%"></div></div><b>4.820</b></div>
+              <div class="bar-row"><span class="nm">MQTT-02 Sud</span><div class="bar-track"><div class="bar-fill" style="width:64%"></div></div><b>3.510</b></div>
+              <div class="bar-row"><span class="nm">MQTT-03 Est</span><div class="bar-track"><div class="bar-fill" style="width:52%"></div></div><b>2.840</b></div>
+              <div class="bar-row"><span class="nm">GW-Verona</span><div class="bar-track"><div class="bar-fill" style="width:38%"></div></div><b>2.090</b></div>
+              <div class="bar-row"><span class="nm">GW-Backup</span><div class="bar-track"><div class="bar-fill" style="width:19%"></div></div><b>1.060</b></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid two-col" style="margin-top:18px">
+          <div class="card">
+            <h3>Ultimi 5 alert</h3>
+            <div id="ovAlerts"></div>
+          </div>
+          <div class="card">
+            <h3>Siti produttivi</h3>
+            <div class="site-item"><span class="dot d-green"></span><span class="nm">Stabilimento Nord — Milano</span><span class="badge b-green">OK</span></div>
+            <div class="site-item"><span class="dot d-yellow"></span><span class="nm">Impianto Sud — Bari</span><span class="badge b-orange">Warning</span></div>
+            <div class="site-item"><span class="dot d-green"></span><span class="nm">Deposito Logistico — Verona</span><span class="badge b-green">OK</span></div>
+            <div class="site-item"><span class="dot d-red"></span><span class="nm">Linea Produzione Est — Padova</span><span class="badge b-red">Critical</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DEVICES -->
+      <section class="view" id="devices">
+        <div class="card">
+          <div class="filters">
+            <input type="text" id="devSearch" placeholder="🔍 Cerca dispositivo..." oninput="filterDevices()">
+            <select id="fSite" onchange="filterDevices()">
+              <option value="">Tutti i siti</option>
+              <option>Stab. Nord</option>
+              <option>Impianto Sud</option>
+              <option>Deposito</option>
+              <option>Linea Est</option>
+            </select>
+            <select id="fStato" onchange="filterDevices()">
+              <option value="">Tutti gli stati</option>
+              <option>Online</option>
+              <option>Warning</option>
+              <option>Alert</option>
+              <option>Offline</option>
+            </select>
+            <div class="spacer" style="flex:1"></div>
+            <button class="btn">+ Aggiungi dispositivo</button>
+          </div>
+          <div style="overflow-x:auto">
+          <table id="devTable">
+            <thead><tr><th>ID</th><th>Nome</th><th>Tipo</th><th>Sito</th><th>Stato</th><th>Ultimo dato</th><th>Segnale</th></tr></thead>
+            <tbody id="devBody"></tbody>
+          </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TELEMETRY -->
+      <section class="view" id="telemetry">
+        <div class="card" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px">
+          <span class="live-tag"><span class="live-dot"></span> LIVE</span>
+          <span style="color:var(--muted);font-size:13px">Streaming simulato · aggiornamento ogni 2,5s</span>
+          <div class="spacer" style="flex:1"></div>
+          <div class="range-tabs" id="rangeTabs">
+            <button data-r="1h">1h</button>
+            <button data-r="24h" class="active">24h</button>
+            <button data-r="7g">7g</button>
+          </div>
+        </div>
+        <div class="grid tele-grid" id="teleGrid"></div>
+      </section>
+
+      <!-- ALERTS -->
+      <section class="view" id="alerts">
+        <div class="card">
+          <h3>Alert attivi</h3>
+          <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Severità</th><th>Dispositivo</th><th>Condizione violata</th><th>Quando</th><th>Stato</th><th>Azioni</th></tr></thead>
+            <tbody id="alertBody"></tbody>
+          </table>
+          </div>
+        </div>
+
+        <div class="section-title">Regole di alerting</div>
+        <div id="rulesList"></div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="view" id="settings">
+        <div class="grid two-col">
+          <div class="card">
+            <h3>🎨 Branding White-label</h3>
+            <div class="field">
+              <label>Nome piattaforma</label>
+              <input type="text" id="setName" value="FlowSense" oninput="applyBrand()">
+            </div>
+            <div class="field">
+              <label>Logo (preview locale)</label>
+              <div style="display:flex;align-items:center;gap:14px">
+                <div class="logo-prev" id="logoPrev">📡</div>
+                <input type="file" accept="image/*" id="logoFile" onchange="loadLogo(event)">
+              </div>
+            </div>
+            <div class="field">
+              <label>Colore primario</label>
+              <div style="display:flex;align-items:center;gap:12px">
+                <input type="color" class="color-swatch" id="colPick" value="#1e88e5" oninput="applyColor(this.value)">
+                <span id="colVal" style="font-family:monospace">#1e88e5</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>🗄️ Data source</h3>
+            <div class="meta-row"><span class="k">Database</span><span>MongoDB 6.0 (Time-Series)</span></div>
+            <div class="meta-row"><span class="k">Cluster</span><span>flowsense-prod-01</span></div>
+            <div class="meta-row"><span class="k">Broker MQTT</span><span>mqtts://iot.flowsense.io:8883</span></div>
+            <div class="meta-row"><span class="k">Topic prefix</span><span>flowsense/+/telemetry</span></div>
+            <div class="meta-row"><span class="k">Retention dati grezzi</span><span>90 giorni</span></div>
+            <div class="meta-row"><span class="k">Aggregati</span><span>2 anni</span></div>
+            <div style="margin-top:14px"><span class="badge b-green">● Connesso</span></div>
+          </div>
+        </div>
+
+        <div class="section-title">Utenti &amp; Ruoli</div>
+        <div class="card">
+          <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Nome</th><th>Email</th><th>Ruolo</th><th>Ultimo accesso</th></tr></thead>
+            <tbody>
+              <tr><td>Marco Ferretti</td><td>m.ferretti@flowsense.io</td><td><span class="badge b-red">Admin</span></td><td>Oggi 09:12</td></tr>
+              <tr><td>Giulia Romano</td><td>g.romano@flowsense.io</td><td><span class="badge b-orange">Operatore</span></td><td>Oggi 08:40</td></tr>
+              <tr><td>Luca Bianchi</td><td>l.bianchi@flowsense.io</td><td><span class="badge b-green">Viewer</span></td><td>Ieri 17:55</td></tr>
+              <tr><td>Sara Conti</td><td>s.conti@flowsense.io</td><td><span class="badge b-orange">Operatore</span></td><td>3 giorni fa</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- Drawer -->
+<div class="drawer-back" id="drawerBack" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div>
+      <h3 id="drTitle" style="margin:0">Dettaglio dispositivo</h3>
+      <small id="drId" style="color:var(--muted)"></small>
+    </div>
+    <button class="close" onclick="closeDrawer()">×</button>
+  </div>
+  <div class="drawer-body" id="drBody"></div>
+</aside>
+
+<script>
+/* ---------- DATA ---------- */
+const devices=[
+ {id:'DEV-1042',nome:'Sensore Temp Forno A',tipo:'Temperatura',sito:'Stab. Nord',stato:'Online',last:'12s fa',seg:92,metric:'Temperatura',unit:'°C',val:74},
+ {id:'DEV-1043',nome:'Vibrazione Motore M3',tipo:'Vibrazione',sito:'Linea Est',stato:'Alert',last:'3s fa',seg:78,metric:'Vibrazione',unit:'mm/s',val:4.7},
+ {id:'DEV-1044',nome:'Flussometro Linea 2',tipo:'Portata',sito:'Impianto Sud',stato:'Online',last:'40s fa',seg:85,metric:'Portata',unit:'L/min',val:18},
+ {id:'DEV-1051',nome:'Contatore Energia Q1',tipo:'Energia',sito:'Deposito',stato:'Online',last:'1m fa',seg:99,metric:'Consumo',unit:'kWh',val:312},
+ {id:'DEV-1055',nome:'Pressione Compressore',tipo:'Pressione',sito:'Stab. Nord',stato:'Offline',last:'14m fa',seg:0,metric:'Pressione',unit:'bar',val:0},
+ {id:'DEV-1060',nome:'Igrometro Magazzino',tipo:'Umidità',sito:'Deposito',stato:'Online',last:'22s fa',seg:91,metric:'Umidità',unit:'%',val:48},
+ {id:'DEV-1067',nome:'Temp Cella Frigo B',tipo:'Temperatura',sito:'Impianto Sud',stato:'Warning',last:'8s fa',seg:64,metric:'Temperatura',unit:'°C',val:8.6},
+ {id:'DEV-1071',nome:'Gateway MQTT-01',tipo:'Gateway',sito:'Stab. Nord',stato:'Online',last:'2s fa',seg:100,metric:'Uptime',unit:'%',val:100},
+ {id:'DEV-1080',nome:'Sensore Temp Forno B',tipo:'Temperatura',sito:'Stab. Nord',stato:'Online',last:'18s fa',seg:88,metric:'Temperatura',unit:'°C',val:71},
+ {id:'DEV-1085',nome:'Vibrazione Pompa P2',tipo:'Vibrazione',sito:'Impianto Sud',stato:'Online',last:'30s fa',seg:82,metric:'Vibrazione',unit:'mm/s',val:2.1},
+ {id:'DEV-1090',nome:'Flussometro Linea 1',tipo:'Portata',sito:'Linea Est',stato:'Warning',last:'55s fa',seg:70,metric:'Portata',unit:'L/min',val:11},
+ {id:'DEV-1095',nome:'Contatore Energia Q2',tipo:'Energia',sito:'Deposito',stato:'Online',last:'2m fa',seg:97,metric:'Consumo',unit:'kWh',val:285},
+];
+
+const statoBadge={Online:'b-green',Warning:'b-orange',Alert:'b-red',Offline:'b-gray'};
+
+const overviewAlerts=[
+ {sev:'🔴',cls:'b-red',lbl:'Critico',dev:'DEV-1043',cond:'Vibrazione > 4.5 mm/s per 6 min',tm:'2 min fa'},
+ {sev:'🟠',cls:'b-orange',lbl:'Warning',dev:'DEV-1067',cond:'Temperatura cella > 8°C',tm:'11 min fa'},
+ {sev:'🔴',cls:'b-red',lbl:'Critico',dev:'DEV-1055',cond:'Dispositivo offline > 10 min',tm:'14 min fa'},
+ {sev:'🟠',cls:'b-orange',lbl:'Warning',dev:'DEV-1044',cond:'Portata sotto soglia 12 L/min',tm:'25 min fa'},
+ {sev:'🟡',cls:'b-yellow',lbl:'Info',dev:'DEV-1051',cond:'Consumo energetico +18% vs media',tm:'1h fa'},
+];
+
+let alertsData=[
+ {sev:'Critico',cls:'b-red',dev:'DEV-1043',cond:'Vibrazione > 4.5 mm/s per 6 min',tm:'2 min fa',stato:'Aperto'},
+ {sev:'Warning',cls:'b-orange',dev:'DEV-1067',cond:'Temperatura cella > 8°C',tm:'11 min fa',stato:'Aperto'},
+ {sev:'Warning',cls:'b-orange',dev:'DEV-1044',cond:'Portata sotto soglia 12 L/min',tm:'25 min fa',stato:'Ack'},
+ {sev:'Critico',cls:'b-red',dev:'DEV-1055',cond:'Dispositivo offline > 10 min',tm:'14 min fa',stato:'Aperto'},
+ {sev:'Info',cls:'b-yellow',dev:'DEV-1051',cond:'Consumo energetico +18% vs media',tm:'1h fa',stato:'Aperto'},
+];
+
+const rules=[
+ {t:'Temperatura forno > 80°C per 5 min',s:'Notifica: email + SMS · Severità Critica',on:true},
+ {t:'Vibrazione motore > 4.0 mm/s',s:'Notifica: email · Severità Critica',on:true},
+ {t:'Dispositivo offline > 10 min',s:'Notifica: email · Severità Critica',on:true},
+ {t:'Portata sotto soglia 12 L/min',s:'Notifica: dashboard · Severità Warning',on:true},
+ {t:'Umidità magazzino > 65%',s:'Notifica: email · Severità Warning',on:false},
+ {t:'Consumo energetico +15% vs media giornaliera',s:'Notifica: dashboard · Severità Info',on:true},
+];
+
+const teleWidgets=[
+ {name:'Temperatura Forno A',icon:'🌡️',unit:'°C',base:74,range:6},
+ {name:'Pressione Compressore',icon:'🎚️',unit:'bar',base:6.4,range:0.4},
+ {name:'Vibrazione Motore M3',icon:'📳',unit:'mm/s',base:4.7,range:0.6},
+ {name:'Portata Linea 2',icon:'💧',unit:'L/min',base:18,range:3},
+ {name:'Consumo Energetico',icon:'⚡',unit:'kW',base:312,range:20},
+ {name:'Umidità Magazzino',icon:'💦',unit:'%',base:48,range:5},
+];
+
+/* ---------- NAV ---------- */
+const titles={overview:'Overview',devices:'Dispositivi',telemetry:'Telemetria Real-time',alerts:'Alerting & Regole',settings:'Impostazioni'};
+document.querySelectorAll('#nav a').forEach(a=>{
+  a.onclick=()=>{
+    document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('active'));
+    a.classList.add('active');
+    const v=a.dataset.view;
+    document.querySelectorAll('.view').forEach(s=>s.classList.remove('active'));
+    document.getElementById(v).classList.add('active');
+    document.getElementById('pageTitle').textContent=titles[v];
+    document.getElementById('sidebar').classList.remove('open');
+  };
+});
+
+/* ---------- OVERVIEW render ---------- */
+function renderOvAlerts(){
+  document.getElementById('ovAlerts').innerHTML=overviewAlerts.map(a=>`
+   <div class="alert-item">
+     <span style="font-size:16px">${a.sev}</span>
+     <div><span class="dev">${a.dev}</span> <span class="badge ${a.cls}">${a.lbl}</span><br><span class="cond">${a.cond}</span></div>
+     <span class="tm">${a.tm}</span>
+   </div>`).join('');
+}
+renderOvAlerts();
+
+/* Line chart SVG */
+function drawLine(){
+  const pts=[];const N=24;
+  for(let i=0;i<N;i++){pts.push(40+Math.sin(i/2)*18+Math.random()*20+(i>16?15:0));}
+  const w=100,h=100;
+  const max=Math.max(...pts),min=Math.min(...pts);
+  const path=pts.map((p,i)=>{
+    const x=(i/(N-1))*w;
+    const y=h-((p-min)/(max-min))*(h-10)-5;
+    return (i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1);
+  }).join(' ');
+  const area=path+` L100 100 L0 100 Z`;
+  document.getElementById('lineChart').innerHTML=`
+  <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%;height:100%">
+    <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="var(--primary)" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${area}" fill="url(#g1)"/>
+    <path d="${path}" fill="none" stroke="var(--primary)" stroke-width="1.4" vector-effect="non-scaling-stroke"/>
+  </svg>`;
+}
+drawLine();
+
+/* KPI msg animate */
+setInterval(()=>{
+  const base=14320+Math.floor((Math.random()-0.5)*600);
+  document.getElementById('kpiMsg').textContent=base.toLocaleString('it-IT');
+},2800);
+
+/* ---------- DEVICES ---------- */
+function renderDevices(list){
+  document.getElementById('devBody').innerHTML=list.map((d,i)=>`
+   <tr onclick="openDevice(${devices.indexOf(d)})">
+     <td><b>${d.id}</b></td>
+     <td>${d.nome}</td>
+     <td>${d.tipo}</td>
+     <td>${d.sito}</td>
+     <td><span class="badge ${statoBadge[d.stato]}">${d.stato}</span></td>
+     <td style="color:var(--muted)">${d.last}</td>
+     <td>${d.seg?sigBar(d.seg):'—'}</td>
+   </tr>`).join('');
+}
+function sigBar(s){
+  const col=s>80?'var(--green)':s>50?'var(--orange)':'var(--red)';
+  return `<div style="display:flex;align-items:center;gap:6px"><div style="width:44px;height:7px;background:#eef2f7;border-radius:4px;overflow:hidden"><div style="width:${s}%;height:100%;background:${col}"></div></div>${s}%</div>`;
+}
+function filterDevices(){
+  const q=document.getElementById('devSearch').value.toLowerCase();
+  const s=document.getElementById('fSite').value;
+  const st=document.getElementById('fStato').value;
+  renderDevices(devices.filter(d=>
+    (!q||d.nome.toLowerCase().includes(q)||d.id.toLowerCase().includes(q))&&
+    (!s||d.sito===s)&&(!st||d.stato===st)));
+}
+renderDevices(devices);
+
+function openDevice(i){
+  const d=devices[i];
+  document.getElementById('drTitle').textContent=d.nome;
+  document.getElementById('drId').textContent=d.id+' · '+d.tipo;
+  const spark=Array.from({length:20},()=>d.val+(Math.random()-0.5)*d.val*0.15);
+  const max=Math.max(...spark),min=Math.min(...spark);
+  const path=spark.map((p,ix)=>{const x=(ix/19)*100;const y=40-((p-min)/((max-min)||1))*32-4;return(ix?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)}).join(' ');
+  document.getElementById('drBody').innerHTML=`
+    <div style="margin-bottom:16px"><span class="badge ${statoBadge[d.stato]}">${d.stato}</span></div>
+    <div class="meta-row"><span class="k">Sito</span><span>${d.sito}</span></div>
+    <div class="meta-row"><span class="k">Tipo sensore</span><span>${d.tipo}</span></div>
+    <div class="meta-row"><span class="k">Firmware</span><span>v2.4.1</span></div>
+    <div class="meta-row"><span class="k">Protocollo</span><span>MQTT / TLS</span></div>
+    <div class="meta-row"><span class="k">Ultimo dato</span><span>${d.last}</span></div>
+    <div class="meta-row"><span class="k">Segnale</span><span>${d.seg?d.seg+'%':'—'}</span></div>
+    <div style="margin:18px 0 8px;font-size:12px;color:var(--muted);font-weight:600">${d.metric.toUpperCase()} — ULTIMA METRICA</div>
+    <div style="font-size:26px;font-weight:700">${d.val} <span style="font-size:14px;color:var(--muted)">${d.unit}</span></div>
+    <svg viewBox="0 0 100 40" preserveAspectRatio="none" style="width:100%;height:60px;margin-top:6px">
+      <path d="${path}" fill="none" stroke="var(--primary)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+    </svg>
+    <div style="margin:16px 0"><span class="k" style="color:var(--muted);font-size:12px;font-weight:600">TAG</span><br>
+      <span class="tag">produzione</span><span class="tag">${d.tipo.toLowerCase()}</span><span class="tag">${d.sito.toLowerCase()}</span><span class="tag">critico</span>
+    </div>
+    <button class="btn" style="width:100%" onclick="sendCmd('${d.id}')">📤 Invia comando</button>
+  `;
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawerBack').classList.add('open');
+}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawerBack').classList.remove('open');}
+function sendCmd(id){alert('Comando inviato a '+id+' (simulato).\nRichiesta accodata sul broker MQTT.');}
+
+/* ---------- TELEMETRY ---------- */
+let currentRange='24h';
+function renderTele(){
+  const mult=currentRange==='1h'?0.6:currentRange==='7g'?1.4:1;
+  document.getElementById('teleGrid').innerHTML=teleWidgets.map((w,i)=>{
+    const spark=Array.from({length:24},()=>w.base+(Math.random()-0.5)*w.range*2*mult);
+    const max=Math.max(...spark),min=Math.min(...spark);
+    const path=spark.map((p,ix)=>{const x=(ix/23)*100;const y=40-((p-min)/((max-min)||1))*32-4;return(ix?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)}).join(' ');
+    return `<div class="card">
+      <div class="kpi-head"><h3 style="margin:0">${w.icon} ${w.name}</h3><span class="live-dot"></span></div>
+      <div class="tele-val" id="tv${i}">${w.base.toFixed(w.unit==='bar'||w.unit==='mm/s'?1:0)} <span style="font-size:14px;color:var(--muted)">${w.unit}</span></div>
+      <svg viewBox="0 0 100 40" preserveAspectRatio="none" style="width:100%;height:55px">
+        <path d="${path}" fill="none" stroke="var(--primary)" stroke-width="1.4" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <small style="color:var(--muted)">Intervallo: ${currentRange}</small>
+    </div>`;
+  }).join('');
+}
+document.querySelectorAll('#rangeTabs button').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('#rangeTabs button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');currentRange=b.dataset.r;renderTele();
+  };
+});
+renderTele();
+setInterval(()=>{
+  teleWidgets.forEach((w,i)=>{
+    const el=document.getElementById('tv'+i);
+    if(el){const v=w.base+(Math.random()-0.5)*w.range;el.innerHTML=v.toFixed(w.unit==='bar'||w.unit==='mm/s'?1:0)+` <span style="font-size:14px;color:var(--muted)">${w.unit}</span>`;}
+  });
+},2500);
+
+/* ---------- ALERTS ---------- */
+function renderAlerts(){
+  document.getElementById('alertBody').innerHTML=alertsData.map((a,i)=>{
+    const sb=a.stato==='Aperto'?'b-red':a.stato==='Ack'?'b-orange':'b-green';
+    let act='';
+    if(a.stato==='Aperto')act=`<button class="btn ghost sm" onclick="ackAlert(${i})">Acknowledge</button> <button class="btn sm" onclick="resolveAlert(${i})">Risolvi</button>`;
+    else if(a.stato==='Ack')act=`<button class="btn sm" onclick="resolveAlert(${i})">Risolvi</button>`;
+    else act=`<span style="color:var(--muted);font-size:12px">—</span>`;
+    return `<tr style="cursor:default">
+      <td><span class="badge ${a.cls}">${a.sev}</span></td>
+      <td><b>${a.dev}</b></td>
+      <td>${a.cond}</td>
+      <td style="color:var(--muted)">${a.tm}</td>
+      <td><span class="badge ${sb}">${a.stato}</span></td>
+      <td>${act}</td>
+    </tr>`;
+  }).join('');
+}
+function ackAlert(i){alertsData[i].stato='Ack';renderAlerts();}
+function resolveAlert(i){alertsData[i].stato='Risolto';renderAlerts();}
+renderAlerts();
+
+function renderRules(){
+  document.getElementById('rulesList').innerHTML=rules.map((r,i)=>`
+   <div class="rule-card">
+     <span style="font-size:20px">📏</span>
+     <div class="txt"><b>${r.t}</b><small>${r.s}</small></div>
+     <span class="badge ${r.on?'b-green':'b-gray'}">${r.on?'Attiva':'Disattiva'}</span>
+     <label class="switch"><input type="checkbox" ${r.on?'checked':''} onchange="toggleRule(${i})"><span class="slider"></span></label>
+   </div>`).join('');
+}
+function toggleRule(i){rules[i].on=!rules[i].on;renderRules();}
+renderRules();
+
+/* ---------- SETTINGS ---------- */
+function applyBrand(){
+  const n=document.getElementById('setName').value||'FlowSense';
+  document.getElementById('brandName').textContent=n;
+}
+function applyColor(c){
+  document.documentElement.style.setProperty('--primary',c);
+  document.getElementById('colVal').textContent=c;
+  // darker
+  document.documentElement.style.setProperty('--primary-dark',shade(c,-20));
+}
+function shade(hex,pct){
+  let n=parseInt(hex.slice(1),16);
+  let r=Math.max(0,Math.min(255,(n>>16)+pct));
+  let g=Math.max(0,Math.min(255,((n>>8)&255)+pct));
+  let b=Math.max(0,Math.min(255,(n&255)+pct));
+  return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
+function loadLogo(e){
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=ev=>{
+    document.getElementById('logoPrev').innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`;
+    document.getElementById('brandLogo').innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:9px">`;
+  };
+  rd.readAsDataURL(f);
+}
+</script>
+</body>
+</html>

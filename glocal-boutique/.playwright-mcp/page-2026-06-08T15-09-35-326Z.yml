@@ -1,0 +1,314 @@
+- generic [active] [ref=e1]:
+  - img [ref=e4]
+  - generic [ref=e17]:
+    - link "Skip to content" [ref=e18] [cursor=pointer]:
+      - /url: "#content"
+    - banner [ref=e19]:
+      - generic [ref=e20]:
+        - generic [ref=e22]:
+          - link " infoglocalboutique@gmail.com" [ref=e23] [cursor=pointer]:
+            - /url: mailto:infoglocalboutique@gmail.com
+            - generic [ref=e24]: 
+            - text: infoglocalboutique@gmail.com
+          - link " +39 39 06 2757259" [ref=e25] [cursor=pointer]:
+            - /url: tel:062757259
+            - generic [ref=e26]: 
+            - text: +39 39 06 2757259
+        - generic [ref=e27]:
+          - list [ref=e30]:
+            - listitem [ref=e31]:
+              - link "Inglese" [ref=e32] [cursor=pointer]:
+                - /url: https://glocalboutique.com/en/
+                - img "Inglese" [ref=e33]
+            - listitem [ref=e34]:
+              - link "Italiano" [ref=e35] [cursor=pointer]:
+                - /url: https://glocalboutique.com/
+                - img "Italiano" [ref=e36]
+          - generic [ref=e37]:
+            - link " Facebook page opens in new window" [ref=e38] [cursor=pointer]:
+              - /url: /
+              - generic [ref=e39]: 
+              - generic [ref=e40]: Facebook page opens in new window
+            - link " Instagram page opens in new window" [ref=e41] [cursor=pointer]:
+              - /url: /
+              - generic [ref=e42]: 
+              - generic [ref=e43]: Instagram page opens in new window
+      - banner [ref=e44]:
+        - generic [ref=e45]:
+          - generic: G'Local Boutique
+          - generic: Un nuovo sito targato WordPress
+          - link "G'Local Boutique" [ref=e46] [cursor=pointer]:
+            - /url: https://glocalboutique.com/
+            - img "G'Local Boutique" [ref=e47]
+          - search [ref=e50]:
+            - generic [ref=e51]: "Search:"
+            - link "" [ref=e52] [cursor=pointer]:
+              - /url: ""
+              - generic [ref=e53]: 
+          - link "" [ref=e57] [cursor=pointer]:
+            - /url: https://glocalboutique.com/carrello/
+            - generic [ref=e58]: 
+        - navigation [ref=e59]:
+          - list [ref=e60]:
+            - listitem [ref=e61]:
+              - link "Home" [ref=e62] [cursor=pointer]:
+                - /url: https://glocalboutique.com/
+                - generic [ref=e64]: Home
+            - listitem [ref=e65]:
+              - link "Shop" [ref=e66] [cursor=pointer]:
+                - /url: https://glocalboutique.com/negozio/
+                - generic [ref=e68]: Shop
+            - listitem [ref=e69]:
+              - link "Bijoux e Gioielli" [ref=e70] [cursor=pointer]:
+                - /url: https://glocalboutique.com/product-category/bijoux-e-gioielli/
+                - generic [ref=e72]: Bijoux e Gioielli
+            - listitem [ref=e73]:
+              - link "Top trend" [ref=e74] [cursor=pointer]:
+                - /url: https://glocalboutique.com/top-trend/
+                - generic [ref=e76]: Top trend
+            - listitem [ref=e77]:
+              - link "Contatti" [ref=e78] [cursor=pointer]:
+                - /url: https://glocalboutique.com/contatti/
+                - generic [ref=e80]: Contatti
+      - text:   
+    - text:   
+    - main [ref=e84]:
+      - generic [ref=e85]:
+        - generic [ref=e100]:
+          - generic [ref=e106]:
+            - img "null" [ref=e111]
+            - generic [ref=e112]:
+              - heading "Pagamenti Sicuri" [level=3] [ref=e114]
+              - generic [ref=e115]: Pagamenti sicuri grazie ai certificati multipli di G’Local Boutique.
+          - generic [ref=e122]:
+            - img "null" [ref=e127]
+            - generic [ref=e128]:
+              - heading "Supporto 24/7" [level=3] [ref=e130]
+              - generic [ref=e131]: Il customer care di G’Local Boutique è vicino ad ogni sua cliente.
+          - generic [ref=e138]:
+            - img "null" [ref=e143]
+            - generic [ref=e144]:
+              - heading "Spedizioni" [level=3] [ref=e146]
+              - generic [ref=e147]: G’Local Boutique spedisce in tutte le zone di Italia e all’estero.
+        - generic [ref=e154]:
+          - link "Image" [ref=e165] [cursor=pointer]:
+            - /url: https://glocalboutique.com/top-trend/
+          - generic [ref=e169]:
+            - generic [ref=e170]:
+              - link "Image" [ref=e177] [cursor=pointer]:
+                - /url: https://glocalboutique.com/product-category/bijoux-e-gioielli/anelli/
+              - link "Image" [ref=e185] [cursor=pointer]:
+                - /url: https://glocalboutique.com/product-category/bijoux-e-gioielli/bracciali/
+            - generic [ref=e188]:
+              - link "Image" [ref=e195] [cursor=pointer]:
+                - /url: https://glocalboutique.com/product-category/bijoux-e-gioielli/bracciali/
+              - link "Image" [ref=e203] [cursor=pointer]:
+                - /url: https://glocalboutique.com/product-category/bijoux-e-gioielli/collane/
+        - generic [ref=e208]:
+          - generic [ref=e215]:
+            - paragraph [ref=e216]: G’Local Boutique
+            - heading "Ultimi arrivi" [level=3] [ref=e217]
+          - paragraph [ref=e225]: Per ogni anello, per ogni collana, c’è un ricordo. I gioielli raccontano le donne.
+          - generic [ref=e228]:
+            - article [ref=e230]:
+              - figure "Anello 168,00 €" [ref=e231]:
+                - link [ref=e233] [cursor=pointer]:
+                  - /url: https://glocalboutique.com/product/anello-64/
+                - generic [ref=e234]:
+                  - heading "Anello" [level=4] [ref=e235]:
+                    - link "Anello" [ref=e236] [cursor=pointer]:
+                      - /url: https://glocalboutique.com/product/anello-64/
+                  - generic [ref=e239]: 168,00 €
+            - article [ref=e241]:
+              - figure "Bracciale 348,00 €" [ref=e242]:
+                - link [ref=e244] [cursor=pointer]:
+                  - /url: https://glocalboutique.com/product/bracciale-25/
+                - generic [ref=e245]:
+                  - heading "Bracciale" [level=4] [ref=e246]:
+                    - link "Bracciale" [ref=e247] [cursor=pointer]:
+                      - /url: https://glocalboutique.com/product/bracciale-25/
+                  - generic [ref=e250]: 348,00 €
+            - article [ref=e252]:
+              - figure "Anello 298,00 €" [ref=e253]:
+                - link [ref=e255] [cursor=pointer]:
+                  - /url: https://glocalboutique.com/product/anello-63/
+                - generic [ref=e256]:
+                  - heading "Anello" [level=4] [ref=e257]:
+                    - link "Anello" [ref=e258] [cursor=pointer]:
+                      - /url: https://glocalboutique.com/product/anello-63/
+                  - generic [ref=e261]: 298,00 €
+            - article [ref=e263]:
+              - figure "Bracciale 278,00 €" [ref=e264]:
+                - link [ref=e266] [cursor=pointer]:
+                  - /url: https://glocalboutique.com/product/bracciale-24/
+                - generic [ref=e267]:
+                  - heading "Bracciale" [level=4] [ref=e268]:
+                    - link "Bracciale" [ref=e269] [cursor=pointer]:
+                      - /url: https://glocalboutique.com/product/bracciale-24/
+                  - generic [ref=e272]: 278,00 €
+            - article [ref=e274]:
+              - figure "Collana 398,00 €" [ref=e275]:
+                - link [ref=e277] [cursor=pointer]:
+                  - /url: https://glocalboutique.com/product/collana-36/
+                - generic [ref=e278]:
+                  - heading "Collana" [level=4] [ref=e279]:
+                    - link "Collana" [ref=e280] [cursor=pointer]:
+                      - /url: https://glocalboutique.com/product/collana-36/
+                  - generic [ref=e283]: 398,00 €
+            - article [ref=e285]:
+              - figure "Collana 349,00 €" [ref=e286]:
+                - link [ref=e288] [cursor=pointer]:
+                  - /url: https://glocalboutique.com/product/collana-35/
+                - generic [ref=e289]:
+                  - heading "Collana" [level=4] [ref=e290]:
+                    - link "Collana" [ref=e291] [cursor=pointer]:
+                      - /url: https://glocalboutique.com/product/collana-35/
+                  - generic [ref=e294]: 349,00 €
+            - article [ref=e296]:
+              - figure "Collana 348,00 €" [ref=e297]:
+                - link [ref=e299] [cursor=pointer]:
+                  - /url: https://glocalboutique.com/product/collana-30/
+                - generic [ref=e300]:
+                  - heading "Collana" [level=4] [ref=e301]:
+                    - link "Collana" [ref=e302] [cursor=pointer]:
+                      - /url: https://glocalboutique.com/product/collana-30/
+                  - generic [ref=e305]: 348,00 €
+            - article [ref=e307]:
+              - figure "Collana 298,00 €" [ref=e308]:
+                - link [ref=e310] [cursor=pointer]:
+                  - /url: https://glocalboutique.com/product/collana-29/
+                - generic [ref=e311]:
+                  - heading "Collana" [level=4] [ref=e312]:
+                    - link "Collana" [ref=e313] [cursor=pointer]:
+                      - /url: https://glocalboutique.com/product/collana-29/
+                  - generic [ref=e316]: 298,00 €
+            - article [ref=e318]:
+              - figure "Collana 348,00 €" [ref=e319]:
+                - link [ref=e321] [cursor=pointer]:
+                  - /url: https://glocalboutique.com/product/collana-28/
+                - generic [ref=e322]:
+                  - heading "Collana" [level=4] [ref=e323]:
+                    - link "Collana" [ref=e324] [cursor=pointer]:
+                      - /url: https://glocalboutique.com/product/collana-28/
+                  - generic [ref=e327]: 348,00 €
+            - article [ref=e329]:
+              - figure "Anello 145,00 €" [ref=e330]:
+                - link [ref=e332] [cursor=pointer]:
+                  - /url: https://glocalboutique.com/product/anello-62/
+                - generic [ref=e333]:
+                  - heading "Anello" [level=4] [ref=e334]:
+                    - link "Anello" [ref=e335] [cursor=pointer]:
+                      - /url: https://glocalboutique.com/product/anello-62/
+                  - generic [ref=e338]: 145,00 €
+            - article [ref=e340]:
+              - figure "Orecchini 168,00 €" [ref=e341]:
+                - link [ref=e343] [cursor=pointer]:
+                  - /url: https://glocalboutique.com/product/orecchini-98/
+                - generic [ref=e344]:
+                  - heading "Orecchini" [level=4] [ref=e345]:
+                    - link "Orecchini" [ref=e346] [cursor=pointer]:
+                      - /url: https://glocalboutique.com/product/orecchini-98/
+                  - generic [ref=e349]: 168,00 €
+            - article [ref=e351]:
+              - figure "Collana 249,00 €" [ref=e352]:
+                - link [ref=e354] [cursor=pointer]:
+                  - /url: https://glocalboutique.com/product/collana-27/
+                - generic [ref=e355]:
+                  - heading "Collana" [level=4] [ref=e356]:
+                    - link "Collana" [ref=e357] [cursor=pointer]:
+                      - /url: https://glocalboutique.com/product/collana-27/
+                  - generic [ref=e360]: 249,00 €
+          - link "Compra ora" [ref=e363] [cursor=pointer]:
+            - /url: https://glocalboutique.com/product-category/brand/dori-csengeri/
+            - button "Compra ora" [ref=e364]:
+              - generic [ref=e366]: Compra ora
+        - generic [ref=e372]:
+          - generic [ref=e375]:
+            - heading "G’Local Boutique" [level=4] [ref=e379]
+            - generic [ref=e381]:
+              - heading "Come acquistare su G’Local?" [level=4] [ref=e382]
+              - paragraph [ref=e383]: Ordinare su G’Local Boutique è facile, sicuro e veloce. Consulta le risposte del nostro Customer Care alle vostre domande.
+            - link "Leggi di più" [ref=e386] [cursor=pointer]:
+              - /url: https://glocalboutique.com/faqs/
+              - button "Leggi di più" [ref=e387]:
+                - generic [ref=e389]: Leggi di più
+          - generic [ref=e393]:
+            - heading "G’Local Boutique" [level=4] [ref=e397]
+            - generic [ref=e399]:
+              - heading "Informazioni spedizioni" [level=4] [ref=e400]
+              - paragraph [ref=e401]: Spedizioni sicure e tracciabili con consegna in 3-5 giorni lavorativi. Consulta i prezzi di sezione della sezione dedicata.
+            - link "Leggi di più" [ref=e404] [cursor=pointer]:
+              - /url: https://glocalboutique.com/faqs/metodi-di-spedizione/
+              - button "Leggi di più" [ref=e405]:
+                - generic [ref=e407]: Leggi di più
+    - contentinfo [ref=e410]:
+      - generic [ref=e413]:
+        - generic [ref=e416]:
+          - generic [ref=e417]: About G’Local
+          - generic [ref=e418]:
+            - paragraph [ref=e419]: infoglocalboutique@gmail.com • +39 06.2757259
+            - paragraph [ref=e420]:
+              - strong [ref=e421]: G’Local di Giancarlo Farris
+              - text: Piazza in Campo Marzio, 8 – 00186 Roma (RM) Italia
+            - paragraph [ref=e422]:
+              - text: P. Iva 12359151003
+              - text: REA RM-1374216
+        - generic [ref=e425]:
+          - generic [ref=e426]: G’Local Info
+          - generic [ref=e427]:
+            - paragraph [ref=e428]:
+              - link "Virtual Shopper Box" [ref=e429] [cursor=pointer]:
+                - /url: https://glocalboutique.com/virtual-shopper-box/
+            - paragraph [ref=e430]:
+              - link "Top Trends" [ref=e431] [cursor=pointer]:
+                - /url: https://glocalboutique.com/top-trend/
+            - paragraph [ref=e432]:
+              - link "Contattaci" [ref=e433] [cursor=pointer]:
+                - /url: https://glocalboutique.com/contatti/
+        - generic [ref=e436]:
+          - generic [ref=e437]: Area Legale
+          - generic [ref=e438]:
+            - paragraph [ref=e439]:
+              - link "Diritto di recesso" [ref=e440] [cursor=pointer]:
+                - /url: https://glocalboutique.com/diritto-di-recesso/
+            - paragraph [ref=e441]:
+              - link "Privacy Policy" [ref=e442] [cursor=pointer]:
+                - /url: "#"
+            - paragraph [ref=e443]:
+              - link "Cookie Policy" [ref=e444] [cursor=pointer]:
+                - /url: "#"
+        - generic [ref=e447]:
+          - generic [ref=e448]: Hai bisogno di aiuto?
+          - generic [ref=e449]:
+            - paragraph [ref=e450]:
+              - link "Restituzione" [ref=e451] [cursor=pointer]:
+                - /url: https://glocalboutique.com/restituzione-prodotti/
+            - paragraph [ref=e452]:
+              - link "Spedizione" [ref=e453] [cursor=pointer]:
+                - /url: https://glocalboutique.com/faqs/metodi-di-spedizione/
+            - paragraph [ref=e454]:
+              - link "Pagamento" [ref=e455] [cursor=pointer]:
+                - /url: https://glocalboutique.com/faqs/metodi-di-pagamento/
+            - paragraph [ref=e456]:
+              - link "FAQ’s" [ref=e457] [cursor=pointer]:
+                - /url: https://glocalboutique.com/faqs/
+        - generic [ref=e460]:
+          - generic [ref=e461]: Infoline
+          - generic [ref=e462]:
+            - paragraph [ref=e463]:
+              - text: Lunedi – Venderdì
+              - text: 09:00 – 20:00
+            - paragraph [ref=e464]:
+              - text: Sabato – Domenica
+              - text: 09:00 – 12:00
+            - paragraph [ref=e465]:
+              - text: Sabato – Domenica
+              - text: 15:00 – 20:00
+      - contentinfo [ref=e466]:
+        - generic [ref=e469]:
+          - text: G'Local Boutique © 2020 All Rights Reserved.
+          - text: Design by Moon Digital | Privacy Policy | Cookie Policy
+    - link "Go to Top" [ref=e470] [cursor=pointer]:
+      - /url: "#"
+      - img [ref=e471]
+      - generic [ref=e473]: Go to Top

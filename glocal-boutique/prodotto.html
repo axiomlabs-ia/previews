@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prodotto - G'Local Boutique</title>
+  <meta name="description" content="Bijoux e gioielli d'autore di G'Local Boutique Roma.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="icon" href="https://glocalboutique.com/wp-content/uploads/2021/06/GLOCAL-logo-45.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="header-slot"></div>
+
+  <section class="product-detail-section">
+    <div class="container">
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb" id="breadcrumb">
+        <a href="index.html">Home</a> /
+        <a href="categorie/bijoux-e-gioielli.html">Bijoux e Gioielli</a> /
+        <span id="bc-cat"></span>
+        <span id="bc-name"></span>
+      </nav>
+
+      <div class="product-detail" id="product-detail">
+        <div class="product-detail-loading">Caricamento prodotto...</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Related products -->
+  <section class="related-products">
+    <div class="container">
+      <h2 class="section-title" style="text-align:center; margin-bottom: 2rem;">Potrebbe piacerti anche</h2>
+      <div id="related-grid" class="product-grid"></div>
+    </div>
+  </section>
+
+  <div id="footer-slot"></div>
+
+  <script src="js/products.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    Components.inject('');
+
+    const productId = new URLSearchParams(window.location.search).get('id');
+    const localProduct = PRODUCTS.find(p => p.id == productId);
+
+    if (!productId || !localProduct) {
+      document.getElementById('product-detail').innerHTML =
+        '<div class="no-products"><p>Prodotto non trovato. <a href="negozio.html" style="color:var(--color-primary)">Torna al negozio</a></p></div>';
+    } else {
+      // Set page title immediately from local data
+      document.title = localProduct.name + ' - G\'Local Boutique';
+
+      // Render with local data first (instant)
+      renderProduct({
+        name: localProduct.name,
+        price: localProduct.price,
+        images: [localProduct.image],
+        cat: localProduct.cat,
+        sub: localProduct.sub,
+        short_description: localProduct.name + ' artigianale',
+        sku: '',
+        description: ''
+      });
+
+      // Then fetch full details from API (gallery, SKU, description)
+      fetch('https://glocalboutique.com/wp-json/wc/store/v1/products/' + productId)
+        .then(r => r.json())
+        .then(data => {
+          const images = (data.images || []).map(img => typeof img === 'string' ? img : img.src);
+          renderProduct({
+            name: data.name || localProduct.name,
+            price: localProduct.price,
+            images: images.length ? images : [localProduct.image],
+            cat: localProduct.cat,
+            sub: localProduct.sub,
+            short_description: data.short_description || '',
+            sku: data.sku || '',
+            description: data.description || '',
+            attributes: data.attributes || []
+          });
+        })
+        .catch(() => {
+          // API failed - local data is already showing, do nothing
+        });
+
+      // Related products
+      const related = PRODUCTS.filter(p => p.cat === localProduct.cat && p.id !== localProduct.id).slice(0, 4);
+      document.getElementById('related-grid').innerHTML = related.map(p => `
+        <div class="product-card">
+          <a href="prodotto.html?id=${p.id}" class="product-link">
+            <div class="product-image"><img src="${p.image}" alt="${p.name}" loading="lazy"></div>
+            <div class="product-info">
+              <h3 class="product-name">${p.name}</h3>
+              <span class="product-price">${Store.formatPrice(p.price)}</span>
+            </div>
+          </a>
+          <a href="prodotto.html?id=${p.id}" class="add-to-cart">Vedi Prodotto</a>
+        </div>
+      `).join('');
+    }
+
+    // Update breadcrumb
+    function updateBreadcrumb(cat) {
+      const catNames = { anelli:'Anelli', bracciali:'Bracciali', collane:'Collane', orecchini:'Orecchini' };
+      const catEl = document.getElementById('bc-cat');
+      if (catNames[cat]) {
+        catEl.innerHTML = '<a href="categorie/' + cat + '.html">' + catNames[cat] + '</a> / ';
+      }
+    }
+
+    function renderProduct(data) {
+      updateBreadcrumb(data.cat);
+      document.getElementById('bc-name').textContent = data.name;
+
+      const mainImg = data.images[0];
+      const thumbs = data.images.length > 1 ? data.images.map((img, i) => `
+        <button class="thumb ${i === 0 ? 'active' : ''}" onclick="changeImage('${img}', this)">
+          <img src="${img}" alt="" loading="lazy">
+        </button>
+      `).join('') : '';
+
+      const descHtml = data.short_description
+        ? '<p class="pd-short-desc">' + stripTags(data.short_description) + '</p>'
+        : '';
+
+      const skuHtml = data.sku
+        ? '<div class="pd-meta-item"><span class="pd-meta-label">COD:</span> ' + data.sku + '</div>'
+        : '';
+
+      const catNames = { anelli:'Anelli', bracciali:'Bracciali', collane:'Collane', orecchini:'Orecchini' };
+      const catLabel = catNames[data.cat] || '';
+      const catHtml = catLabel
+        ? '<div class="pd-meta-item"><span class="pd-meta-label">Categoria:</span> <a href="categorie/' + data.cat + '.html">' + catLabel + '</a>, <a href="categorie/bijoux-e-gioielli.html">Bijoux e Gioielli</a></div>'
+        : '';
+
+      let additionalHtml = '';
+      if (data.description) {
+        additionalHtml = `
+          <div class="pd-additional">
+            <h3>Informazioni aggiuntive</h3>
+            <div class="pd-additional-content">${data.description}</div>
+          </div>`;
+      } else {
+        // Default info for all products
+        additionalHtml = `
+          <div class="pd-additional">
+            <h3>Informazioni aggiuntive</h3>
+            <div class="pd-additional-content">
+              <p>Linea artigianale realizzata a mano in acciaio rodiato ed argento con bagno oro 18kt.<br>
+              Tutta la linea e incastonata con pietre dure, Swarovski, zirconi e quarzi.</p>
+              <ul>
+                <li><strong>Realizzazione:</strong> Fatto a mano</li>
+                <li><strong>Dimensioni:</strong> Taglia unica</li>
+              </ul>
+            </div>
+          </div>`;
+      }
+
+      document.getElementById('product-detail').innerHTML = `
+        <div class="pd-gallery">
+          <div class="pd-main-image">
+            <img src="${mainImg}" alt="${data.name}" id="main-product-img">
+          </div>
+          ${thumbs ? '<div class="pd-thumbs">' + thumbs + '</div>' : ''}
+        </div>
+        <div class="pd-info">
+          <h1 class="pd-title">${data.name}</h1>
+          <div class="pd-price">${Store.formatPrice(data.price)}</div>
+          ${descHtml}
+          <a href="https://glocalboutique.com/?add-to-cart=${productId}" class="pd-add-to-cart" target="_blank" rel="noopener">
+            Aggiungi al Carrello
+          </a>
+          <div class="pd-meta">
+            ${catHtml}
+            ${skuHtml}
+          </div>
+          ${additionalHtml}
+        </div>
+      `;
+    }
+
+    function changeImage(src, btn) {
+      document.getElementById('main-product-img').src = src;
+      document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function stripTags(html) {
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      return div.textContent || div.innerText || '';
+    }
+  </script>
+</body>
+</html>

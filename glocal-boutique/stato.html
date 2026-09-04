@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Stato avanzamento — Glocal Boutique</title>
+<style>
+  :root {
+    --ink: #1a1a1f;
+    --accent: #c8553d;
+    --paper: #f6f4f0;
+    --line: #e4e1db;
+    --muted: #7a7a82;
+    --green: #2e7d57;
+    --green-bg: #e6f1eb;
+    --amber: #b07c1d;
+    --amber-bg: #fbf2dd;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: #faf9f7;
+    line-height: 1.55;
+    padding: 0 20px 60px;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--ink);
+    padding: 28px 0 14px;
+    margin-bottom: 30px;
+  }
+  .brand {
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .brand .dot { color: var(--accent); }
+  .updated {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: right;
+  }
+
+  h1 {
+    font-size: 30px;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+  .lede { color: var(--muted); font-size: 15px; margin-bottom: 28px; }
+
+  /* Overall progress */
+  .overall {
+    background: var(--paper);
+    border-radius: 10px;
+    padding: 22px 24px;
+    margin-bottom: 34px;
+  }
+  .overall-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+  .overall-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .overall-pct { font-size: 26px; font-weight: 800; }
+  .bar {
+    height: 10px;
+    background: #e4e1db;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    width: 12%;
+    background: linear-gradient(90deg, var(--accent), #e08163);
+    border-radius: 999px;
+    transition: width 1s ease;
+  }
+  .phase-now {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .phase-now strong { color: var(--accent); }
+
+  /* Timeline */
+  .timeline { list-style: none; position: relative; }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 17px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: var(--line);
+  }
+  .step {
+    position: relative;
+    padding: 0 0 26px 52px;
+  }
+  .step:last-child { padding-bottom: 0; }
+  .dot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+    background: #fff;
+    border: 2px solid var(--line);
+    color: var(--muted);
+    z-index: 1;
+  }
+  .step.done .dot { background: var(--green); border-color: var(--green); color: #fff; }
+  .step.active .dot { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 0 0 5px rgba(200,85,61,0.15); }
+
+  .step-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+  .step-title { font-size: 16px; font-weight: 700; }
+  .badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 3px 9px;
+    border-radius: 999px;
+  }
+  .badge.done { background: var(--green-bg); color: var(--green); }
+  .badge.active { background: var(--amber-bg); color: var(--amber); }
+  .badge.todo { background: #efeeec; color: var(--muted); }
+  .step-desc { font-size: 13.5px; color: var(--muted); }
+  .step-when { font-size: 12px; color: var(--muted); margin-top: 3px; font-style: italic; }
+
+  footer {
+    margin-top: 44px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .sign { font-weight: 700; color: var(--ink); letter-spacing: 0.05em; }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 24px; }
+    .overall-pct { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="brand">AXIOM<span class="dot">.</span> LABS</span>
+    <span class="updated">Ultimo aggiornamento<br>18 giugno 2026</span>
+  </header>
+
+  <h1>Stato avanzamento progetto</h1>
+  <p class="lede">Glocal Boutique — sito web &amp; gestionale</p>
+
+  <section class="overall">
+    <div class="overall-top">
+      <span class="overall-label">Avanzamento complessivo</span>
+      <span class="overall-pct">10%</span>
+    </div>
+    <div class="bar"><div class="bar-fill" style="width:10%"></div></div>
+    <p class="phase-now">Fase attuale: <strong>Avvio — in attesa dell'acconto per partire</strong></p>
+  </section>
+
+  <ul class="timeline">
+
+    <li class="step active">
+      <div class="dot">0</div>
+      <div class="step-head">
+        <span class="step-title">Avvio</span>
+        <span class="badge active">In corso</span>
+      </div>
+      <p class="step-desc">Conferma e pagamento dell'acconto (750 €). Appena ricevuto, partiamo.</p>
+      <p class="step-when">Al pagamento del primo acconto</p>
+    </li>
+
+    <li class="step">
+      <div class="dot">1</div>
+      <div class="step-head">
+        <span class="step-title">Sito pubblico / frontend</span>
+        <span class="badge todo">Da fare</span>
+      </div>
+      <p class="step-desc">Sviluppo e consegna della vetrina pubblica, poi consolidamento e ok finale.</p>
+      <p class="step-when">Entro 4 settimane dall'acconto</p>
+    </li>
+
+    <li class="step">
+      <div class="dot">2</div>
+      <div class="step-head">
+        <span class="step-title">Definizione del gestionale</span>
+        <span class="badge todo">Da fare</span>
+      </div>
+      <p class="step-desc">Raccogliamo le funzionalità desiderate: contabilità, caricamento prodotti, ordini/magazzino…</p>
+      <p class="step-when">Dopo l'ok sul frontend</p>
+    </li>
+
+    <li class="step">
+      <div class="dot">3</div>
+      <div class="step-head">
+        <span class="step-title">Sviluppo del gestionale / backend</span>
+        <span class="badge todo">Da fare</span>
+      </div>
+      <p class="step-desc">Costruzione del pannello di gestione con cui amministrerai il negozio.</p>
+      <p class="step-when">A seguire</p>
+    </li>
+
+    <li class="step">
+      <div class="dot">4</div>
+      <div class="step-head">
+        <span class="step-title">Test e consegna finale</span>
+        <span class="badge todo">Da fare</span>
+      </div>
+      <p class="step-desc">Periodo di test, saldo (750 €) e consegna di tutte le chiavi di accesso.</p>
+      <p class="step-when">Obiettivo: inizio agosto</p>
+    </li>
+
+  </ul>
+
+  <footer>
+    <span>Questa pagina viene aggiornata man mano che il progetto avanza.</span>
+    <span class="sign">— AXIOM LABS</span>
+  </footer>
+
+</div>
+</body>
+</html>

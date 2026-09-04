@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>brainVault — Knowledge Hub R&D · Brain Technologies</title>
+<style>
+:root{
+--bg:#0d1120;--surface:#151b30;--surface2:#1c2340;--border:#28304f;
+--txt:#e8ecf7;--muted:#8b95b5;--accent:#6c8cff;--accent2:#9b6cff;
+--green:#37d67a;--yellow:#f5c344;--red:#ff5c72;--aqua:#4dd4c4;--orange:#ff8a5c;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5}
+.app{display:flex;min-height:100vh}
+/* Sidebar */
+.sidebar{width:230px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100;transition:.25s}
+.brand{padding:18px 18px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff}
+.brand h1{font-size:16px;font-weight:700}
+.brand span{font-size:11px;color:var(--muted)}
+.nav{padding:12px 10px;flex:1}
+.nav a{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:9px;color:var(--muted);text-decoration:none;font-weight:500;margin-bottom:3px;cursor:pointer}
+.nav a:hover{background:var(--surface2);color:var(--txt)}
+.nav a.active{background:linear-gradient(90deg,rgba(108,140,255,.22),rgba(155,108,255,.12));color:var(--txt)}
+.nav .ic{font-size:17px;width:20px;text-align:center}
+.cust{padding:14px 16px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+.cust b{color:var(--txt);display:block;font-size:13px}
+/* Main */
+.main{margin-left:230px;flex:1;min-width:0}
+.topbar{height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border);background:rgba(21,27,48,.7);position:sticky;top:0;z-index:50;backdrop-filter:blur(8px)}
+.topbar h2{font-size:18px}
+.badges{display:flex;gap:9px;align-items:center}
+.demo-badge{background:linear-gradient(135deg,var(--accent),var(--accent2));padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.5px}
+.demo-note{font-size:11px;color:var(--muted)}
+.burger{display:none;background:none;border:none;color:var(--txt);font-size:22px;cursor:pointer}
+.view{padding:24px;display:none}
+.view.active{display:block}
+/* GRAPH */
+#view-graph{padding:0;display:none}
+#view-graph.active{display:block}
+.graph-wrap{position:relative;height:calc(100vh - 60px);overflow:hidden;
+background:radial-gradient(1200px 800px at 50% 42%,rgba(108,140,255,.10),transparent 60%),
+radial-gradient(900px 600px at 80% 90%,rgba(155,108,255,.08),transparent 60%);}
+#graph{display:block;width:100%;height:100%;cursor:grab}
+#graph.grabbing{cursor:grabbing}
+.g-hero{position:absolute;top:22px;left:26px;max-width:340px;pointer-events:none;z-index:3}
+.g-hero h3{font-size:22px;margin-bottom:4px}
+.g-hero p{color:var(--muted);font-size:13px}
+.legend{position:absolute;bottom:20px;left:26px;display:flex;flex-wrap:wrap;gap:8px 14px;max-width:60%;z-index:3}
+.legend .lg{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
+.legend .dot{width:10px;height:10px;border-radius:50%}
+.g-hint{position:absolute;bottom:20px;right:26px;font-size:12px;color:var(--muted);z-index:3;text-align:right}
+.g-live{position:absolute;top:22px;right:26px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);
+background:rgba(21,27,48,.7);border:1px solid var(--border);padding:7px 13px;border-radius:20px;z-index:3}
+.g-live .pulse{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(55,214,122,.6);animation:pulse 1.8s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(55,214,122,.55)}70%{box-shadow:0 0 0 8px rgba(55,214,122,0)}100%{box-shadow:0 0 0 0 rgba(55,214,122,0)}}
+/* Ask */
+.ask-wrap{display:flex;gap:24px;flex-wrap:wrap}
+.ask-main{flex:1;min-width:300px}
+.ask-hero{text-align:center;padding:26px 0 10px}
+.ask-hero h3{font-size:26px;margin-bottom:6px}
+.ask-hero p{color:var(--muted)}
+.searchbar{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:6px 6px 6px 18px;margin:22px 0 16px;box-shadow:0 4px 24px rgba(0,0,0,.25)}
+.searchbar input{flex:1;background:none;border:none;color:var(--txt);font-size:16px;outline:none}
+.searchbar button{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;padding:0 22px;border-radius:10px;font-weight:600;cursor:pointer;font-size:15px}
+.chips{display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+.chip{background:var(--surface2);border:1px solid var(--border);padding:8px 14px;border-radius:20px;font-size:13px;cursor:pointer;color:var(--muted)}
+.chip:hover{border-color:var(--accent);color:var(--txt)}
+.answer{margin-top:24px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;display:none}
+.answer.show{display:block;animation:fade .4s}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.ai-head{display:flex;align-items:center;gap:9px;margin-bottom:14px;font-weight:600}
+.ai-head .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.answer p{margin-bottom:12px}
+.answer .ref{color:var(--accent);font-weight:700;cursor:pointer}
+.sources-title{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:18px 0 10px}
+.src-card{display:flex;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:9px;cursor:pointer}
+.src-card:hover{border-color:var(--accent)}
+.src-num{width:26px;height:26px;flex:none;border-radius:7px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+.src-card b{font-size:13px}
+.src-card small{color:var(--muted)}
+.recent{width:250px;flex:none}
+.recent h4{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:12px}
+.recent .r-item{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px 13px;margin-bottom:8px;font-size:13px;cursor:pointer;color:var(--muted)}
+.recent .r-item:hover{color:var(--txt);border-color:var(--accent)}
+/* Filters + table */
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.filters select,.filters input{background:var(--surface);border:1px solid var(--border);color:var(--txt);padding:9px 12px;border-radius:9px;font-size:13px;outline:none}
+.filters input{flex:1;min-width:180px}
+table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:12px;overflow:hidden}
+th,td{text-align:left;padding:13px 14px;font-size:13px;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;background:var(--surface2)}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--surface2)}
+.tag{display:inline-block;background:var(--surface2);border:1px solid var(--border);padding:2px 8px;border-radius:12px;font-size:11px;margin:1px 2px;color:var(--muted)}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600}
+.status::before{content:'';width:8px;height:8px;border-radius:50%}
+.st-ok{color:var(--green)}.st-ok::before{background:var(--green)}
+.st-wait{color:var(--yellow)}.st-wait::before{background:var(--yellow)}
+.st-err{color:var(--red)}.st-err::before{background:var(--red)}
+/* Drawer */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none}
+.overlay.show{display:block}
+.drawer{position:fixed;top:0;right:-580px;width:560px;max-width:94vw;height:100vh;background:var(--surface);border-left:1px solid var(--border);z-index:201;transition:.3s;overflow-y:auto;padding:26px}
+.drawer.show{right:0}
+.drawer .close{position:absolute;top:18px;right:20px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer}
+.drawer h3{font-size:20px;margin-bottom:6px;padding-right:30px}
+.d-head{display:flex;gap:14px;align-items:center;margin-bottom:6px;padding-right:30px}
+.d-ic{width:52px;height:52px;flex:none;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:26px}
+.d-head h3{margin:0;padding:0}
+.d-tag{color:var(--muted);font-size:13px}
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0;font-size:13px}
+.meta-grid>div{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 13px}
+.meta-grid .mv{font-size:20px;font-weight:700}
+.meta-grid span{color:var(--muted);display:block;font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
+.dsec{margin-top:22px}
+.dsec h5{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px}
+.dsec p{font-size:13px;color:#c3cae0;margin-bottom:8px}
+.chunk{background:var(--surface2);border-left:3px solid var(--accent);padding:10px 13px;border-radius:6px;margin-bottom:8px;font-size:13px;color:#c3cae0}
+.qrel{background:var(--surface2);border:1px solid var(--border);padding:9px 12px;border-radius:8px;margin-bottom:7px;font-size:13px;color:var(--muted)}
+.proj{display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:8px;cursor:pointer}
+.proj:hover{border-color:var(--accent)}
+.proj .pbar{flex:1;height:6px;background:#0d1120;border-radius:4px;overflow:hidden;margin:0 4px}
+.proj .pbar i{display:block;height:100%;border-radius:4px}
+.proj .ppct{font-size:12px;color:var(--muted);width:34px;text-align:right}
+.member{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border)}
+.avatar{width:38px;height:38px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#0d1120}
+.member .mn{font-size:14px;font-weight:600}
+.member .mr{font-size:12px;color:var(--muted)}
+.member .mw{font-size:12px;color:#c3cae0;margin-top:2px}
+.feed{position:relative;padding-left:20px}
+.feed::before{content:'';position:absolute;left:5px;top:4px;bottom:4px;width:2px;background:var(--border)}
+.fitem{position:relative;padding:0 0 15px 0;font-size:13px}
+.fitem::before{content:'';position:absolute;left:-18px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--surface)}
+.fitem .ft{color:var(--muted);font-size:11px}
+.fitem .fd{color:#c3cae0;margin-top:1px}
+.fitem .fw{color:var(--txt);font-weight:600}
+.mini-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);margin-left:4px}
+.btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;padding:11px 18px;border-radius:10px;font-weight:600;cursor:pointer;font-size:14px;margin-top:20px;width:100%}
+.btn.sm{width:auto;padding:8px 14px;margin-top:0;font-size:13px}
+.btn.ghost{background:var(--surface2);border:1px solid var(--border);color:var(--txt)}
+/* Collections */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:18px}
+.card .c-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.c-ic{width:44px;height:44px;border-radius:11px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:22px}
+.card h4{font-size:15px}
+.c-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);color:var(--muted)}
+.c-row b{color:var(--txt)}
+/* Analytics */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:18px}
+.kpi .v{font-size:28px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.kpi .l{color:var(--muted);font-size:12px;margin-top:4px}
+.anrow{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:20px}
+.panel h4{font-size:14px;margin-bottom:16px}
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:13px;font-size:13px}
+.bar-row .lab{width:120px;color:var(--muted)}
+.bar-track{flex:1;background:var(--surface2);border-radius:6px;height:20px;overflow:hidden}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:6px}
+.bar-row .num{width:32px;text-align:right;font-weight:600}
+.list-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.list-item .cnt{color:var(--accent);font-weight:600}
+@media(max-width:860px){
+.sidebar{left:-230px}.sidebar.open{left:0}.main{margin-left:0}
+.burger{display:block}.anrow{grid-template-columns:1fr}.recent{width:100%}
+.g-hero{max-width:60%}.legend{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo">b</div>
+      <div><h1>brainVault</h1><span>Knowledge Hub R&D</span></div>
+    </div>
+    <nav class="nav">
+      <a class="active" data-view="graph"><span class="ic">🌐</span>Panoramica</a>
+      <a data-view="ask"><span class="ic">🔍</span>Ask</a>
+      <a data-view="docs"><span class="ic">📄</span>Documenti</a>
+      <a data-view="coll"><span class="ic">🗂️</span>Collezioni & Fonti</a>
+      <a data-view="ana"><span class="ic">📊</span>Analytics</a>
+    </nav>
+    <div class="cust">
+      <b>Brain Technologies</b>
+      Ricerca & Sviluppo
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="burger" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <h2 id="pageTitle">Panoramica</h2>
+      </div>
+      <div class="badges">
+        <span class="demo-note">Dati di esempio</span>
+        <span class="demo-badge">DEMO</span>
+      </div>
+    </div>
+
+    <!-- S0 GRAPH -->
+    <section class="view active" id="view-graph">
+      <div class="graph-wrap">
+        <canvas id="graph"></canvas>
+        <div class="g-hero">
+          <h3>Il cervello dell'azienda</h3>
+          <p>Ogni divisione, progetto e documento in un'unica mappa viva. Clicca un nodo per entrare.</p>
+        </div>
+        <div class="g-live"><span class="pulse"></span>14 caricamenti oggi · 6 divisioni · 18 progetti attivi</div>
+        <div class="legend" id="legend"></div>
+        <div class="g-hint">Trascina i nodi · passa il mouse per evidenziare · clicca per aprire</div>
+      </div>
+    </section>
+
+    <!-- S1 ASK -->
+    <section class="view" id="view-ask">
+      <div class="ask-wrap">
+        <div class="ask-main">
+          <div class="ask-hero">
+            <h3>Interroga la knowledge base R&D</h3>
+            <p>Domande in linguaggio naturale, risposte con fonti citate.</p>
+          </div>
+          <div class="searchbar">
+            <input id="askInput" placeholder="Chiedi qualcosa alla knowledge base…">
+            <button onclick="doAsk()">Chiedi</button>
+          </div>
+          <div class="chips">
+            <div class="chip" onclick="askChip(this)">Qual è il margine di vibrazione del payload dopo la campagna AIT?</div>
+            <div class="chip" onclick="askChip(this)">LiDAR o camera per la percezione nella guida autonoma?</div>
+            <div class="chip" onclick="askChip(this)">Stato della simulazione termica sul pacco batteria 800V</div>
+            <div class="chip" onclick="askChip(this)">Riepilogo predictive maintenance cuscinetti turbina</div>
+          </div>
+          <div class="answer" id="answerBox"></div>
+        </div>
+        <div class="recent">
+          <h4>Ricerche recenti</h4>
+          <div class="r-item" onclick="quickAsk('Qual è il margine di vibrazione del payload dopo la campagna AIT?')">Vibrazioni payload AIT</div>
+          <div class="r-item" onclick="quickAsk('LiDAR o camera per la percezione nella guida autonoma?')">Percezione guida autonoma</div>
+          <div class="r-item" onclick="quickAsk('Stato della simulazione termica sul pacco batteria 800V')">Termica batteria 800V</div>
+          <div class="r-item" onclick="quickAsk('Riepilogo predictive maintenance cuscinetti turbina')">Predictive maintenance turbina</div>
+          <div class="r-item" onclick="quickAsk('Pipeline processing SAR osservazione terrestre')">Processing SAR</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- S2 DOCS -->
+    <section class="view" id="view-docs">
+      <div class="filters">
+        <input id="docSearch" placeholder="🔎 Ricerca full-text nei documenti…" oninput="filterDocs()">
+        <select id="fType" onchange="filterDocs()"><option value="">Tutti i tipi</option><option>Report</option><option>Protocollo</option><option>Dataset+Report</option><option>Brevetto</option><option>Nota</option><option>Documento</option><option>Log</option></select>
+        <select id="fStatus" onchange="filterDocs()"><option value="">Ogni stato</option><option>Indicizzato</option><option>In elaborazione</option><option>Errore</option></select>
+      </div>
+      <table>
+        <thead><tr><th>Titolo</th><th>Tipo</th><th>Autore</th><th>Data</th><th>Tag</th><th>Stato</th></tr></thead>
+        <tbody id="docBody"></tbody>
+      </table>
+    </section>
+
+    <!-- S3 COLLECTIONS -->
+    <section class="view" id="view-coll">
+      <div class="grid" id="collGrid"></div>
+    </section>
+
+    <!-- S4 ANALYTICS -->
+    <section class="view" id="view-ana">
+      <div class="kpis">
+        <div class="kpi"><div class="v">2.380</div><div class="l">Documenti indicizzati</div></div>
+        <div class="kpi"><div class="v">1.147</div><div class="l">Domande questo mese</div></div>
+        <div class="kpi"><div class="v">1,8s</div><div class="l">Tempo medio risposta</div></div>
+        <div class="kpi"><div class="v">94%</div><div class="l">Risposte con fonti</div></div>
+      </div>
+      <div class="anrow">
+        <div class="panel">
+          <h4>Domande per divisione</h4>
+          <div class="bar-row"><div class="lab">Data Eng. & AI</div><div class="bar-track"><div class="bar-fill" style="width:92%"></div></div><div class="num">412</div></div>
+          <div class="bar-row"><div class="lab">Aerospace & Def.</div><div class="bar-track"><div class="bar-fill" style="width:74%"></div></div><div class="num">331</div></div>
+          <div class="bar-row"><div class="lab">Mechatronics</div><div class="bar-track"><div class="bar-fill" style="width:56%"></div></div><div class="num">248</div></div>
+          <div class="bar-row"><div class="lab">Space & EO</div><div class="bar-track"><div class="bar-fill" style="width:34%"></div></div><div class="num">151</div></div>
+          <div class="bar-row"><div class="lab">Industry 4.0</div><div class="bar-track"><div class="bar-fill" style="width:19%"></div></div><div class="num">84</div></div>
+        </div>
+        <div class="panel">
+          <h4>Domande più frequenti</h4>
+          <div class="list-item"><span>Margine vibrazioni payload</span><span class="cnt">87</span></div>
+          <div class="list-item"><span>LiDAR vs camera percezione</span><span class="cnt">64</span></div>
+          <div class="list-item"><span>Termica pacco batteria 800V</span><span class="cnt">51</span></div>
+          <div class="list-item"><span>Predictive maintenance turbina</span><span class="cnt">43</span></div>
+          <div class="list-item"><span>Processing SAR osservazione</span><span class="cnt">39</span></div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:16px">
+        <h4>Documenti più citati</h4>
+        <div class="list-item"><span>Analisi vibrazioni payload satellitare — campagna AIT</span><span class="cnt">142 citazioni</span></div>
+        <div class="list-item"><span>Brevetto EP4123XXX — Attuatore mecatronico a bassa isteresi</span><span class="cnt">98 citazioni</span></div>
+        <div class="list-item"><span>Simulazione termica pacco batteria 800V</span><span class="cnt">76 citazioni</span></div>
+        <div class="list-item"><span>Benchmark percezione guida autonoma (LiDAR vs Camera)</span><span class="cnt">61 citazioni</span></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer"></div>
+
+<script>
+/* ============ DATA ============ */
+const docs=[
+{t:"Analisi vibrazioni payload satellitare — campagna AIT",tp:"Report",a:"M. Ferrari",d:"2025-01-18",tags:["aerospace","AIT","payload"],st:"Indicizzato",abs:"Caratterizzazione delle vibrazioni sul payload satellitare durante la campagna AIT. Margine di sicurezza 1,8× rispetto ai livelli qualifica; picchi in banda 80–120 Hz sotto soglia."},
+{t:"Protocollo test propulsione — banco prova rev.4",tp:"Protocollo",a:"S. Rinaldi",d:"2024-11-30",tags:["propulsione","test"],st:"Indicizzato",abs:"Procedura standardizzata per le prove di propulsione al banco: accensione, ramp-up di spinta, gestione anomalie e criteri di validità del dato."},
+{t:"Report campagna termovuoto — satellite EO",tp:"Dataset+Report",a:"L. Conti",d:"2025-01-09",tags:["space","termovuoto","EO"],st:"Indicizzato",abs:"Dataset e analisi della campagna termovuoto sul satellite di osservazione terrestre. Cicli termici nominali superati; deriva sensori entro tolleranza."},
+{t:"Brevetto EP4123XXX — Attuatore mecatronico a bassa isteresi",tp:"Brevetto",a:"Legal/R&D",d:"2023-06-05",tags:["brevetti","mechatronics"],st:"Indicizzato",abs:"Architettura di riferimento per un attuatore mecatronico a bassa isteresi con anello di controllo ottimizzato a livello hardware."},
+{t:"Meeting notes — Roadmap Digital Twin linea 2 Q1",tp:"Nota",a:"A. Marino",d:"2025-02-03",tags:["industry40","digital-twin"],st:"In elaborazione",abs:"Note di roadmap: gemello digitale della linea 2, integrazione telemetria IoT in tempo reale, target riduzione fermi macchina del 15%."},
+{t:"Benchmark percezione guida autonoma (LiDAR vs Camera)",tp:"Report",a:"E. Greco",d:"2024-12-20",tags:["mechatronics","percezione"],st:"Indicizzato",abs:"Confronto tra sensori LiDAR e camere per la percezione. Il LiDAR offre +9% robustezza in bassa luminosità, la camera è più densa in classificazione a corto raggio."},
+{t:"Simulazione termica pacco batteria 800V",tp:"Dataset+Report",a:"D. Russo",d:"2025-01-24",tags:["energy","batteria"],st:"Indicizzato",abs:"Simulazione termica del pacco batteria 800V in scarica rapida. Gradiente 6,2 °C tra celle centrali e periferiche; raffreddamento a piastra entro spec."},
+{t:"Modello predictive maintenance — cuscinetti turbina",tp:"Report",a:"C. Fontana",d:"2024-12-11",tags:["data-ai","manutenzione"],st:"Indicizzato",abs:"Modello di manutenzione predittiva sui cuscinetti turbina. Preavviso guasto medio 340 h con precisione 91% su segnale di vibrazione e temperatura."},
+{t:"Pipeline processing SAR — osservazione terrestre",tp:"Documento",a:"G. Esposito",d:"2024-10-28",tags:["space","SAR"],st:"Indicizzato",abs:"Architettura della pipeline di processing dei dati SAR: focalizzazione, calibrazione radiometrica e generazione prodotti di livello 1 e 2."},
+{t:"Log calibrazione sensori banco #2 — gennaio",tp:"Log",a:"Lab #2",d:"2025-01-31",tags:["calibrazione"],st:"Errore",abs:"Log automatico delle calibrazioni sensori. Errore di indicizzazione: formato file non riconosciuto dal parser."}
+];
+const stClass={"Indicizzato":"st-ok","In elaborazione":"st-wait","Errore":"st-err"};
+
+/* Divisioni: cuore della Panoramica */
+const DIV={
+ aero:{label:"Aerospace & Defence",icon:"🛰️",color:"#6c8cff",tag:"Sistemi aerospaziali, difesa e AIT",docn:642,
+  projects:[{id:"aero-1",label:"AIT Payload EO-Sat",st:"On track",prog:78},{id:"aero-2",label:"Banco prova propulsione",st:"On track",prog:64},{id:"aero-3",label:"Avionica UAV",st:"At risk",prog:41},{id:"aero-4",label:"Struttura primaria",st:"On track",prog:57}],
+  team:[{n:"M. Ferrari",r:"Structural Engineer",w:"Analisi vibrazioni payload"},{n:"S. Rinaldi",r:"Propulsion Engineer",w:"Test banco prova propulsione"},{n:"P. Neri",r:"AIT Lead",w:"Integrazione satellite EO"}],
+  today:[{t:"09:12",who:"M. Ferrari",fd:"Report vibrazioni payload rev.2",tp:"Report"},{t:"11:40",who:"S. Rinaldi",fd:"Log banco prova propulsione #218",tp:"Log"},{t:"14:05",who:"P. Neri",fd:"Checklist AIT termovuoto",tp:"Protocollo"}]},
+ space:{label:"Space & Earth Observation",icon:"🌍",color:"#4dd4c4",tag:"Osservazione terrestre e ground segment",docn:318,
+  projects:[{id:"space-1",label:"SAR Processing",st:"On track",prog:70},{id:"space-2",label:"Ground Segment AIT",st:"On track",prog:55},{id:"space-3",label:"Payload ottico",st:"At risk",prog:33}],
+  team:[{n:"L. Conti",r:"Signal Engineer",w:"Campagna termovuoto satellite EO"},{n:"G. Esposito",r:"Data Engineer",w:"Pipeline processing SAR"}],
+  today:[{t:"10:03",who:"L. Conti",fd:"Dataset campagna termovuoto EO",tp:"Dataset+Report"},{t:"15:22",who:"G. Esposito",fd:"Pipeline SAR — note rev.7",tp:"Documento"}]},
+ mecha:{label:"Mechatronics",icon:"⚙️",color:"#9b6cff",tag:"Attuazione, controllo e guida autonoma",docn:521,
+  projects:[{id:"mecha-1",label:"Guida autonoma",st:"On track",prog:66},{id:"mecha-2",label:"Attuatore low-isteresi",st:"On track",prog:82},{id:"mecha-3",label:"Control rig",st:"At risk",prog:38}],
+  team:[{n:"E. Greco",r:"Perception Engineer",w:"Benchmark LiDAR vs camera"},{n:"F. Bianchi",r:"Control Engineer",w:"Algoritmi controllo MPC"},{n:"V. Colombo",r:"Mechanical Design",w:"CAD attuatore mecatronico"}],
+  today:[{t:"08:50",who:"E. Greco",fd:"Benchmark percezione LiDAR/Camera",tp:"Report"},{t:"12:15",who:"F. Bianchi",fd:"Modello controllo MPC v3",tp:"Nota"},{t:"16:30",who:"V. Colombo",fd:"CAD attuatore rev.5",tp:"Documento"}]},
+ data:{label:"Data Engineering & AI",icon:"🤖",color:"#37d67a",tag:"Modelli predittivi e data pipeline",docn:489,
+  projects:[{id:"data-1",label:"Predictive Maintenance",st:"On track",prog:73},{id:"data-2",label:"MLOps pipeline",st:"On track",prog:58},{id:"data-3",label:"Anomaly detection",st:"On track",prog:48}],
+  team:[{n:"C. Fontana",r:"ML Engineer",w:"Modello predictive maintenance"},{n:"R. Gallo",r:"Data Engineer",w:"Feature store & ingestion"}],
+  today:[{t:"09:45",who:"C. Fontana",fd:"Modello PdM cuscinetti — training log",tp:"Log"},{t:"13:10",who:"R. Gallo",fd:"Feature store schema v2",tp:"Documento"}]},
+ climate:{label:"Climate, Energy & Mobility",icon:"🔋",color:"#f5c344",tag:"Powertrain, batterie ed e-mobility",docn:203,
+  projects:[{id:"climate-1",label:"Battery thermal",st:"On track",prog:69},{id:"climate-2",label:"E-powertrain",st:"At risk",prog:44},{id:"climate-3",label:"BMS firmware",st:"On track",prog:60}],
+  team:[{n:"D. Russo",r:"Thermal Engineer",w:"Simulazione termica batteria 800V"},{n:"A. Marino",r:"Systems Engineer",w:"Efficienza powertrain"}],
+  today:[{t:"10:30",who:"D. Russo",fd:"Simulazione termica pacco 800V",tp:"Dataset+Report"},{t:"14:50",who:"A. Marino",fd:"Report efficienza powertrain",tp:"Report"}]},
+ ind:{label:"Industry 4.0",icon:"🏭",color:"#ff8a5c",tag:"Digital twin, IoT e robotica collaborativa",docn:207,
+  projects:[{id:"ind-1",label:"Digital Twin linea 2",st:"On track",prog:52},{id:"ind-2",label:"IoT Gateway",st:"On track",prog:61},{id:"ind-3",label:"Cobot cell",st:"At risk",prog:35}],
+  team:[{n:"A. Marino",r:"Systems Engineer",w:"Gemello digitale linea 2"},{n:"R. Gallo",r:"Data Engineer",w:"Ingestion telemetria IoT"}],
+  today:[{t:"08:20",who:"A. Marino",fd:"Roadmap Digital Twin linea 2",tp:"Nota"},{t:"11:05",who:"R. Gallo",fd:"IoT gateway telemetry schema",tp:"Documento"}]}
+};
+const stColor={"On track":"var(--green)","At risk":"var(--yellow)","Blocked":"var(--red)"};
+
+/* ============ GRAPH ENGINE (canvas, no libs) ============ */
+const cv=document.getElementById('graph');
+const ctx=cv.getContext('2d');
+let W=0,H=0,DPR=1;
+const N=[],L=[],byId={};
+const LEAF_POOL=["Report","Dataset","Test log","CAD","Sim","Nota","Firmware","Telemetria","Analisi","Protocollo","Brevetto","Mesh"];
+function addNode(o){N.push(o);byId[o.id]=o;}
+addNode({id:'core',label:'brain Technologies',kind:'core',color:'#8aa2ff',r:32});
+Object.entries(DIV).forEach(([id,d])=>{
+  addNode({id,label:d.label,kind:'div',color:d.color,r:21,icon:d.icon});
+  L.push({s:'core',t:id});
+  d.projects.forEach(p=>{
+    addNode({id:p.id,label:p.label,kind:'proj',color:d.color,r:9,div:id});L.push({s:id,t:p.id});
+    const k=2+(p.label.length%3); // 2–4 artefatti per progetto
+    for(let j=0;j<k;j++){const lid=p.id+'-l'+j;
+      addNode({id:lid,label:LEAF_POOL[(p.label.length+j*4)%LEAF_POOL.length],kind:'leaf',color:d.color,r:4.5,parent:p.id});
+      L.push({s:p.id,t:lid,leaf:true});}
+  });
+});
+[['data','ind'],['data','aero'],['space','aero'],['mecha','climate'],['aero','mecha'],['data','space'],['climate','ind']].forEach(([a,b])=>L.push({s:a,t:b,cross:true}));
+// adjacency for hover highlight
+const adj={};N.forEach(n=>adj[n.id]=new Set());
+L.forEach(l=>{adj[l.s].add(l.t);adj[l.t].add(l.s);});
+
+function seedPositions(){
+  const cx=W/2,cy=H/2;
+  byId.core.x=cx;byId.core.y=cy;byId.core.vx=0;byId.core.vy=0;
+  const divs=Object.keys(DIV);
+  divs.forEach((id,i)=>{
+    const ang=(i/divs.length)*Math.PI*2-Math.PI/2;
+    const R=Math.min(W,H)*0.26;
+    const n=byId[id];n.x=cx+Math.cos(ang)*R;n.y=cy+Math.sin(ang)*R;n.vx=0;n.vy=0;
+    DIV[id].projects.forEach((p,j)=>{
+      const pn=byId[p.id];const a2=ang+(j-(DIV[id].projects.length-1)/2)*0.5;
+      const R2=R+100;pn.x=cx+Math.cos(a2)*R2;pn.y=cy+Math.sin(a2)*R2;pn.vx=0;pn.vy=0;
+      const leaves=N.filter(x=>x.parent===p.id);
+      leaves.forEach((lf,li)=>{const la=a2+(li-(leaves.length-1)/2)*0.42;const R3=R2+62;
+        lf.x=cx+Math.cos(la)*R3;lf.y=cy+Math.sin(la)*R3;lf.vx=0;lf.vy=0;});
+    });
+  });
+}
+function resize(){
+  const rect=cv.getBoundingClientRect();DPR=window.devicePixelRatio||1;
+  W=rect.width;H=rect.height;cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
+  if(!byId.core.x)seedPositions();
+}
+function restLen(l){if(l.leaf)return 46;if(l.cross)return 240;if(l.s==='core'||l.t==='core')return Math.min(W,H)*0.26;return 96;}
+function step(){
+  const cx=W/2,cy=H/2;
+  for(let i=0;i<N.length;i++){const a=N[i];if(a.fx!=null)continue;
+    for(let j=i+1;j<N.length;j++){const b=N[j];
+      let dx=a.x-b.x,dy=a.y-b.y,d2=dx*dx+dy*dy||0.01,d=Math.sqrt(d2);
+      const f=(a.r+b.r)*140/d2;const ux=dx/d,uy=dy/d;
+      a.vx+=ux*f;a.vy+=uy*f;if(b.fx==null){b.vx-=ux*f;b.vy-=uy*f;}
+    }
+  }
+  L.forEach(l=>{const a=byId[l.s],b=byId[l.t];
+    let dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy)||0.01;
+    const k=(d-restLen(l))*0.015;const ux=dx/d,uy=dy/d;
+    if(a.fx==null){a.vx+=ux*k;a.vy+=uy*k;}if(b.fx==null){b.vx-=ux*k;b.vy-=uy*k;}
+  });
+  N.forEach(n=>{if(n.fx!=null){n.x=n.fx;n.y=n.fy;return;}
+    n.vx+=(cx-n.x)*0.0016;n.vy+=(cy-n.y)*0.0016;
+    n.vx*=0.86;n.vy*=0.86;n.x+=n.vx;n.y+=n.vy;
+    n.x=Math.max(n.r+10,Math.min(W-n.r-10,n.x));n.y=Math.max(n.r+10,Math.min(H-n.r-10,n.y));
+  });
+}
+let hoverId=null,t=0;
+function draw(){
+  t+=0.016;ctx.clearRect(0,0,W,H);
+  const hl=hoverId?new Set([hoverId,...adj[hoverId]]):null;
+  // links
+  L.forEach(l=>{const a=byId[l.s],b=byId[l.t];
+    const on=!hl||(hl.has(l.s)&&hl.has(l.t));
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+    const g=ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+    g.addColorStop(0,a.color);g.addColorStop(1,b.color);
+    ctx.strokeStyle=g;ctx.globalAlpha=on?(l.cross?0.26:(l.leaf?0.34:0.5)):0.05;
+    ctx.lineWidth=l.cross?1:(l.leaf?0.9:1.6);ctx.stroke();ctx.globalAlpha=1;
+    // flowing particle
+    if(on&&!l.cross&&!l.leaf){const ph=((t*0.35)+(a.x+a.y)*0.001)%1;
+      const px=a.x+(b.x-a.x)*ph,py=a.y+(b.y-a.y)*ph;
+      ctx.beginPath();ctx.arc(px,py,2,0,7);ctx.fillStyle=b.color;ctx.globalAlpha=on?0.9:0.1;ctx.fill();ctx.globalAlpha=1;}
+  });
+  // nodes
+  N.forEach(n=>{
+    const on=!hl||hl.has(n.id);const al=on?1:0.18;
+    const pulse=n.kind==='core'?(1+Math.sin(t*2)*0.06):1;
+    const r=n.r*pulse;
+    ctx.globalAlpha=al;
+    ctx.beginPath();ctx.arc(n.x,n.y,r,0,7);
+    ctx.shadowColor=n.color;ctx.shadowBlur=n.kind==='leaf'?5:(n.kind==='proj'?8:22);
+    ctx.fillStyle=n.kind==='core'?'#1c2340':(n.kind==='leaf'?n.color:'#151b30');ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.lineWidth=n.kind==='core'?3:(n.kind==='leaf'?1.2:2.4);ctx.strokeStyle=n.color;ctx.stroke();
+    // inner ring core
+    if(n.kind==='core'){ctx.beginPath();ctx.arc(n.x,n.y,r-8,0,7);ctx.strokeStyle='rgba(138,162,255,.4)';ctx.lineWidth=1;ctx.stroke();}
+    // icon
+    if(n.icon){ctx.font='17px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(n.icon,n.x,n.y+1);}
+    if(n.kind==='core'){ctx.font='700 15px system-ui';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('b',n.x,n.y+1);}
+    // label
+    const showLbl=(n.kind==='core'||n.kind==='div')||(hl&&hl.has(n.id));
+    if(showLbl){ctx.font=(n.kind==='core'?'700 13px':(n.kind==='div'?'600 12px':'11px'))+' system-ui';
+      ctx.fillStyle=on?'#e8ecf7':'rgba(232,236,247,.3)';ctx.textAlign='center';ctx.textBaseline='top';
+      ctx.fillText(n.label,n.x,n.y+r+6);}
+    ctx.globalAlpha=1;
+  });
+}
+let raf=null,active=true;
+function loop(){if(!active){raf=null;return;}step();draw();raf=requestAnimationFrame(loop);}
+function startGraph(){active=true;resize();if(!byId.core.x)seedPositions();if(!raf)loop();}
+
+/* interactions */
+function pos(e){const r=cv.getBoundingClientRect();const cx=(e.touches?e.touches[0].clientX:e.clientX)-r.left;const cy=(e.touches?e.touches[0].clientY:e.clientY)-r.top;return{x:cx,y:cy};}
+function pick(p){let best=null,bd=1e9;N.forEach(n=>{const d=Math.hypot(n.x-p.x,n.y-p.y);if(d<n.r+8&&d<bd){bd=d;best=n;}});return best;}
+let drag=null,moved=false,down=null;
+cv.addEventListener('mousemove',e=>{const p=pos(e);
+  if(drag){drag.fx=p.x;drag.fy=p.y;moved=true;return;}
+  const n=pick(p);hoverId=n?n.id:null;cv.style.cursor=n?'pointer':'grab';
+});
+cv.addEventListener('mousedown',e=>{const p=pos(e);const n=pick(p);down=n;moved=false;if(n){drag=n;n.fx=p.x;n.fy=p.y;cv.classList.add('grabbing');}});
+window.addEventListener('mouseup',e=>{if(drag){drag.fx=null;drag.fy=null;drag=null;cv.classList.remove('grabbing');}
+  if(down&&!moved)openNode(down);down=null;});
+// touch
+cv.addEventListener('touchstart',e=>{const p=pos(e);const n=pick(p);down=n;moved=false;if(n){drag=n;n.fx=p.x;n.fy=p.y;}},{passive:true});
+cv.addEventListener('touchmove',e=>{if(drag){const p=pos(e);drag.fx=p.x;drag.fy=p.y;moved=true;}},{passive:true});
+cv.addEventListener('touchend',()=>{if(drag){drag.fx=null;drag.fy=null;drag=null;}if(down&&!moved)openNode(down);down=null;});
+window.addEventListener('resize',()=>{if(active)resize();});
+
+function openNode(n){
+  if(n.kind==='core')openDivision('aero');
+  else if(n.kind==='div')openDivision(n.id);
+  else if(n.kind==='proj')openProject(n.id);
+  else if(n.kind==='leaf')openProject(n.parent);}
+
+/* legend */
+document.getElementById('legend').innerHTML=Object.values(DIV).map(d=>
+ `<div class="lg"><span class="dot" style="background:${d.color}"></span>${d.label}</div>`).join('');
+
+/* ============ DRAWERS ============ */
+function initials(n){return n.split(/[ .]+/).filter(Boolean).map(x=>x[0]).slice(0,2).join('').toUpperCase();}
+function openDivision(id){
+  const d=DIV[id];const dr=document.getElementById('drawer');
+  const nUp=d.today.length;
+  dr.innerHTML=`<button class="close" onclick="closeDrawer()">×</button>
+   <div class="d-head"><div class="d-ic" style="background:${d.color}22;border:1px solid ${d.color}55">${d.icon}</div>
+     <div><h3>${d.label}</h3><div class="d-tag">${d.tag}</div></div></div>
+   <div class="meta-grid">
+     <div><div class="mv">${d.projects.length}</div><span>Progetti attivi</span></div>
+     <div><div class="mv">${d.team.length}</div><span>Persone al lavoro</span></div>
+     <div><div class="mv">${nUp}</div><span>Caricamenti oggi</span></div>
+     <div><div class="mv">${d.docn}</div><span>Documenti indicizzati</span></div>
+   </div>
+   <div class="dsec"><h5>Progetti attivi</h5>
+     ${d.projects.map(p=>`<div class="proj" onclick="openProject('${p.id}')">
+       <div style="flex:1"><b>${p.label}</b><div style="font-size:12px;color:${stColor[p.st]}">${p.st}</div></div>
+       <div class="pbar"><i style="width:${p.prog}%;background:${d.color}"></i></div>
+       <div class="ppct">${p.prog}%</div></div>`).join('')}
+   </div>
+   <div class="dsec"><h5>Team al lavoro oggi</h5>
+     ${d.team.map(m=>`<div class="member">
+       <div class="avatar" style="background:${d.color}">${initials(m.n)}</div>
+       <div><div class="mn">${m.n}</div><div class="mr">${m.r}</div><div class="mw">↳ ${m.w}</div></div></div>`).join('')}
+   </div>
+   <div class="dsec"><h5>Caricamenti di oggi</h5>
+     <div class="feed">${d.today.map(u=>`<div class="fitem">
+       <div class="ft">${u.t} · ${u.who}</div>
+       <div class="fd"><span class="fw">${u.fd}</span><span class="mini-tag">${u.tp}</span></div></div>`).join('')}</div>
+   </div>
+   <button class="btn" onclick="closeDrawer();switchView('ask');quickAsk('Novità dalla divisione ${d.label}')">🔍 Interroga questa divisione</button>`;
+  showDrawer();
+}
+function openProject(pid){
+  let div,proj;Object.entries(DIV).forEach(([id,d])=>d.projects.forEach(p=>{if(p.id===pid){div=DIV[id];proj=p;}}));
+  const team=div.team.slice(0,2);
+  const dr=document.getElementById('drawer');
+  dr.innerHTML=`<button class="close" onclick="closeDrawer()">×</button>
+   <div class="d-head"><div class="d-ic" style="background:${div.color}22;border:1px solid ${div.color}55">📁</div>
+     <div><h3>${proj.label}</h3><div class="d-tag">${div.icon} ${div.label}</div></div></div>
+   <div class="meta-grid">
+     <div><div class="mv" style="color:${stColor[proj.st]}">${proj.st}</div><span>Stato</span></div>
+     <div><div class="mv">${proj.prog}%</div><span>Avanzamento</span></div>
+   </div>
+   <div class="dsec"><h5>Persone sul progetto</h5>
+     ${team.map(m=>`<div class="member"><div class="avatar" style="background:${div.color}">${initials(m.n)}</div>
+       <div><div class="mn">${m.n}</div><div class="mr">${m.r}</div></div></div>`).join('')}
+   </div>
+   <div class="dsec"><h5>Ultimi caricamenti collegati</h5>
+     <div class="feed">${div.today.slice(0,2).map(u=>`<div class="fitem">
+       <div class="ft">${u.t} · ${u.who}</div>
+       <div class="fd"><span class="fw">${u.fd}</span><span class="mini-tag">${u.tp}</span></div></div>`).join('')}</div>
+   </div>
+   <button class="btn ghost" onclick="openDivision('${Object.keys(DIV).find(k=>DIV[k]===div)}')">↑ Vai alla divisione ${div.label}</button>`;
+  showDrawer();
+}
+function showDrawer(){document.getElementById('drawer').classList.add('show');document.getElementById('overlay').classList.add('show');}
+function closeDrawer(){document.getElementById('drawer').classList.remove('show');document.getElementById('overlay').classList.remove('show');}
+
+/* ============ DOCS ============ */
+function renderDocs(list){
+  const b=document.getElementById('docBody');
+  b.innerHTML=list.map(d=>`<tr onclick="openDoc(${docs.indexOf(d)})">
+    <td><b>${d.t}</b></td><td>${d.tp}</td><td>${d.a}</td><td>${d.d}</td>
+    <td>${d.tags.map(t=>`<span class="tag">#${t}</span>`).join('')}</td>
+    <td><span class="status ${stClass[d.st]}">${d.st}</span></td></tr>`).join('');
+}
+renderDocs(docs);
+function filterDocs(){
+  const q=document.getElementById('docSearch').value.toLowerCase();
+  const tp=document.getElementById('fType').value;
+  const st=document.getElementById('fStatus').value;
+  renderDocs(docs.filter(d=>
+    (!q||(d.t+d.a+d.tags.join()+d.abs).toLowerCase().includes(q))&&
+    (!tp||d.tp===tp)&&(!st||d.st===st)));
+}
+function openDoc(i){
+  const d=docs[i];const dr=document.getElementById('drawer');
+  dr.innerHTML=`<button class="close" onclick="closeDrawer()">×</button>
+   <h3>${d.t}</h3>
+   <span class="status ${stClass[d.st]}">${d.st}</span>
+   <div class="meta-grid">
+     <div><div class="mv" style="font-size:14px">${d.tp}</div><span>Tipo</span></div>
+     <div><div class="mv" style="font-size:14px">${d.a}</div><span>Autore</span></div>
+     <div><div class="mv" style="font-size:14px">${d.d}</div><span>Data</span></div>
+     <div><div class="mv" style="font-size:14px">${d.tags.map(t=>'#'+t).join(', ')}</div><span>Tag</span></div>
+   </div>
+   <div class="dsec"><h5>Abstract</h5><p>${d.abs}</p></div>
+   <div class="dsec"><h5>Estratti indicizzati (chunk citabili)</h5>
+     <div class="chunk">«${d.abs.split('.')[0]}.» — chunk #1</div>
+     <div class="chunk">«Risultati coerenti con le rilevazioni precedenti; nessuna deviazione oltre soglia.» — chunk #2</div>
+   </div>
+   <div class="dsec"><h5>Domande correlate poste su questo doc</h5>
+     <div class="qrel">❓ Quali parametri sono stati misurati?</div>
+     <div class="qrel">❓ Qual è la conclusione principale del report?</div>
+   </div>
+   <button class="btn" onclick="closeDrawer();switchView('ask');quickAsk('Riassumi: ${d.t.replace(/'/g,'')}')">💬 Chiedi a questo documento</button>`;
+  showDrawer();
+}
+
+/* ============ COLLECTIONS ============ */
+const coll=[
+{ic:"📁",n:"SharePoint R&D",dc:"1.284",sync:"12 min fa",ok:true},
+{ic:"📘",n:"Confluence Wiki",dc:"642",sync:"1 h fa",ok:true},
+{ic:"📗",n:"Google Drive Lab",dc:"318",sync:"4 h fa",ok:true},
+{ic:"🔧",n:"Repository Git interno",dc:"89",sync:"2 h fa",ok:true},
+{ic:"🧪",n:"Cartella Lab #2",dc:"47",sync:"3 gg fa",ok:false}
+];
+document.getElementById('collGrid').innerHTML=coll.map((c,i)=>`<div class="card">
+  <div class="c-top"><div class="c-ic">${c.ic}</div><div><h4>${c.n}</h4>
+  <span class="status ${c.ok?'st-ok':'st-err'}">${c.ok?'Connesso':'Errore sync'}</span></div></div>
+  <div class="c-row"><span>Documenti</span><b>${c.dc}</b></div>
+  <div class="c-row"><span>Ultimo sync</span><b id="sync${i}">${c.sync}</b></div>
+  <div style="margin-top:14px"><button class="btn sm" onclick="syncNow(${i},this)">🔄 Sincronizza ora</button></div>
+</div>`).join('');
+function syncNow(i,btn){
+  btn.textContent='⏳ Sincronizzazione…';btn.disabled=true;
+  setTimeout(()=>{document.getElementById('sync'+i).textContent='pochi secondi fa';
+  btn.textContent='✅ Sincronizzato';setTimeout(()=>{btn.textContent='🔄 Sincronizza ora';btn.disabled=false;},1600);},1400);
+}
+
+/* ============ ASK ============ */
+function askChip(el){document.getElementById('askInput').value=el.textContent;doAsk();}
+function quickAsk(q){document.getElementById('askInput').value=q;doAsk();}
+function doAsk(){
+  const q=document.getElementById('askInput').value.trim();if(!q)return;
+  const box=document.getElementById('answerBox');box.classList.add('show');
+  box.innerHTML=`<div class="ai-head"><span class="dot"></span>brainVault AI · elaborazione…</div>`;
+  setTimeout(()=>{box.innerHTML=buildAnswer(q);},700);
+  window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+}
+function buildAnswer(q){
+  const lq=q.toLowerCase();let body,srcs;
+  if(lq.includes('vibrazion')||lq.includes('payload')||lq.includes('ait')){
+    body=`Nella campagna <b>AIT</b> il payload satellitare ha mostrato un <b>margine di sicurezza 1,8×</b> rispetto ai livelli di qualifica, con picchi in banda 80–120 Hz sotto soglia <span class="ref">[1]</span>. I cicli termovuoto associati sono stati superati senza deviazioni <span class="ref">[2]</span>.`;
+    srcs=[0,2];
+  }else if(lq.includes('lidar')||lq.includes('camera')||lq.includes('percez')||lq.includes('guida autonoma')){
+    body=`Dai benchmark interni il <b>LiDAR</b> offre <b>+9% di robustezza</b> in bassa luminosità, mentre la <b>camera</b> è più densa nella classificazione a corto raggio <span class="ref">[1]</span>. L'attuazione di riferimento per lo sterzo è coperta dal brevetto sull'attuatore a bassa isteresi <span class="ref">[2]</span>.`;
+    srcs=[5,3];
+  }else if(lq.includes('batteri')||lq.includes('termic')||lq.includes('800v')){
+    body=`La simulazione termica del <b>pacco batteria 800V</b> in scarica rapida rileva un gradiente di <b>6,2 °C</b> tra celle centrali e periferiche, con raffreddamento a piastra entro specifica <span class="ref">[1]</span>.`;
+    srcs=[6];
+  }else if(lq.includes('predict')||lq.includes('manutenzione')||lq.includes('turbina')||lq.includes('cuscinett')){
+    body=`Il modello di <b>predictive maintenance</b> sui cuscinetti turbina dà un <b>preavviso medio di 340 h</b> con precisione <b>91%</b>, combinando segnale di vibrazione e temperatura <span class="ref">[1]</span>. Il roadmap del Digital Twin di linea prevede l'integrazione della telemetria in tempo reale <span class="ref">[2]</span>.`;
+    srcs=[7,4];
+  }else if(lq.includes('sar')||lq.includes('osservazione')||lq.includes('space')){
+    body=`La pipeline di <b>processing SAR</b> copre focalizzazione, calibrazione radiometrica e generazione prodotti L1/L2 <span class="ref">[1]</span>. È validata sui dati della campagna termovuoto del satellite EO <span class="ref">[2]</span>.`;
+    srcs=[8,2];
+  }else{
+    body=`Ho consultato la knowledge base indicizzata (2.380 documenti da 6 divisioni). Ecco una sintesi basata sulle fonti più rilevanti; verifica i riferimenti citati per il dettaglio <span class="ref">[1]</span> <span class="ref">[2]</span>.`;
+    srcs=[0,7];
+  }
+  let html=`<div class="ai-head"><span class="dot"></span>brainVault AI · risposta generata</div><p>${body}</p>
+   <div class="sources-title">Fonti citate</div>`;
+  srcs.forEach((di,n)=>{const d=docs[di];
+    html+=`<div class="src-card" onclick="switchView('docs');setTimeout(()=>openDoc(${di}),150)">
+      <div class="src-num">${n+1}</div><div><b>${d.t}</b><br><small>${d.a} · ${d.tp} · ${d.d}</small></div></div>`;});
+  return html;
+}
+
+/* ============ NAV ============ */
+const titles={graph:'Panoramica',ask:'Ask',docs:'Documenti',coll:'Collezioni & Fonti',ana:'Analytics'};
+function switchView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('active',a.dataset.view===v));
+  document.getElementById('pageTitle').textContent=titles[v];
+  document.getElementById('sidebar').classList.remove('open');
+  if(v==='graph'){startGraph();}else{active=false;}
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('.nav a').forEach(a=>a.addEventListener('click',()=>switchView(a.dataset.view)));
+
+/* boot */
+startGraph();
+</script>
+</body>
+</html>

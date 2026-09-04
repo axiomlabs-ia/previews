@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriStudio — Portale Nutrizionista</title>
+<link rel="icon" href="data:,">
+<style>
+#axload{position:fixed;inset:0;z-index:99999;background:#020508;display:flex;align-items:center;justify-content:center;transition:opacity .4s ease,visibility .4s}
+#axload.hide{opacity:0;visibility:hidden}
+#axload .ai{display:flex;flex-direction:column;align-items:center;gap:16px;font-family:'Space Grotesk',system-ui,sans-serif}
+#axload .gem{width:32px;height:32px;transform:rotate(45deg);background:linear-gradient(135deg,#00E5A0,#0D9B76);border-radius:6px;box-shadow:0 0 22px rgba(0,229,160,.6);animation:axpulse 1.1s ease-in-out infinite}
+@keyframes axpulse{0%,100%{transform:rotate(45deg) scale(1);box-shadow:0 0 20px rgba(0,229,160,.5)}50%{transform:rotate(45deg) scale(1.16);box-shadow:0 0 36px rgba(0,229,160,.9)}}
+#axload .w{letter-spacing:.28em;font-size:12.5px;font-weight:600;color:#EAF3EF}
+#axload .w b{color:#00E5A0;font-weight:600}
+#axload .bar{width:120px;height:3px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden}
+#axload .bar i{display:block;height:100%;width:38%;border-radius:3px;background:linear-gradient(90deg,#0D9B76,#00E5A0);animation:axslide 1.05s ease-in-out infinite}
+@keyframes axslide{0%{transform:translateX(-130%)}100%{transform:translateX(330%)}}
+</style>
+<style>
+:root{
+--green:#2e9e6b;--green-d:#1f7a51;--bg:#f4f7f6;--card:#fff;
+--txt:#1e2a26;--muted:#6b7c76;--border:#e3ebe7;
+--red:#e05252;--orange:#e8a03a;--blue:#4a7dc4;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif;}
+body{background:var(--bg);color:var(--txt);}
+.app{display:flex;min-height:100vh;}
+.sidebar{width:240px;background:#12332a;color:#cfe0d8;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100;transition:.3s;}
+.brand{padding:20px;font-size:1.3rem;font-weight:700;display:flex;align-items:center;gap:8px;border-bottom:1px solid #1e463a;}
+.brand span{color:#5fd39a;}
+.nav{flex:1;padding:12px 0;}
+.nav a{display:flex;align-items:center;gap:12px;padding:12px 20px;color:#cfe0d8;text-decoration:none;cursor:pointer;font-size:.95rem;border-left:3px solid transparent;}
+.nav a:hover{background:#1c4034;}
+.nav a.active{background:#1c4034;border-left-color:#5fd39a;color:#fff;font-weight:600;}
+.sidebar .foot{padding:16px 20px;font-size:.75rem;color:#7d9990;border-top:1px solid #1e463a;}
+.main{margin-left:240px;flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{background:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;flex-wrap:wrap;gap:10px;}
+.topbar h1{font-size:1.1rem;}
+.demo-badge{background:#ffe08a;color:#7a5c00;font-weight:700;font-size:.7rem;padding:3px 8px;border-radius:5px;letter-spacing:.5px;}
+.note{font-size:.72rem;color:var(--muted);}
+.xlinks{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.xlink{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-size:.8rem;font-weight:600;padding:7px 13px;border-radius:8px;background:var(--green);color:#fff;}
+.xlink:hover{background:var(--green-d);}
+.xlink.ghost{background:#eef3f1;color:var(--green-d);}
+/* Language switcher */
+.langsel{display:flex;gap:2px;background:#eef3f1;border-radius:999px;padding:3px;}
+.langsel button{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:.72rem;font-weight:700;letter-spacing:.04em;padding:5px 8px;border-radius:999px;font-family:'Segoe UI',system-ui,sans-serif;}
+.langsel button.on{background:var(--green);color:#fff;}
+.content{padding:24px;flex:1;}
+.view{display:none;}
+.view.show{display:block;animation:fade .3s;}
+@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;}}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px;}
+.kpi{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.kpi .lbl{font-size:.8rem;color:var(--muted);}
+.kpi .val{font-size:2rem;font-weight:700;margin-top:4px;}
+.kpi .ic{float:right;font-size:1.6rem;}
+.card{background:var(--card);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:20px;margin-bottom:20px;}
+.card h2{font-size:1rem;margin-bottom:14px;}
+.grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;}
+@media(max-width:900px){.grid2{grid-template-columns:1fr;}}
+.bars{display:flex;align-items:flex-end;gap:14px;height:160px;padding-top:10px;}
+.bars .b{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:flex-end;height:100%;}
+.bars .bar{width:70%;background:linear-gradient(var(--green),var(--green-d));border-radius:5px 5px 0 0;transition:.4s;}
+.bars .day{font-size:.72rem;color:var(--muted);}
+.bars .pct{font-size:.7rem;font-weight:600;}
+table{width:100%;border-collapse:collapse;}
+th,td{text-align:left;padding:11px 10px;font-size:.87rem;border-bottom:1px solid var(--border);}
+th{color:var(--muted);font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.3px;}
+tbody tr:hover{background:#f7faf9;cursor:pointer;}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.75rem;font-weight:700;}
+.b-green{background:#dcf3e7;color:var(--green-d);}
+.b-orange{background:#fcefd7;color:#a9740f;}
+.b-red{background:#fbe0e0;color:#a83232;}
+.b-blue{background:#e0eafc;color:#2f5aa0;}
+.b-gray{background:#eceff0;color:#5a6b65;}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+.chip{border:1px solid var(--border);background:#fff;padding:7px 14px;border-radius:20px;cursor:pointer;font-size:.82rem;}
+.chip.on{background:var(--green);color:#fff;border-color:var(--green);}
+input.search{padding:9px 14px;border:1px solid var(--border);border-radius:8px;font-size:.85rem;flex:1;min-width:180px;}
+.btn{border:0;padding:8px 14px;border-radius:8px;background:var(--green);color:#fff;cursor:pointer;font-size:.82rem;font-weight:600;}
+.btn.ghost{background:#eef3f1;color:var(--green-d);}
+.btn.small{padding:5px 10px;font-size:.75rem;}
+.phead{display:flex;gap:20px;align-items:center;flex-wrap:wrap;}
+.avatar{width:64px;height:64px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;}
+.phead .info h2{font-size:1.3rem;}
+.phead .info p{color:var(--muted);font-size:.85rem;}
+.wprog{display:flex;gap:24px;margin-top:14px;flex-wrap:wrap;}
+.wprog div span{display:block;font-size:.72rem;color:var(--muted);}
+.wprog div b{font-size:1.2rem;}
+.linechart{width:100%;height:180px;}
+.progress{height:12px;background:#eceff0;border-radius:8px;overflow:hidden;margin:8px 0;}
+.progress .fill{height:100%;background:linear-gradient(90deg,var(--green),var(--green-d));border-radius:8px;}
+.streak{display:inline-flex;align-items:center;gap:6px;background:#fff4e0;color:#a9740f;padding:6px 12px;border-radius:20px;font-weight:700;font-size:.85rem;}
+.meal{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);}
+.meal .thumb{width:60px;height:60px;border-radius:10px;background:#eef3f1;display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;}
+.meal .m-body{flex:1;}
+.meal .m-body .t{font-weight:700;font-size:.9rem;}
+.meal .m-body .time{color:var(--muted);font-size:.78rem;}
+.meal .m-body .desc{font-size:.88rem;margin:3px 0;}
+.meal .m-body .noteq{font-size:.8rem;color:var(--muted);font-style:italic;}
+.meal .m-body .fb{font-size:.8rem;background:#e8f4ff;color:#2f5aa0;padding:5px 9px;border-radius:6px;margin-top:5px;display:inline-block;}
+.meal .m-act{display:flex;flex-direction:column;gap:6px;align-items:flex-end;}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;}
+.plan{background:var(--card);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:20px;border-top:4px solid var(--green);}
+.plan h3{font-size:1.05rem;}
+.plan .kcal{font-size:1.8rem;font-weight:700;color:var(--green-d);margin:6px 0;}
+.macros{display:flex;gap:8px;margin:10px 0;}
+.macros .m{flex:1;text-align:center;background:#f4f7f6;padding:8px;border-radius:8px;}
+.macros .m b{display:block;font-size:1rem;}
+.macros .m span{font-size:.7rem;color:var(--muted);}
+.cal{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+@media(max-width:700px){.cal{grid-template-columns:1fr;}}
+.cal .col h4{text-align:center;padding:8px;background:#12332a;color:#fff;border-radius:8px 8px 0 0;font-size:.85rem;}
+.cal .slot{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px;margin-top:8px;font-size:.8rem;}
+.cal .slot .h{font-weight:700;}
+.hamb{display:none;background:none;border:0;font-size:1.4rem;cursor:pointer;}
+/* Workout schede */
+.plan .freq{font-size:.8rem;color:var(--muted);font-weight:600;margin:2px 0 10px;}
+.exlist{list-style:none;margin:6px 0 14px;display:flex;flex-direction:column;gap:7px;}
+.exlist li{display:flex;justify-content:space-between;gap:10px;font-size:.85rem;padding:7px 10px;background:#f4f7f6;border-radius:7px;}
+.exlist li b{color:var(--green-d);font-weight:600;white-space:nowrap;}
+.plan .assigned{font-size:.8rem;color:var(--muted);margin-bottom:12px;}
+.plan .act{display:flex;gap:8px;flex-wrap:wrap;}
+@media(max-width:768px){
+.sidebar{transform:translateX(-100%);}
+.sidebar.open{transform:translateX(0);}
+.main{margin-left:0;}
+.hamb{display:block;}
+.xlink{padding:6px 10px;font-size:.75rem;}
+}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+<div id="axload"><div class="ai"><span class="gem"></span><span class="w">AXIOM&nbsp;<b>LABS</b></span><span class="bar"><i></i></span></div></div>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">🥗 Nutri<span>Studio</span></div>
+    <nav class="nav" id="nav">
+      <a data-v="dashboard" class="active">📊 <span data-i18n="navDashboard">Dashboard</span></a>
+      <a data-v="pazienti">👥 <span data-i18n="navPazienti">Pazienti</span></a>
+      <a data-v="scheda">📋 <span data-i18n="navScheda">Scheda Paziente</span></a>
+      <a data-v="piani">🍽️ <span data-i18n="navPiani">Piani alimentari</span></a>
+      <a data-v="allenamento">🏋️ <span data-i18n="navAllenamento">Schede palestra</span></a>
+      <a data-v="calendario">📅 <span data-i18n="navCalendario">Calendario visite</span></a>
+    </nav>
+    <div class="foot" data-i18n="sideFoot">NutriStudio<br>Portale del nutrizionista</div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="hamb" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <h1 id="pageTitle">Dashboard</h1>
+        <span class="demo-badge">DEMO</span>
+      </div>
+      <div class="xlinks">
+        <div class="langsel" id="langsel">
+          <button data-l="it">IT</button><button data-l="es">ES</button><button data-l="en">EN</button><button data-l="nl">NL</button><button data-l="de">DE</button>
+        </div>
+        <a class="xlink" href="../valerio-truglia-nutrizionista-demo/">📱 <span data-i18n="linkPaziente">App Paziente</span></a>
+        <a class="xlink ghost" href="../ecosistema-nutrizione/">◂ <span data-i18n="linkEco">Ecosistema</span></a>
+      </div>
+    </div>
+
+    <div class="content" id="nutrContent">
+      <!-- DASHBOARD -->
+      <section class="view show" id="v-dashboard">
+        <h2 style="margin-bottom:4px;" data-i18n="dashHi">Buongiorno, Dottore 👋</h2>
+        <p class="note" style="margin-bottom:18px;" data-i18n="dashSub">Ecco il riepilogo dei tuoi pazienti oggi.</p>
+        <div class="kpis">
+          <div class="kpi"><span class="ic">👥</span><div class="lbl" data-i18n="kpiActive">Pazienti attivi</div><div class="val">24</div></div>
+          <div class="kpi"><span class="ic">✅</span><div class="lbl" data-i18n="kpiAdher">Aderenza media settimana</div><div class="val">78%</div></div>
+          <div class="kpi"><span class="ic">📖</span><div class="lbl" data-i18n="kpiReview">Diari da rivedere</div><div class="val">7</div></div>
+          <div class="kpi"><span class="ic">📅</span><div class="lbl" data-i18n="kpiVisits">Visite oggi</div><div class="val">3</div></div>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <h2 data-i18n="cardAdher">Aderenza pazienti — ultimi 7 giorni</h2>
+            <div class="bars" id="bars"></div>
+          </div>
+          <div class="card">
+            <h2 data-i18n="cardReview">Da rivedere</h2>
+            <table>
+              <thead><tr><th data-i18n="thPatient">Paziente</th><th data-i18n="thMeal">Pasto</th><th data-i18n="thTime">Ora</th></tr></thead>
+              <tbody id="reviewTbl"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAZIENTI -->
+      <section class="view" id="v-pazienti">
+        <div class="card">
+          <div class="toolbar">
+            <div class="chip on" data-f="all" onclick="filterPaz(this)" data-i18n="chipAll">Tutti</div>
+            <div class="chip" data-f="target" onclick="filterPaz(this)" data-i18n="chipTarget">In target</div>
+            <div class="chip" data-f="monit" onclick="filterPaz(this)" data-i18n="chipMonit">Da monitorare</div>
+            <input class="search" id="pazSearch" placeholder="🔍 Cerca paziente..." oninput="filterPaz()">
+          </div>
+          <table>
+            <thead><tr><th data-i18n="thName">Nome</th><th data-i18n="thAge">Età</th><th data-i18n="thGoal">Obiettivo</th><th data-i18n="thAdher">Aderenza</th><th data-i18n="thLast">Ultimo accesso</th><th data-i18n="thNext">Prossima visita</th></tr></thead>
+            <tbody id="pazTbl"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SCHEDA -->
+      <section class="view" id="v-scheda">
+        <div class="card">
+          <div class="phead">
+            <div class="avatar">MB</div>
+            <div class="info">
+              <h2>Marta Bellini</h2>
+              <p><span data-i18n="schedaAge">34 anni</span> • <span data-i18n="schedaGoalLbl">Obiettivo</span>: <span data-i18n="objPerdita">Perdita peso</span> • <span data-i18n="schedaHeight">Altezza 168 cm</span></p>
+              <div class="wprog">
+                <div><span data-i18n="wpCurrent">Peso attuale</span><b>71,2 kg</b></div>
+                <div><span data-i18n="wpTarget">Target</span><b>65,0 kg</b></div>
+                <div><span data-i18n="wpToLose">Da perdere</span><b style="color:var(--green-d)">6,2 kg</b></div>
+                <div><span data-i18n="wpStreak">Streak</span><span class="streak">🔥 <span data-i18n="streak12">12 giorni</span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <h2 data-i18n="cardWeight">Andamento peso — ultimi 60 giorni</h2>
+            <svg class="linechart" id="weightChart" viewBox="0 0 400 180" preserveAspectRatio="none"></svg>
+            <p class="note" data-i18n="trendNote">Trend: <b style="color:var(--green-d)">−5,3 kg</b> in 60 giorni 📉</p>
+          </div>
+          <div class="card">
+            <h2 data-i18n="cardWeekAdher">Aderenza settimanale</h2>
+            <div style="font-size:2.4rem;font-weight:700;color:var(--green-d)">92%</div>
+            <div class="progress"><div class="fill" style="width:92%"></div></div>
+            <p class="note"><span data-i18n="activePlan">Piano attivo</span>: <b data-i18n="planIpo">Piano Ipocalorico Bilanciato</b> — 1600 kcal</p>
+            <div class="macros">
+              <div class="m"><b>45%</b><span data-i18n="mCarb">Carbo</span></div>
+              <div class="m"><b>30%</b><span data-i18n="mProt">Proteine</span></div>
+              <div class="m"><b>25%</b><span data-i18n="mFat">Grassi</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h2 data-i18n="cardDiary">📖 Diario alimentare — Oggi</h2>
+          <div id="diary"></div>
+        </div>
+      </section>
+
+      <!-- PIANI -->
+      <section class="view" id="v-piani">
+        <div class="plans" id="planList"></div>
+      </section>
+
+      <!-- ALLENAMENTO / SCHEDE PALESTRA -->
+      <section class="view" id="v-allenamento">
+        <div class="card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h2 style="margin-bottom:4px;" data-i18n="wkTitle">🏋️ Schede palestra</h2>
+            <p class="note" data-i18n="wkSub">Crea programmi di esercizi e assegnali ai pazienti. Compaiono in automatico nella loro app.</p>
+          </div>
+          <button class="btn" onclick="newWorkout()" data-i18n="wkNew">+ Nuova scheda</button>
+        </div>
+        <div class="plans" id="workoutList" style="margin-top:20px;"></div>
+      </section>
+
+      <!-- CALENDARIO -->
+      <section class="view" id="v-calendario">
+        <div class="card">
+          <h2 id="calTitle">Settimana corrente — 12/16 maggio</h2>
+          <div class="cal" id="cal"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================= i18n =================
+const LANG_KEY='ecosistema_lang';
+let L='it';
+const LANGS=['it','es','en','nl','de'];
+const UI={
+  navDashboard:{it:'Dashboard',es:'Panel',en:'Dashboard',nl:'Dashboard',de:'Dashboard'},
+  navPazienti:{it:'Pazienti',es:'Pacientes',en:'Patients',nl:'Patiënten',de:'Patienten'},
+  navScheda:{it:'Scheda Paziente',es:'Ficha del paciente',en:'Patient record',nl:'Patiëntdossier',de:'Patientenakte'},
+  navPiani:{it:'Piani alimentari',es:'Planes de alimentación',en:'Meal plans',nl:'Voedingsplannen',de:'Ernährungspläne'},
+  navAllenamento:{it:'Schede palestra',es:'Rutinas de gimnasio',en:'Gym plans',nl:'Sportschema’s',de:'Trainingspläne'},
+  navCalendario:{it:'Calendario visite',es:'Calendario de citas',en:'Appointments calendar',nl:'Afsprakenkalender',de:'Terminkalender'},
+  sideFoot:{it:'NutriStudio<br>Portale del nutrizionista',es:'NutriStudio<br>Portal del nutricionista',en:'NutriStudio<br>Nutritionist portal',nl:'NutriStudio<br>Portaal voor de diëtist',de:'NutriStudio<br>Portal für Ernährungsberater'},
+  linkPaziente:{it:'App Paziente',es:'App Paciente',en:'Patient App',nl:'Patiënt-app',de:'Patienten-App'},
+  linkEco:{it:'Ecosistema',es:'Ecosistema',en:'Ecosystem',nl:'Ecosysteem',de:'Ökosystem'},
+  dashHi:{it:'Buongiorno, Dottore 👋',es:'Buenos días, Doctor 👋',en:'Good morning, Doctor 👋',nl:'Goedemorgen, dokter 👋',de:'Guten Morgen, Herr Doktor 👋'},
+  dashSub:{it:'Ecco il riepilogo dei tuoi pazienti oggi.',es:'Aquí tienes el resumen de tus pacientes de hoy.',en:'Here is today’s overview of your patients.',nl:'Hier is het overzicht van je patiënten van vandaag.',de:'Hier ist die heutige Übersicht deiner Patienten.'},
+  kpiActive:{it:'Pazienti attivi',es:'Pacientes activos',en:'Active patients',nl:'Actieve patiënten',de:'Aktive Patienten'},
+  kpiAdher:{it:'Aderenza media settimana',es:'Adherencia media semanal',en:'Avg. weekly adherence',nl:'Gem. therapietrouw week',de:'Ø Adhärenz pro Woche'},
+  kpiReview:{it:'Diari da rivedere',es:'Diarios por revisar',en:'Diaries to review',nl:'Dagboeken te bekijken',de:'Zu prüfende Tagebücher'},
+  kpiVisits:{it:'Visite oggi',es:'Citas hoy',en:'Visits today',nl:'Bezoeken vandaag',de:'Termine heute'},
+  cardAdher:{it:'Aderenza pazienti — ultimi 7 giorni',es:'Adherencia de pacientes — últimos 7 días',en:'Patient adherence — last 7 days',nl:'Therapietrouw patiënten — laatste 7 dagen',de:'Patienten-Adhärenz — letzte 7 Tage'},
+  cardReview:{it:'Da rivedere',es:'Por revisar',en:'To review',nl:'Te bekijken',de:'Zu prüfen'},
+  thPatient:{it:'Paziente',es:'Paciente',en:'Patient',nl:'Patiënt',de:'Patient'},
+  thMeal:{it:'Pasto',es:'Comida',en:'Meal',nl:'Maaltijd',de:'Mahlzeit'},
+  thTime:{it:'Ora',es:'Hora',en:'Time',nl:'Tijd',de:'Uhrzeit'},
+  chipAll:{it:'Tutti',es:'Todos',en:'All',nl:'Alle',de:'Alle'},
+  chipTarget:{it:'In target',es:'En objetivo',en:'On target',nl:'Op koers',de:'Im Ziel'},
+  chipMonit:{it:'Da monitorare',es:'A vigilar',en:'To monitor',nl:'Te volgen',de:'Zu beobachten'},
+  searchPh:{it:'🔍 Cerca paziente...',es:'🔍 Buscar paciente...',en:'🔍 Search patient...',nl:'🔍 Patiënt zoeken...',de:'🔍 Patient suchen...'},
+  thName:{it:'Nome',es:'Nombre',en:'Name',nl:'Naam',de:'Name'},
+  thAge:{it:'Età',es:'Edad',en:'Age',nl:'Leeftijd',de:'Alter'},
+  thGoal:{it:'Obiettivo',es:'Objetivo',en:'Goal',nl:'Doel',de:'Ziel'},
+  thAdher:{it:'Aderenza',es:'Adherencia',en:'Adherence',nl:'Therapietrouw',de:'Adhärenz'},
+  thLast:{it:'Ultimo accesso',es:'Último acceso',en:'Last access',nl:'Laatste toegang',de:'Letzter Zugriff'},
+  thNext:{it:'Prossima visita',es:'Próxima cita',en:'Next visit',nl:'Volgende bezoek',de:'Nächster Termin'},
+  schedaAge:{it:'34 anni',es:'34 años',en:'34 years',nl:'34 jaar',de:'34 Jahre'},
+  schedaGoalLbl:{it:'Obiettivo',es:'Objetivo',en:'Goal',nl:'Doel',de:'Ziel'},
+  schedaHeight:{it:'Altezza 168 cm',es:'Altura 168 cm',en:'Height 168 cm',nl:'Lengte 168 cm',de:'Größe 168 cm'},
+  wpCurrent:{it:'Peso attuale',es:'Peso actual',en:'Current weight',nl:'Huidig gewicht',de:'Aktuelles Gewicht'},
+  wpTarget:{it:'Target',es:'Objetivo',en:'Target',nl:'Doel',de:'Ziel'},
+  wpToLose:{it:'Da perdere',es:'Por perder',en:'To lose',nl:'Te verliezen',de:'Abzunehmen'},
+  wpStreak:{it:'Streak',es:'Racha',en:'Streak',nl:'Reeks',de:'Serie'},
+  streak12:{it:'12 giorni',es:'12 días',en:'12 days',nl:'12 dagen',de:'12 Tage'},
+  cardWeight:{it:'Andamento peso — ultimi 60 giorni',es:'Evolución del peso — últimos 60 días',en:'Weight trend — last 60 days',nl:'Gewichtsverloop — laatste 60 dagen',de:'Gewichtsverlauf — letzte 60 Tage'},
+  trendNote:{it:'Trend: <b style="color:var(--green-d)">−5,3 kg</b> in 60 giorni 📉',es:'Tendencia: <b style="color:var(--green-d)">−5,3 kg</b> en 60 días 📉',en:'Trend: <b style="color:var(--green-d)">−5.3 kg</b> in 60 days 📉',nl:'Trend: <b style="color:var(--green-d)">−5,3 kg</b> in 60 dagen 📉',de:'Trend: <b style="color:var(--green-d)">−5,3 kg</b> in 60 Tagen 📉'},
+  cardWeekAdher:{it:'Aderenza settimanale',es:'Adherencia semanal',en:'Weekly adherence',nl:'Wekelijkse therapietrouw',de:'Wöchentliche Adhärenz'},
+  activePlan:{it:'Piano attivo',es:'Plan activo',en:'Active plan',nl:'Actief plan',de:'Aktiver Plan'},
+  planIpo:{it:'Piano Ipocalorico Bilanciato',es:'Plan Hipocalórico Equilibrado',en:'Balanced Low-Calorie Plan',nl:'Gebalanceerd caloriearm plan',de:'Ausgewogener kalorienreduzierter Plan'},
+  mCarb:{it:'Carbo',es:'Carbos',en:'Carbs',nl:'Koolh.',de:'Kohlenh.'},
+  mProt:{it:'Proteine',es:'Proteínas',en:'Protein',nl:'Eiwit',de:'Eiweiß'},
+  mFat:{it:'Grassi',es:'Grasas',en:'Fats',nl:'Vetten',de:'Fette'},
+  mProtShort:{it:'Prot',es:'Prot',en:'Prot',nl:'Eiwit',de:'Eiw.'},
+  cardDiary:{it:'📖 Diario alimentare — Oggi',es:'📖 Diario de comidas — Hoy',en:'📖 Food diary — Today',nl:'📖 Eetdagboek — Vandaag',de:'📖 Ernährungstagebuch — Heute'},
+  wkTitle:{it:'🏋️ Schede palestra',es:'🏋️ Rutinas de gimnasio',en:'🏋️ Gym plans',nl:'🏋️ Sportschema’s',de:'🏋️ Trainingspläne'},
+  wkSub:{it:'Crea programmi di esercizi e assegnali ai pazienti. Compaiono in automatico nella loro app.',es:'Crea programas de ejercicios y asígnalos a los pacientes. Aparecen automáticamente en su app.',en:'Create exercise programs and assign them to patients. They appear automatically in their app.',nl:'Maak oefenprogramma’s en wijs ze toe aan patiënten. Ze verschijnen automatisch in hun app.',de:'Erstelle Übungsprogramme und weise sie Patienten zu. Sie erscheinen automatisch in deren App.'},
+  wkNew:{it:'+ Nuova scheda',es:'+ Nueva rutina',en:'+ New plan',nl:'+ Nieuw schema',de:'+ Neuer Plan'},
+  assignBtn:{it:'Assegna a paziente',es:'Asignar a paciente',en:'Assign to patient',nl:'Toewijzen aan patiënt',de:'Patient zuweisen'},
+  editBtn:{it:'Modifica',es:'Editar',en:'Edit',nl:'Bewerken',de:'Bearbeiten'},
+  editPlanBtn:{it:'Modifica piano',es:'Editar plan',en:'Edit plan',nl:'Plan bewerken',de:'Plan bearbeiten'},
+  assignedTo:{it:'Assegnata a',es:'Asignada a',en:'Assigned to',nl:'Toegewezen aan',de:'Zugewiesen an'},
+  patientsWord:{it:'pazienti',es:'pacientes',en:'patients',nl:'patiënten',de:'Patienten'},
+  planDays:{it:'Lun–Dom • Assegnato a',es:'Lun–Dom • Asignado a',en:'Mon–Sun • Assigned to',nl:'Ma–Zo • Toegewezen aan',de:'Mo–So • Zugewiesen an'},
+  planDays2:{it:'Lun–Sab • Assegnato a',es:'Lun–Sáb • Asignado a',en:'Mon–Sat • Assigned to',nl:'Ma–Za • Toegewezen aan',de:'Mo–Sa • Zugewiesen an'},
+  calTitle:{it:'Settimana corrente — 12/16 maggio',es:'Semana actual — 12/16 de mayo',en:'Current week — May 12–16',nl:'Huidige week — 12/16 mei',de:'Aktuelle Woche — 12.–16. Mai'},
+  confirmed:{it:'Confermato',es:'Confirmado',en:'Confirmed',nl:'Bevestigd',de:'Bestätigt'},
+  waiting:{it:'In attesa',es:'En espera',en:'Pending',nl:'In afwachting',de:'Ausstehend'},
+  firstVisit:{it:'Prima visita',es:'Primera consulta',en:'First visit',nl:'Eerste bezoek',de:'Erstbesuch'},
+  bApproved:{it:'✔ Approvato',es:'✔ Aprobado',en:'✔ Approved',nl:'✔ Goedgekeurd',de:'✔ Freigegeben'},
+  bWaiting:{it:'In attesa',es:'En espera',en:'Pending',nl:'In afwachting',de:'Ausstehend'},
+  bReview:{it:'Da rivedere',es:'Por revisar',en:'To review',nl:'Te bekijken',de:'Zu prüfen'},
+  bFeedback:{it:'Feedback dato',es:'Feedback enviado',en:'Feedback given',nl:'Feedback gegeven',de:'Feedback gegeben'},
+  approve:{it:'Approva',es:'Aprobar',en:'Approve',nl:'Goedkeuren',de:'Freigeben'},
+  feedback:{it:'Feedback',es:'Feedback',en:'Feedback',nl:'Feedback',de:'Feedback'},
+  nutriPrefix:{it:'Nutrizionista:',es:'Nutricionista:',en:'Nutritionist:',nl:'Diëtist:',de:'Ernährungsberater:'},
+  fbPrompt:{it:'Scrivi un feedback per il paziente:',es:'Escribe un feedback para el paciente:',en:'Write feedback for the patient:',nl:'Schrijf feedback voor de patiënt:',de:'Feedback für den Patienten schreiben:'},
+  fbDefault:{it:'Buona scelta 👍',es:'Buena elección 👍',en:'Good choice 👍',nl:'Goede keuze 👍',de:'Gute Wahl 👍'},
+  demoEditor:{it:'DEMO: apertura editor',es:'DEMO: abrir editor',en:'DEMO: opening editor',nl:'DEMO: editor openen',de:'DEMO: Editor öffnen'},
+  newWkPrompt:{it:'DEMO — Nome della nuova scheda di allenamento:',es:'DEMO — Nombre de la nueva rutina de entrenamiento:',en:'DEMO — Name of the new workout plan:',nl:'DEMO — Naam van het nieuwe trainingsschema:',de:'DEMO — Name des neuen Trainingsplans:'},
+  newWkDefault:{it:'Scheda personalizzata',es:'Rutina personalizada',en:'Custom plan',nl:'Aangepast schema',de:'Individueller Plan'},
+  newWkFocus:{it:'Personalizzata',es:'Personalizada',en:'Custom',nl:'Aangepast',de:'Individuell'},
+  newWkFreq:{it:'Da definire',es:'Por definir',en:'To be defined',nl:'Nog te bepalen',de:'Noch festzulegen'},
+  addEx:{it:'Aggiungi esercizi…',es:'Añadir ejercicios…',en:'Add exercises…',nl:'Oefeningen toevoegen…',de:'Übungen hinzufügen…'},
+  newWkDone:{it:'✅ Scheda «{n}» creata. In un’installazione reale qui apri l’editor per aggiungere gli esercizi.',es:'✅ Rutina «{n}» creada. En una instalación real aquí se abre el editor para añadir los ejercicios.',en:'✅ Plan “{n}” created. In a real installation this opens the editor to add exercises.',nl:'✅ Schema “{n}” aangemaakt. In een echte installatie opent hier de editor om oefeningen toe te voegen.',de:'✅ Plan „{n}“ erstellt. In einer echten Installation öffnet sich hier der Editor, um Übungen hinzuzufügen.'},
+  assignPrompt:{it:'DEMO — Assegna «{n}» a un paziente.\nScrivi il numero:\n\n',es:'DEMO — Asigna «{n}» a un paciente.\nEscribe el número:\n\n',en:'DEMO — Assign “{n}” to a patient.\nType the number:\n\n',nl:'DEMO — Wijs “{n}” toe aan een patiënt.\nTyp het nummer:\n\n',de:'DEMO — Weise „{n}“ einem Patienten zu.\nNummer eingeben:\n\n'},
+  assignDone:{it:'✅ Scheda «{n}» assegnata a {p}.\nLa vedrà subito nella sua app, sezione Allenamento.',es:'✅ Rutina «{n}» asignada a {p}.\nLa verá enseguida en su app, sección Entrenamiento.',en:'✅ Plan “{n}” assigned to {p}.\nThey’ll see it right away in their app, Workout section.',nl:'✅ Schema “{n}” toegewezen aan {p}.\nZe zien het meteen in hun app, onderdeel Training.',de:'✅ Plan „{n}“ {p} zugewiesen.\nEr sieht ihn sofort in seiner App, Bereich Training.'},
+  pageTitles:{it:{},es:{},en:{},nl:{},de:{}}
+};
+function t(k){const e=UI[k];return e?(e[L]||e.it):k;}
+
+// ---- localized dynamic dictionaries ----
+const DAYS={it:['Lun','Mar','Mer','Gio','Ven','Sab','Dom'],es:['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'],en:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],nl:['Ma','Di','Wo','Do','Vr','Za','Zo'],de:['Mo','Di','Mi','Do','Fr','Sa','So']};
+const MONTH_MAG={it:'mag',es:'may',en:'May',nl:'mei',de:'Mai'};
+const MEAL={colazione:{it:'Colazione',es:'Desayuno',en:'Breakfast',nl:'Ontbijt',de:'Frühstück'},spuntino:{it:'Spuntino',es:'Tentempié',en:'Snack',nl:'Tussendoortje',de:'Snack'},pranzo:{it:'Pranzo',es:'Almuerzo',en:'Lunch',nl:'Lunch',de:'Mittagessen'},cena:{it:'Cena',es:'Cena',en:'Dinner',nl:'Diner',de:'Abendessen'}};
+const OBJ={perdita:{it:'Perdita peso',es:'Pérdida de peso',en:'Weight loss',nl:'Gewichtsverlies',de:'Gewichtsverlust'},ricomp:{it:'Ricomposizione',es:'Recomposición',en:'Body recomposition',nl:'Herverdeling',de:'Rekomposition'},sport:{it:'Sport/performance',es:'Deporte/rendimiento',en:'Sport/performance',nl:'Sport/prestatie',de:'Sport/Leistung'},colest:{it:'Colesterolo',es:'Colesterol',en:'Cholesterol',nl:'Cholesterol',de:'Cholesterin'},massa:{it:'Massa muscolare',es:'Masa muscular',en:'Muscle mass',nl:'Spiermassa',de:'Muskelmasse'},grav:{it:'Gravidanza',es:'Embarazo',en:'Pregnancy',nl:'Zwangerschap',de:'Schwangerschaft'},diab:{it:'Diabete tipo 2',es:'Diabetes tipo 2',en:'Type 2 diabetes',nl:'Diabetes type 2',de:'Typ-2-Diabetes'}};
+function rel(code){
+  const M={h1:{it:'1h fa',es:'hace 1h',en:'1h ago',nl:'1u geleden',de:'vor 1 Std'},h2:{it:'2h fa',es:'hace 2h',en:'2h ago',nl:'2u geleden',de:'vor 2 Std'},today:{it:'Oggi',es:'Hoy',en:'Today',nl:'Vandaag',de:'Heute'},yest:{it:'Ieri',es:'Ayer',en:'Yesterday',nl:'Gisteren',de:'Gestern'},d3:{it:'3 giorni fa',es:'hace 3 días',en:'3 days ago',nl:'3 dagen geleden',de:'vor 3 Tagen'},d5:{it:'5 giorni fa',es:'hace 5 días',en:'5 days ago',nl:'5 dagen geleden',de:'vor 5 Tagen'},d8:{it:'8 giorni fa',es:'hace 8 días',en:'8 days ago',nl:'8 dagen geleden',de:'vor 8 Tagen'}};
+  return (M[code]||{})[L]||code;
+}
+function md(day){return day+' '+MONTH_MAG[L];} // "14 mag"
+
+// ---------- Data ----------
+const adher=[72,80,68,85,90,76,88];
+const review=[
+  ['Marta Bellini','spuntino','11:00'],['Sofia Marchetti','cena','20:40'],
+  ['Andrea Costa','pranzo','13:15'],['Luca Moretti','colazione','07:50'],
+  ['Elena Ricci','spuntino','16:00'],['Davide Neri','cena','21:00'],
+  ['Chiara Fontana','pranzo','12:30'],
+];
+// [name, age, objKey, adher, lastAccessCode, nextVisitDay]
+const patients=[
+  ['Marta Bellini',34,'perdita',92,'h2',14],
+  ['Giulio Ferraro',41,'ricomp',85,'yest',16],
+  ['Sofia Marchetti',28,'sport',78,'today',12],
+  ['Andrea Costa',52,'colest',64,'d3',15],
+  ['Elena Ricci',45,'perdita',55,'d5',11],
+  ['Davide Neri',37,'massa',88,'today',20],
+  ['Chiara Fontana',31,'grav',95,'h1',13],
+  ['Luca Moretti',48,'diab',47,'d8',10],
+];
+const weights=[76.5,75.2,74.8,73.9,73.1,72.4,71.2];
+// diary: type key + per-lang desc/note/fb
+const diary=[
+  {type:'colazione',time:'08:15',ic:'🥣',status:'app',
+   desc:{it:'Yogurt greco, avena, mirtilli',es:'Yogur griego, avena, arándanos',en:'Greek yogurt, oats, blueberries',nl:'Griekse yoghurt, havermout, bosbessen',de:'Griechischer Joghurt, Haferflocken, Heidelbeeren'},
+   note:{it:'Buona colazione, sazia fino a pranzo',es:'Buen desayuno, sacia hasta el almuerzo',en:'Good breakfast, keeps me full until lunch',nl:'Goed ontbijt, verzadigt tot de lunch',de:'Gutes Frühstück, sättigt bis zum Mittag'}},
+  {type:'spuntino',time:'11:00',ic:'🍎',status:'wait',
+   desc:{it:'Mela + 6 mandorle',es:'Manzana + 6 almendras',en:'Apple + 6 almonds',nl:'Appel + 6 amandelen',de:'Apfel + 6 Mandeln'}},
+  {type:'pranzo',time:'13:30',ic:'🍗',status:'fb',
+   desc:{it:'Petto di pollo, riso basmati, zucchine grigliate',es:'Pechuga de pollo, arroz basmati, calabacín a la plancha',en:'Chicken breast, basmati rice, grilled zucchini',nl:'Kipfilet, basmatirijst, gegrilde courgette',de:'Hähnchenbrust, Basmatireis, gegrillte Zucchini'},
+   fb:{it:'Ottima porzione di proteine 👍',es:'Excelente ración de proteínas 👍',en:'Great protein portion 👍',nl:'Prima portie eiwitten 👍',de:'Super Eiweißportion 👍'}},
+  {type:'spuntino',time:'16:30',ic:'🍘',status:'rev',
+   desc:{it:'Crackers integrali',es:'Crackers integrales',en:'Wholegrain crackers',nl:'Volkoren crackers',de:'Vollkorn-Cracker'},
+   note:{it:'Ero fuori, scelta di ripiego',es:'Estaba fuera, opción de emergencia',en:'I was out, a fallback choice',nl:'Ik was onderweg, noodoplossing',de:'War unterwegs, Notlösung'}},
+  {type:'cena',time:'20:15',ic:'🐟',status:'wait',
+   desc:{it:'Salmone al forno, insalata mista, pane integrale',es:'Salmón al horno, ensalada mixta, pan integral',en:'Baked salmon, mixed salad, wholegrain bread',nl:'Gebakken zalm, gemengde salade, volkorenbrood',de:'Ofenlachs, gemischter Salat, Vollkornbrot'}},
+];
+// plans: per-lang name + kcal + macros + assigned + days variant + color
+const plans=[
+  {name:{it:'Piano Ipocalorico Bilanciato',es:'Plan Hipocalórico Equilibrado',en:'Balanced Low-Calorie Plan',nl:'Gebalanceerd caloriearm plan',de:'Ausgewogener kalorienarmer Plan'},kcal:1600,macros:[45,30,25],assigned:6,days:'planDays',color:'var(--green)'},
+  {name:{it:'Piano Sportivo Iperproteico',es:'Plan Deportivo Hiperproteico',en:'High-Protein Sports Plan',nl:'Eiwitrijk sportplan',de:'Eiweißreicher Sportplan'},kcal:2400,macros:[40,40,20],assigned:4,days:'planDays2',color:'var(--blue)'},
+  {name:{it:'Piano Mediterraneo Mantenimento',es:'Plan Mediterráneo de Mantenimiento',en:'Mediterranean Maintenance Plan',nl:'Mediterraan onderhoudsplan',de:'Mediterraner Erhaltungsplan'},kcal:1900,macros:[50,20,30],assigned:8,days:'planDays',color:'var(--orange)'},
+];
+// workouts: per-lang name+focus+freq, exercise names per-lang
+const workouts=[
+  {name:{it:'Tonificazione Full Body',es:'Tonificación Full Body',en:'Full-Body Toning',nl:'Full-body toning',de:'Ganzkörper-Straffung'},focus:{it:'Dimagrimento',es:'Adelgazamiento',en:'Weight loss',nl:'Afvallen',de:'Abnehmen'},freq:'3',assigned:6,color:'var(--green)',
+   ex:[[{it:'Squat corpo libero',es:'Sentadilla libre',en:'Bodyweight squat',nl:'Squat lichaamsgewicht',de:'Kniebeuge (Eigengewicht)'},'4 × 12'],[{it:'Panca con manubri',es:'Press con mancuernas',en:'Dumbbell bench press',nl:'Bankdrukken met dumbbells',de:'Kurzhantel-Bankdrücken'},'3 × 12'],[{it:'Lat machine',es:'Jalón al pecho',en:'Lat pulldown',nl:'Lat pulldown',de:'Latzug'},'3 × 12'],[{it:'Affondi alternati',es:'Zancadas alternas',en:'Alternating lunges',nl:'Alternerende lunges',de:'Ausfallschritte im Wechsel'},'3 × 10'],[{it:'Plank',es:'Plancha',en:'Plank',nl:'Plank',de:'Unterarmstütz'},'3 × 40s']]},
+  {name:{it:'Ipertrofia Upper / Lower',es:'Hipertrofia Upper / Lower',en:'Upper / Lower Hypertrophy',nl:'Hypertrofie Upper / Lower',de:'Hypertrophie Upper / Lower'},focus:{it:'Massa muscolare',es:'Masa muscular',en:'Muscle mass',nl:'Spiermassa',de:'Muskelmasse'},freq:'4',assigned:4,color:'var(--blue)',
+   ex:[[{it:'Panca piana bilanciere',es:'Press de banca con barra',en:'Barbell bench press',nl:'Bankdrukken met barbell',de:'Langhantel-Bankdrücken'},'4 × 8'],[{it:'Stacco da terra',es:'Peso muerto',en:'Deadlift',nl:'Deadlift',de:'Kreuzheben'},'4 × 6'],[{it:'Trazioni alla sbarra',es:'Dominadas',en:'Pull-ups',nl:'Optrekken',de:'Klimmzüge'},'4 × max'],[{it:'Military press',es:'Press militar',en:'Military press',nl:'Military press',de:'Schulterdrücken'},'3 × 10'],[{it:'Leg press',es:'Prensa de piernas',en:'Leg press',nl:'Beenpers',de:'Beinpresse'},'4 × 10']]},
+  {name:{it:'Ricomposizione + Cardio',es:'Recomposición + Cardio',en:'Recomposition + Cardio',nl:'Herverdeling + Cardio',de:'Rekomposition + Cardio'},focus:{it:'Ricomposizione',es:'Recomposición',en:'Recomposition',nl:'Herverdeling',de:'Rekomposition'},freq:'3',assigned:5,color:'var(--orange)',
+   ex:[[{it:'Circuito HIIT',es:'Circuito HIIT',en:'HIIT circuit',nl:'HIIT-circuit',de:'HIIT-Zirkel'},'20 min'],[{it:'Goblet squat',es:'Goblet squat',en:'Goblet squat',nl:'Goblet squat',de:'Goblet Squat'},'3 × 15'],[{it:'Rematore manubrio',es:'Remo con mancuerna',en:'Dumbbell row',nl:'Dumbbell row',de:'Kurzhantel-Rudern'},'3 × 12'],[{it:'Push-up',es:'Flexiones',en:'Push-ups',nl:'Push-ups',de:'Liegestütze'},'3 × max'],[{it:'Cyclette defaticamento',es:'Bici de vuelta a la calma',en:'Cool-down cycling',nl:'Hometrainer cooling-down',de:'Ausrad-Cardio'},'15 min']]},
+];
+const freqLabel={it:s=>s+' sessioni / settimana',es:s=>s+' sesiones / semana',en:s=>s+' sessions / week',nl:s=>s+' sessies / week',de:s=>s+' Einheiten / Woche'};
+
+// ---------- Navigation ----------
+document.querySelectorAll('#nav a').forEach(a=>{
+  a.onclick=()=>{
+    document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('active'));
+    a.classList.add('active');
+    const v=a.dataset.v;
+    document.querySelectorAll('#nutrContent .view').forEach(s=>s.classList.remove('show'));
+    document.getElementById('v-'+v).classList.add('show');
+    setPageTitle(v);
+    document.getElementById('sidebar').classList.remove('open');
+  };
+});
+function activeView(){const a=document.querySelector('#nav a.active');return a?a.dataset.v:'dashboard';}
+const VIEWKEY={dashboard:'navDashboard',pazienti:'navPazienti',scheda:'navScheda',piani:'navPiani',allenamento:'navAllenamento',calendario:'navCalendario'};
+function setPageTitle(v){document.getElementById('pageTitle').textContent=t(VIEWKEY[v]);}
+
+// ---------- Renders ----------
+function renderBars(){
+  const el=document.getElementById('bars');el.innerHTML='';
+  adher.forEach((v,i)=>{
+    const b=document.createElement('div');b.className='b';
+    b.innerHTML=`<span class="pct">${v}%</span><div class="bar" style="height:${v}%"></div><span class="day">${DAYS[L][i]}</span>`;
+    el.appendChild(b);
+  });
+}
+function renderReview(){
+  document.getElementById('reviewTbl').innerHTML=review.map(r=>
+    `<tr onclick="goScheda()"><td><b>${r[0]}</b></td><td>${MEAL[r[1]][L]}</td><td>${r[2]}</td></tr>`).join('');
+}
+function badgeFor(p){
+  if(p>=80)return`<span class="badge b-green">${p}%</span>`;
+  if(p>=60)return`<span class="badge b-orange">${p}%</span>`;
+  return`<span class="badge b-red">${p}%</span>`;
+}
+function renderPaz(list){
+  document.getElementById('pazTbl').innerHTML=list.map(p=>
+    `<tr onclick="goScheda()"><td><b>${p[0]}</b></td><td>${p[1]}</td><td>${OBJ[p[2]][L]}</td><td>${badgeFor(p[3])}</td><td>${rel(p[4])}</td><td>${md(p[5])}</td></tr>`).join('');
+}
+let curFilter='all';
+function filterPaz(chip){
+  if(chip){document.querySelectorAll('#v-pazienti .chip').forEach(c=>c.classList.remove('on'));chip.classList.add('on');curFilter=chip.dataset.f;}
+  const q=document.getElementById('pazSearch').value.toLowerCase();
+  let list=patients.filter(p=>p[0].toLowerCase().includes(q));
+  if(curFilter==='target')list=list.filter(p=>p[3]>=80);
+  if(curFilter==='monit')list=list.filter(p=>p[3]<70);
+  renderPaz(list);
+}
+function goScheda(){
+  document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('active'));
+  document.querySelector('#nav a[data-v="scheda"]').classList.add('active');
+  document.querySelectorAll('#nutrContent .view').forEach(s=>s.classList.remove('show'));
+  document.getElementById('v-scheda').classList.add('show');
+  setPageTitle('scheda');
+  window.scrollTo(0,0);
+}
+function statusBadge(s){
+  return{app:`<span class="badge b-green">${t('bApproved')}</span>`,
+    wait:`<span class="badge b-gray">${t('bWaiting')}</span>`,
+    rev:`<span class="badge b-orange">${t('bReview')}</span>`,
+    fb:`<span class="badge b-blue">${t('bFeedback')}</span>`}[s];
+}
+function renderDiary(){
+  document.getElementById('diary').innerHTML=diary.map((m,i)=>`
+    <div class="meal">
+      <div class="thumb">${m.ic}</div>
+      <div class="m-body">
+        <div class="t">${MEAL[m.type][L]} <span class="time">• ${m.time}</span></div>
+        <div class="desc">${m.desc[L]}</div>
+        ${m.note?`<div class="noteq">💬 "${m.note[L]}"</div>`:''}
+        ${m.fb?`<div class="fb">${t('nutriPrefix')} ${m.fb[L]}</div>`:''}
+        <div style="margin-top:6px">${statusBadge(m.status)}</div>
+      </div>
+      <div class="m-act">
+        <button class="btn small" onclick="approve(${i})">${t('approve')}</button>
+        <button class="btn small ghost" onclick="feedback(${i})">${t('feedback')}</button>
+      </div>
+    </div>`).join('');
+}
+function approve(i){diary[i].status='app';renderDiary();}
+function feedback(i){
+  const tx=prompt(t('fbPrompt'),t('fbDefault'));
+  if(tx){diary[i].fb={it:tx,es:tx,en:tx,nl:tx,de:tx};diary[i].status='fb';renderDiary();}
+}
+function renderPlans(){
+  document.getElementById('planList').innerHTML=plans.map(p=>`
+    <div class="plan" style="border-top-color:${p.color}">
+      <h3>${p.name[L]}</h3>
+      <div class="kcal">${p.kcal} kcal</div>
+      <div class="macros"><div class="m"><b>${p.macros[0]}%</b><span>${t('mCarb')}</span></div><div class="m"><b>${p.macros[1]}%</b><span>${t('mProtShort')}</span></div><div class="m"><b>${p.macros[2]}%</b><span>${t('mFat')}</span></div></div>
+      <p class="note">${t(p.days)} <b>${p.assigned} ${t('patientsWord')}</b></p>
+      <button class="btn small" style="margin-top:10px" onclick="alert(t('demoEditor'))">${t('editPlanBtn')}</button>
+    </div>`).join('');
+}
+function renderCal(){
+  const status={it:['Confermato','In attesa'],es:['Confirmado','En espera'],en:['Confirmed','Pending'],nl:['Bevestigd','In afwachting'],de:['Bestätigt','Ausstehend']};
+  const data=[
+    {n:12,name:'Marta Bellini',ok:true},{n:13,name:'Sofia Marchetti',ok:false},
+    {n:14,name:'Andrea Costa',ok:true},{n:15,name:'Davide Neri',ok:true},
+    {n:16,name:t('firstVisit')+' — L. Verdi',ok:false},
+  ];
+  document.getElementById('cal').innerHTML=data.map((c,i)=>`
+    <div class="col"><h4>${DAYS[L][i]} ${c.n}</h4>
+      <div class="slot"><div class="h">${['09:00','15:00','11:00','17:30','10:00'][i]}</div>${c.name}<br>
+      ${c.ok?`<span class="badge b-green">${t('confirmed')}</span>`:`<span class="badge b-orange">${t('waiting')}</span>`}</div>
+    </div>`).join('');
+}
+// ---------- Schede palestra ----------
+function renderWorkouts(){
+  document.getElementById('workoutList').innerHTML=workouts.map((w,i)=>`
+    <div class="plan" style="border-top-color:${w.color}">
+      <h3>${w.name[L]}</h3>
+      <div class="freq">${w.focus[L]} • ${freqLabel[L](w.freq)}</div>
+      <ul class="exlist">${w.ex.map(e=>`<li><span>${e[0][L]}</span><b>${e[1]}</b></li>`).join('')}</ul>
+      <div class="assigned">${t('assignedTo')} <b>${w.assigned} ${t('patientsWord')}</b></div>
+      <div class="act">
+        <button class="btn small" onclick="assignWorkout(${i})">${t('assignBtn')}</button>
+        <button class="btn small ghost" onclick="alert(t('demoEditor'))">${t('editBtn')}</button>
+      </div>
+    </div>`).join('');
+}
+function assignWorkout(i){
+  const names=patients.map((p,k)=>`${k+1}. ${p[0]}`).join('\n');
+  const sel=prompt(t('assignPrompt').replace('{n}',workouts[i].name[L])+names);
+  const n=parseInt(sel);
+  if(n>=1 && n<=patients.length){
+    workouts[i].assigned++;renderWorkouts();
+    alert(t('assignDone').replace('{n}',workouts[i].name[L]).replace('{p}',patients[n-1][0]));
+  }
+}
+function newWorkout(){
+  const nome=prompt(t('newWkPrompt'),t('newWkDefault'));
+  if(!nome)return;
+  const nm={it:nome,es:nome,en:nome,nl:nome,de:nome};
+  const fc={it:t('newWkFocus'),es:t('newWkFocus'),en:t('newWkFocus'),nl:t('newWkFocus'),de:t('newWkFocus')};
+  const ax={it:t('addEx'),es:t('addEx'),en:t('addEx'),nl:t('addEx'),de:t('addEx')};
+  workouts.unshift({name:nm,focus:fc,freq:'0',assigned:0,color:'var(--green)',ex:[[ax,'—']]});
+  renderWorkouts();
+  alert(t('newWkDone').replace('{n}',nome));
+}
+
+// ---------- SVG line ----------
+function drawLine(id,arr){
+  const svg=document.getElementById(id);if(!svg)return;
+  const w=400,h=180,pad=20;
+  const min=Math.min(...arr)-1,max=Math.max(...arr)+1;
+  const pts=arr.map((v,i)=>{const x=pad+(w-2*pad)*i/(arr.length-1);const y=h-pad-(h-2*pad)*(v-min)/(max-min);return[x,y];});
+  const line=pts.map(p=>p.join(',')).join(' ');
+  const area=`${pad},${h-pad} ${line} ${w-pad},${h-pad}`;
+  svg.innerHTML=`
+    <polygon points="${area}" fill="rgba(46,158,107,.12)"/>
+    <polyline points="${line}" fill="none" stroke="#2e9e6b" stroke-width="2.5"/>
+    ${pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="#1f7a51"/>`).join('')}`;
+}
+
+// ---------- apply language ----------
+function applyLang(l){
+  L=l;
+  document.documentElement.lang=l;
+  try{localStorage.setItem(LANG_KEY,l);}catch(e){}
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(UI[k])el.innerHTML=UI[k][l]||UI[k].it;});
+  const s=document.getElementById('pazSearch');if(s)s.placeholder=t('searchPh');
+  document.getElementById('calTitle').textContent=t('calTitle');
+  document.querySelectorAll('#langsel button').forEach(b=>b.classList.toggle('on',b.dataset.l===l));
+  // re-render dynamic content
+  renderBars();renderReview();filterPaz();renderDiary();renderPlans();renderCal();renderWorkouts();
+  setPageTitle(activeView());
+}
+document.querySelectorAll('#langsel button').forEach(b=>b.addEventListener('click',()=>applyLang(b.dataset.l)));
+
+// init
+drawLine('weightChart',weights);
+(function(){var l;try{l=new URLSearchParams(location.search).get('lang');}catch(e){}if(!LANGS.includes(l)){try{l=localStorage.getItem(LANG_KEY);}catch(e){}}if(!LANGS.includes(l))l='it';applyLang(l);})();
+
+// Axiom loading splash
+addEventListener('load',function(){var e=document.getElementById('axload');if(!e)return;setTimeout(function(){e.classList.add('hide')},250);setTimeout(function(){e.remove()},700)});
+</script>
+</body>
+</html>

@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenCommessa — Document Control Hub</title>
+<style>
+:root{
+--bg:#f4f6fa;--panel:#fff;--ink:#1e293b;--muted:#64748b;--line:#e2e8f0;
+--brand:#0d6e6e;--brand-d:#0a5454;--accent:#2563eb;
+--grey:#94a3b8;--amber:#f59e0b;--blue:#3b82f6;--green:#16a34a;--orange:#ea580c;--red:#991b1b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+.app{display:flex;min-height:100vh}
+/* Sidebar */
+.sidebar{width:240px;background:#0b2027;color:#cbd5e1;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:50;transition:.3s}
+.logo{padding:20px 18px;font-size:19px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;border-bottom:1px solid #14313c}
+.logo .demo{font-size:10px;background:var(--amber);color:#000;padding:2px 6px;border-radius:4px;font-weight:700}
+.nav{flex:1;padding:12px 0;overflow-y:auto}
+.nav a{display:flex;align-items:center;gap:11px;padding:12px 20px;color:#9fb3bd;text-decoration:none;cursor:pointer;font-weight:500;border-left:3px solid transparent}
+.nav a:hover{background:#14313c;color:#fff}
+.nav a.active{background:#14313c;color:#fff;border-left-color:var(--brand)}
+.nav .ic{width:20px;text-align:center;font-size:16px}
+.side-foot{padding:14px 20px;font-size:11px;color:#64808c;border-top:1px solid #14313c}
+/* Main */
+.main{flex:1;margin-left:240px;display:flex;flex-direction:column;min-width:0}
+.topbar{background:var(--panel);border-bottom:1px solid var(--line);padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:30}
+.hamb{display:none;font-size:22px;background:none;border:none;cursor:pointer}
+.topbar h1{font-size:18px;font-weight:700;flex:1;min-width:120px}
+.commsel{display:flex;align-items:center;gap:8px;font-size:13px}
+.commsel select{padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:#fff;font-weight:600;color:var(--brand)}
+.user{display:flex;align-items:center;gap:9px}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.content{padding:24px;flex:1}
+.view{display:none;animation:fade .3s}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:6px}
+.kpi .v{font-size:30px;font-weight:800;color:var(--brand)}
+.kpi .l{font-size:12px;color:var(--muted);font-weight:600}
+.kpi .ic{font-size:20px}
+/* Layout grid */
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.card h2{font-size:15px;padding:15px 18px;border-bottom:1px solid var(--line);font-weight:700;display:flex;align-items:center;gap:8px}
+.card .body{padding:0}
+/* Table */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:11px 16px;border-bottom:1px solid var(--line);font-weight:700}
+td{padding:12px 16px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr.clk{cursor:pointer}
+tbody tr.clk:hover{background:#f0f9f9}
+.code{font-family:'Consolas',monospace;font-weight:600;color:var(--accent)}
+/* progress */
+.prog{display:flex;align-items:center;gap:8px;min-width:120px}
+.bar{flex:1;height:7px;background:#e8edf2;border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--brand);border-radius:4px}
+/* badges */
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.b-grey{background:#e2e8f0;color:#475569}
+.b-amber{background:#fef3c7;color:#92400e}
+.b-blue{background:#dbeafe;color:#1e40af}
+.b-green{background:#dcfce7;color:#166534}
+.b-orange{background:#ffedd5;color:#9a3412}
+.b-red{background:#fee2e2;color:#7f1d1d}
+.b-corso{background:#dbeafe;color:#1e40af}
+.b-collaudo{background:#ede9fe;color:#5b21b6}
+.b-avvio{background:#fef3c7;color:#92400e}
+.b-chiusa{background:#e2e8f0;color:#475569}
+/* feed */
+.feed{padding:8px 0}
+.fitem{display:flex;gap:11px;padding:11px 18px;border-bottom:1px solid var(--line)}
+.fitem:last-child{border-bottom:none}
+.fdot{width:30px;height:30px;border-radius:50%;background:#f0f9f9;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.fitem .t{font-size:13px}
+.fitem .tm{font-size:11px;color:var(--muted)}
+/* tabs */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:20px}
+.tabs button{padding:11px 18px;background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;font-weight:600;color:var(--muted);font-size:14px}
+.tabs button.active{color:var(--brand);border-bottom-color:var(--brand)}
+.tabpane{display:none}.tabpane.active{display:block}
+/* commessa head */
+.chead{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;margin-bottom:22px}
+.chead .top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:18px}
+.chead h2{font-size:22px;font-weight:800}
+.cmeta{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px}
+.cmeta div span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700}
+.cmeta div b{font-size:15px}
+/* timeline */
+.tl{list-style:none;padding:18px}
+.tl li{display:flex;gap:14px;padding-bottom:22px;position:relative}
+.tl li:before{content:'';position:absolute;left:13px;top:28px;bottom:-4px;width:2px;background:var(--line)}
+.tl li:last-child:before{display:none}
+.tl .mk{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff}
+.mk.done{background:var(--green)}.mk.doing{background:var(--amber)}.mk.todo{background:var(--grey)}
+.tl .mt b{display:block}.tl .mt span{font-size:12px;color:var(--muted)}
+/* team */
+.team{padding:8px 0}
+.tmember{display:flex;align-items:center;gap:13px;padding:13px 18px;border-bottom:1px solid var(--line)}
+.tmember:last-child{border-bottom:none}
+/* filters */
+.filters{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.filters select{padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:#fff}
+/* approvals */
+.acards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.acard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;transition:.4s}
+.acard.removing{opacity:0;transform:scale(.92)}
+.acard h3{font-size:15px;margin-bottom:4px}
+.acard .ameta{font-size:12px;color:var(--muted);margin:10px 0;line-height:1.8}
+.acard .ameta b{color:var(--ink)}
+.abtns{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.btn{padding:8px 13px;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:12px}
+.btn-ap{background:var(--green);color:#fff}
+.btn-mo{background:var(--orange);color:#fff}
+.btn-re{background:#dc2626;color:#fff}
+.btn:hover{filter:brightness(1.08)}
+.empty{padding:40px;text-align:center;color:var(--muted);grid-column:1/-1}
+/* calendar */
+.cal{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+.calhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.calgrid .dow{text-align:center;font-size:11px;font-weight:700;color:var(--muted);padding:6px 0}
+.cell{min-height:78px;border:1px solid var(--line);border-radius:8px;padding:5px;font-size:12px}
+.cell.off{background:#f8fafc;color:#cbd5e1}
+.cell .num{font-weight:700;font-size:12px}
+.ev{font-size:10px;padding:2px 5px;border-radius:4px;margin-top:3px;color:#fff;line-height:1.3;cursor:default}
+.ev.consegna{background:var(--blue)}.ev.milestone{background:var(--brand)}.ev.deadline{background:#dc2626}.ev.riunione{background:#7c3aed}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;font-size:12px}
+.legend span{display:flex;align-items:center;gap:6px}
+.dot{width:12px;height:12px;border-radius:3px;display:inline-block}
+.note{font-size:11px;color:var(--muted);margin-top:14px;font-style:italic}
+/* drawer */
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:90;opacity:0;visibility:hidden;transition:.3s}
+.overlay.open{opacity:1;visibility:visible}
+.drawer{position:fixed;top:0;right:0;width:430px;max-width:92vw;height:100vh;background:#fff;z-index:100;box-shadow:-6px 0 30px rgba(0,0,0,.18);transform:translateX(100%);transition:.32s;display:flex;flex-direction:column}
+.drawer.open{transform:none}
+.dhead{padding:20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start}
+.dhead .x{background:none;border:none;font-size:24px;cursor:pointer;color:var(--muted)}
+.dbody{padding:20px;overflow-y:auto;flex:1}
+.drow{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.drow span{color:var(--muted)}
+.dsec{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--brand);font-weight:700;margin:22px 0 10px}
+.rev{border-left:3px solid var(--line);padding:0 0 14px 14px;position:relative}
+.rev:before{content:'';position:absolute;left:-6px;top:3px;width:9px;height:9px;border-radius:50%;background:var(--brand)}
+.rev b{font-size:13px}.rev .d{font-size:12px;color:var(--muted)}
+.dfoot{padding:16px 20px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
+.note-banner{background:#fffbeb;border:1px solid #fcd34d;color:#92400e;font-size:12px;padding:8px 14px;border-radius:8px;margin-bottom:18px}
+@media(max-width:860px){
+.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}
+.sidebar{transform:translateX(-100%)}.sidebar.open{transform:none}
+.main{margin-left:0}.hamb{display:block}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar" id="sb">
+<div class="logo">📐 OpenCommessa <span class="demo">DEMO</span></div>
+<nav class="nav" id="nav">
+<a data-v="dashboard" class="active"><span class="ic">📊</span> Dashboard</a>
+<a data-v="commessa"><span class="ic">📁</span> Dettaglio Commessa</a>
+<a data-v="docs"><span class="ic">📄</span> Document Control</a>
+<a data-v="approvals"><span class="ic">✅</span> Approvazioni</a>
+<a data-v="calendar"><span class="ic">📅</span> Calendario</a>
+</nav>
+<div class="side-foot">Hub document control<br>v1.4 · Dati di esempio</div>
+</aside>
+
+<div class="main">
+<header class="topbar">
+<button class="hamb" onclick="document.getElementById('sb').classList.toggle('open')">☰</button>
+<h1 id="vtitle">Dashboard</h1>
+<div class="commsel">📁 Commessa attiva:
+<select id="commsel" onchange="changeComm()">
+<option value="CM-2024-018">CM-2024-018 · Saipem</option>
+<option value="CM-2024-021">CM-2024-021 · Eni Rewind</option>
+<option value="CM-2024-009">CM-2024-009 · Webuild</option>
+<option value="CM-2024-025">CM-2024-025 · Snam Rete Gas</option>
+<option value="all">Tutte le commesse</option>
+</select>
+</div>
+<div class="user"><div class="avatar">CG</div><div><b style="font-size:13px">C. Greco</b><div style="font-size:11px;color:var(--muted)">Document Controller</div></div></div>
+</header>
+
+<div class="content">
+
+<!-- DASHBOARD -->
+<section class="view active" id="dashboard">
+<div class="kpis">
+<div class="kpi"><div class="ic">📁</div><div class="v">8</div><div class="l">Commesse attive</div></div>
+<div class="kpi"><div class="ic">🔍</div><div class="v" id="kpiRev">23</div><div class="l">Documenti in revisione</div></div>
+<div class="kpi"><div class="ic">⏳</div><div class="v" id="kpiAppr">7</div><div class="l">In attesa di approvazione</div></div>
+<div class="kpi"><div class="ic">📅</div><div class="v">5</div><div class="l">Scadenze settimana</div></div>
+</div>
+<div class="grid2">
+<div class="card">
+<h2>📁 Commesse in corso</h2>
+<div class="body"><table>
+<thead><tr><th>Codice</th><th>Cliente</th><th>Avanzamento</th><th>Responsabile</th><th>Stato</th></tr></thead>
+<tbody id="commTbody"></tbody>
+</table></div>
+</div>
+<div class="card">
+<h2>🕑 Attività recenti</h2>
+<div class="feed">
+<div class="fitem"><div class="fdot">📤</div><div><div class="t"><b>G. Conti</b> ha caricato <b>Rev C</b> di CM018-PRO-001</div><div class="tm">oggi · 09:14</div></div></div>
+<div class="fitem"><div class="fdot">✅</div><div><div class="t"><b>M. Ferrari</b> ha approvato CM018-MEC-014 Rev B</div><div class="tm">ieri · 17:32</div></div></div>
+<div class="fitem"><div class="fdot">✏️</div><div><div class="t"><b>A. Russo</b> ha richiesto modifiche su CM021-STR-009</div><div class="tm">ieri · 14:08</div></div></div>
+<div class="fitem"><div class="fdot">📤</div><div><div class="t"><b>R. Marino</b> ha inviato CM018-ELE-007 per approvazione</div><div class="tm">2 giorni fa</div></div></div>
+<div class="fitem"><div class="fdot">📌</div><div><div class="t">Milestone <b>Basic Design</b> completata su CM-2024-018</div><div class="tm">3 giorni fa</div></div></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- COMMESSA -->
+<section class="view" id="commessa">
+<div class="chead">
+<div class="top">
+<div><h2 id="cmTitle">CM-2024-018</h2><div style="color:var(--muted);margin-top:4px" id="cmClient">Saipem S.p.A.</div></div>
+<div style="text-align:right"><span class="badge b-corso">In corso</span></div>
+</div>
+<div class="cmeta">
+<div><span>Project Manager</span><b>M. Ferrari</b></div>
+<div><span>Data inizio</span><b>08/01/2024</b></div>
+<div><span>Data fine prev.</span><b>30/06/2024</b></div>
+<div><span>Avanzamento</span><b>72%</b></div>
+<div style="grid-column:span 2"><div class="prog"><div class="bar"><i style="width:72%"></i></div></div></div>
+</div>
+</div>
+<div class="tabs" id="cmTabs">
+<button class="active" data-t="t-docs">Documenti</button>
+<button data-t="t-mile">Milestone</button>
+<button data-t="t-team">Team</button>
+</div>
+<div class="tabpane active" id="t-docs">
+<div class="card"><div class="body"><table>
+<thead><tr><th>Codice Doc</th><th>Titolo</th><th>Rev</th><th>Stato</th><th>Ultima modifica</th></tr></thead>
+<tbody>
+<tr><td class="code">CM018-PRO-001</td><td>P&ID Unità Compressione</td><td>C</td><td><span class="badge b-amber">In revisione</span></td><td>28/02/2024</td></tr>
+<tr><td class="code">CM018-MEC-014</td><td>Layout Skid Pompaggio</td><td>B</td><td><span class="badge b-green">Approvato</span></td><td>20/02/2024</td></tr>
+<tr><td class="code">CM018-ELE-007</td><td>Schema Unifilare MT</td><td>A</td><td><span class="badge b-blue">In attesa appr.</span></td><td>25/02/2024</td></tr>
+</tbody>
+</table></div></div>
+</div>
+<div class="tabpane" id="t-mile">
+<div class="card"><ul class="tl">
+<li><div class="mk done">✓</div><div class="mt"><b>Kick-off</b><span>Completata · 10/01/2024</span></div></li>
+<li><div class="mk done">✓</div><div class="mt"><b>Basic Design</b><span>Completata · 14/02/2024</span></div></li>
+<li><div class="mk doing">●</div><div class="mt"><b>Detailed Design</b><span>In corso · scad. 22/03/2024</span></div></li>
+<li><div class="mk todo">○</div><div class="mt"><b>Procurement</b><span>Da fare</span></div></li>
+<li><div class="mk todo">○</div><div class="mt"><b>As-Built</b><span>Da fare</span></div></li>
+</ul></div>
+</div>
+<div class="tabpane" id="t-team">
+<div class="card"><div class="team">
+<div class="tmember"><div class="avatar">MF</div><div><b>M. Ferrari</b><div style="font-size:12px;color:var(--muted)">Project Manager</div></div></div>
+<div class="tmember"><div class="avatar">GC</div><div><b>G. Conti</b><div style="font-size:12px;color:var(--muted)">Process Lead</div></div></div>
+<div class="tmember"><div class="avatar">SD</div><div><b>S. De Luca</b><div style="font-size:12px;color:var(--muted)">Mechanical</div></div></div>
+<div class="tmember"><div class="avatar">RM</div><div><b>R. Marino</b><div style="font-size:12px;color:var(--muted)">Electrical</div></div></div>
+<div class="tmember"><div class="avatar">CG</div><div><b>C. Greco</b><div style="font-size:12px;color:var(--muted)">Document Controller</div></div></div>
+</div></div>
+</div>
+</section>
+
+<!-- DOCS -->
+<section class="view" id="docs">
+<div class="note-banner">📌 Registro completo dei documenti tecnici. Clicca una riga per il dettaglio e le azioni.</div>
+<div class="filters">
+<select id="fComm" onchange="filterDocs()">
+<option value="">Tutte le commesse</option>
+<option value="CM-2024-018">CM-2024-018</option>
+<option value="CM-2024-021">CM-2024-021</option>
+<option value="CM-2024-009">CM-2024-009</option>
+</select>
+<select id="fStato" onchange="filterDocs()">
+<option value="">Tutti gli stati</option>
+<option>Bozza</option><option>In revisione</option><option>In attesa appr.</option>
+<option>Approvato</option><option>Modifiche richieste</option>
+</select>
+<select id="fDisc" onchange="filterDocs()">
+<option value="">Tutte le discipline</option>
+<option>Process</option><option>Meccanica</option><option>Elettrica</option>
+<option>Civile</option><option>Strutture</option><option>Piping</option>
+</select>
+</div>
+<div class="card"><div class="body"><table>
+<thead><tr><th>Codice Doc</th><th>Titolo</th><th>Disciplina</th><th>Rev</th><th>Stato</th><th>Data</th><th>Autore</th></tr></thead>
+<tbody id="docTbody"></tbody>
+</table></div></div>
+</section>
+
+<!-- APPROVALS -->
+<section class="view" id="approvals">
+<div class="note-banner">⏳ Coda dei documenti in attesa di approvazione. Le azioni aggiornano in tempo reale i KPI e il registro.</div>
+<div class="acards" id="acards"></div>
+</section>
+
+<!-- CALENDAR -->
+<section class="view" id="calendar">
+<div class="cal">
+<div class="calhead"><h2 style="font-size:17px">Marzo 2024</h2><div style="color:var(--muted)">‹ &nbsp; Mese &nbsp; ›</div></div>
+<div class="calgrid" id="calGrid"></div>
+<div class="legend">
+<span><i class="dot" style="background:var(--blue)"></i> Consegna documenti</span>
+<span><i class="dot" style="background:var(--brand)"></i> Milestone</span>
+<span><i class="dot" style="background:#dc2626"></i> Deadline approvazione</span>
+<span><i class="dot" style="background:#7c3aed"></i> Riunione</span>
+</div>
+<div class="note">Dati di esempio — calendario dimostrativo non collegato ad agende reali.</div>
+</div>
+</section>
+
+</div></div></div>
+
+<!-- DRAWER -->
+<div class="overlay" id="ov" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer">
+<div class="dhead">
+<div><div class="code" id="dCode" style="font-size:15px"></div><div id="dTitle" style="font-weight:700;margin-top:4px"></div></div>
+<button class="x" onclick="closeDrawer()">×</button>
+</div>
+<div class="dbody" id="dBody"></div>
+<div class="dfoot">
+<button class="btn btn-ap" onclick="drawerAction('appr')">✅ Approva</button>
+<button class="btn btn-mo" onclick="drawerAction('mod')">✏️ Richiedi modifiche</button>
+<button class="btn btn-re" onclick="drawerAction('rej')">✖ Rifiuta</button>
+</div>
+</aside>
+
+<script>
+const badge={
+'Bozza':'b-grey','In revisione':'b-amber','In attesa appr.':'b-blue',
+'Approvato':'b-green','Modifiche richieste':'b-orange','Superato':'b-red'
+};
+let commesse=[
+{c:'CM-2024-018',cl:'Saipem S.p.A.',pm:'M. Ferrari',av:72,st:'In corso',cls:'b-corso'},
+{c:'CM-2024-021',cl:'Eni Rewind',pm:'L. Bianchi',av:45,st:'In corso',cls:'b-corso'},
+{c:'CM-2024-009',cl:'Webuild',pm:'A. Russo',av:95,st:'Collaudo',cls:'b-collaudo'},
+{c:'CM-2024-025',cl:'Snam Rete Gas',pm:'C. Greco',av:18,st:'Avvio',cls:'b-avvio'},
+{c:'CM-2023-112',cl:'Pirelli Industrie',pm:'M. Ferrari',av:100,st:'Chiusa',cls:'b-chiusa'}
+];
+let docs=[
+{c:'CM018-PRO-001',t:'P&ID Unità Compressione',d:'Process',r:'C',s:'In revisione',dt:'28/02/2024',a:'G. Conti',comm:'CM-2024-018'},
+{c:'CM018-MEC-014',t:'Layout Skid Pompaggio',d:'Meccanica',r:'B',s:'Approvato',dt:'20/02/2024',a:'S. De Luca',comm:'CM-2024-018'},
+{c:'CM018-ELE-007',t:'Schema Unifilare MT',d:'Elettrica',r:'A',s:'In attesa appr.',dt:'25/02/2024',a:'R. Marino',comm:'CM-2024-018'},
+{c:'CM021-CIV-003',t:'Calcolo Fondazioni',d:'Civile',r:'0',s:'Bozza',dt:'10/02/2024',a:'F. Esposito',comm:'CM-2024-021'},
+{c:'CM021-STR-009',t:'Relazione Strutturale',d:'Strutture',r:'B',s:'Modifiche richieste',dt:'18/02/2024',a:'A. Russo',comm:'CM-2024-021'},
+{c:'CM009-PIP-022',t:'Isometrico Linea 200',d:'Piping',r:'D',s:'Approvato',dt:'15/02/2024',a:'L. Romano',comm:'CM-2024-009'}
+];
+let approvals=[
+{id:'a1',doc:'CM018-ELE-007',t:'Schema Unifilare MT',comm:'CM-2024-018',rich:'R. Marino',rev:'A',data:'25/02/2024'},
+{id:'a2',doc:'CM018-PRO-001',t:'P&ID Unità Compressione',comm:'CM-2024-018',rich:'G. Conti',rev:'C',data:'28/02/2024'},
+{id:'a3',doc:'CM021-CIV-003',t:'Calcolo Fondazioni',comm:'CM-2024-021',rich:'F. Esposito',rev:'0',data:'01/03/2024'}
+];
+const histories={
+'CM018-PRO-001':[
+{r:'C',d:'28/02/2024',desc:'In revisione interna',a:'G. Conti'},
+{r:'B',d:'04/02/2024',desc:'Recepiti commenti cliente',a:'G. Conti'},
+{r:'A',d:'12/01/2024',desc:'Emissione per commenti',a:'G. Conti'}
+]};
+
+// render commesse dashboard
+function renderComm(){
+const tb=document.getElementById('commTbody');tb.innerHTML='';
+commesse.filter(c=>c.st!=='Chiusa').forEach(c=>{
+tb.innerHTML+=`<tr class="clk" onclick="goCommessa('${c.c}')"><td class="code">${c.c}</td><td>${c.cl}</td>
+<td><div class="prog"><div class="bar"><i style="width:${c.av}%"></i></div><small>${c.av}%</small></div></td>
+<td>${c.pm}</td><td><span class="badge ${c.cls}">${c.st}</span></td></tr>`;
+});
+}
+// render docs
+function renderDocs(){
+const tb=document.getElementById('docTbody');tb.innerHTML='';
+docs.forEach((d,i)=>{
+tb.innerHTML+=`<tr class="clk" data-i="${i}" data-comm="${d.comm}" data-stato="${d.s}" data-disc="${d.d}" onclick="openDrawer(${i})">
+<td class="code">${d.c}</td><td>${d.t}</td><td>${d.d}</td><td><b>${d.r}</b></td>
+<td><span class="badge ${badge[d.s]}">${d.s}</span></td><td>${d.dt}</td><td>${d.a}</td></tr>`;
+});
+filterDocs();
+}
+function filterDocs(){
+const fc=fComm.value,fs=fStato.value,fd=fDisc.value;
+document.querySelectorAll('#docTbody tr').forEach(tr=>{
+const ok=(!fc||tr.dataset.comm===fc)&&(!fs||tr.dataset.stato===fs)&&(!fd||tr.dataset.disc===fd);
+tr.style.display=ok?'':'none';
+});
+}
+// approvals
+function renderApprovals(){
+const w=document.getElementById('acards');w.innerHTML='';
+if(!approvals.length){w.innerHTML='<div class="empty">🎉 Nessun documento in attesa di approvazione.</div>';return;}
+approvals.forEach(a=>{
+w.innerHTML+=`<div class="acard" id="${a.id}">
+<h3 class="code" style="font-size:14px">${a.doc}</h3><div style="font-weight:600">${a.t}</div>
+<div class="ameta">Commessa: <b>${a.comm}</b><br>Richiedente: <b>${a.rich}</b><br>Revisione: <b>${a.rev}</b> · Inviato: <b>${a.data}</b></div>
+<div class="abtns">
+<button class="btn btn-ap" onclick="approve('${a.id}','appr')">✅ Approva</button>
+<button class="btn btn-mo" onclick="approve('${a.id}','mod')">✏️ Modifiche</button>
+<button class="btn btn-re" onclick="approve('${a.id}','rej')">✖ Rifiuta</button>
+</div></div>`;
+});
+}
+function approve(id,act){
+const a=approvals.find(x=>x.id===id);
+const card=document.getElementById(id);
+card.classList.add('removing');
+// update doc state
+const doc=docs.find(d=>d.c===a.doc);
+if(doc){doc.s=act==='appr'?'Approvato':act==='mod'?'Modifiche richieste':'Superato';}
+setTimeout(()=>{
+approvals=approvals.filter(x=>x.id!==id);
+renderApprovals();renderDocs();
+let n=parseInt(kpiAppr.textContent)-1;kpiAppr.textContent=n;
+},420);
+}
+// drawer
+let curDoc=null;
+function openDrawer(i){
+curDoc=i;const d=docs[i];
+dCode.textContent=d.c;dTitle.textContent=d.t;
+let h=`<div class="drow"><span>Disciplina</span><b>${d.d}</b></div>
+<div class="drow"><span>Revisione corrente</span><b>${d.r}</b></div>
+<div class="drow"><span>Stato</span><span class="badge ${badge[d.s]}">${d.s}</span></div>
+<div class="drow"><span>Autore</span><b>${d.a}</b></div>
+<div class="drow"><span>Commessa</span><b>${d.comm}</b></div>
+<div class="drow"><span>Ultima modifica</span><b>${d.dt}</b></div>`;
+h+='<div class="dsec">Storico revisioni</div>';
+const hist=histories[d.c]||[{r:d.r,d:d.dt,desc:'Revisione corrente',a:d.a}];
+hist.forEach(r=>{h+=`<div class="rev"><b>Rev ${r.r} — ${r.d}</b><div class="d">${r.desc} · ${r.a}</div></div>`;});
+dBody.innerHTML=h;
+ov.classList.add('open');drawer.classList.add('open');
+}
+function closeDrawer(){ov.classList.remove('open');drawer.classList.remove('open');}
+function drawerAction(act){
+if(curDoc===null)return;
+docs[curDoc].s=act==='appr'?'Approvato':act==='mod'?'Modifiche richieste':'Superato';
+renderDocs();
+// remove from approval queue if present
+const code=docs[curDoc].c;
+const a=approvals.find(x=>x.doc===code);
+if(a){approvals=approvals.filter(x=>x.id!==a.id);renderApprovals();
+let n=parseInt(kpiAppr.textContent)-1;kpiAppr.textContent=Math.max(0,n);}
+closeDrawer();
+}
+// nav
+document.querySelectorAll('#nav a').forEach(a=>{
+a.onclick=()=>{
+document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('active'));
+a.classList.add('active');
+const v=a.dataset.v;
+document.querySelectorAll('.view').forEach(s=>s.classList.remove('active'));
+document.getElementById(v).classList.add('active');
+vtitle.textContent=a.textContent.trim();
+document.getElementById('sb').classList.remove('open');
+window.scrollTo(0,0);
+};
+});
+// tabs
+document.querySelectorAll('#cmTabs button').forEach(b=>{
+b.onclick=()=>{
+document.querySelectorAll('#cmTabs button').forEach(x=>x.classList.remove('active'));
+b.classList.add('active');
+document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('active'));
+document.getElementById(b.dataset.t).classList.add('active');
+};
+});
+function goCommessa(c){
+const cm=commesse.find(x=>x.c===c);
+cmTitle.textContent=cm.c;cmClient.textContent=cm.cl;
+document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('active'));
+document.querySelector('[data-v=commessa]').classList.add('active');
+document.querySelectorAll('.view').forEach(s=>s.classList.remove('active'));
+document.getElementById('commessa').classList.add('active');
+vtitle.textContent='Dettaglio Commessa';window.scrollTo(0,0);
+}
+function changeComm(){
+const v=commsel.value;
+if(v!=='all'){fComm.value=v;filterDocs();}else{fComm.value='';filterDocs();}
+}
+// calendar
+function renderCal(){
+const events={15:[['consegna','Consegna P&ID Rev C']],18:[['deadline','Deadline appr. Schema MT']],20:[['riunione','Riunione avanz. CM-021']],22:[['milestone','Milestone Detailed Design']]};
+const dows=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+const g=document.getElementById('calGrid');g.innerHTML='';
+dows.forEach(d=>g.innerHTML+=`<div class="dow">${d}</div>`);
+// March 2024: 1 March = Friday. Mon-first -> offset 4
+for(let i=0;i<4;i++)g.innerHTML+='<div class="cell off"></div>';
+for(let d=1;d<=31;d++){
+let ev='';if(events[d])events[d].forEach(e=>ev+=`<div class="ev ${e[0]}">${e[1]}</div>`);
+g.innerHTML+=`<div class="cell"><div class="num">${d}</div>${ev}</div>`;
+}
+}
+renderComm();renderDocs();renderApprovals();renderCal();
+</script>
+</body>
+</html>

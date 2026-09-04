@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriPlan AI</title>
+<style>
+:root{
+--verde:#16a34a;--verde-d:#15803d;--verde-l:#dcfce7;
+--ambar:#d97706;--ambar-l:#fef3c7;
+--rojo:#dc2626;--rojo-l:#fee2e2;
+--azul:#2563eb;
+--gris:#64748b;--gris-l:#f1f5f9;--borde:#e2e8f0;
+--bg:#f8fafc;--txt:#1e293b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);font-size:14px}
+.app{display:flex;min-height:100vh}
+/* SIDEBAR */
+.sidebar{width:240px;background:#0f172a;color:#cbd5e1;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100;transition:.3s}
+.logo{padding:20px;font-size:19px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;border-bottom:1px solid #1e293b}
+.logo .demo{font-size:10px;background:var(--verde);color:#fff;padding:2px 7px;border-radius:20px;margin-left:auto}
+.nav{flex:1;padding:12px 0}
+.nav a{display:flex;align-items:center;gap:12px;padding:12px 20px;color:#94a3b8;text-decoration:none;cursor:pointer;font-weight:500;border-left:3px solid transparent}
+.nav a:hover{background:#1e293b;color:#fff}
+.nav a.active{background:#1e293b;color:#fff;border-left-color:var(--verde)}
+.nav-ico{width:20px;text-align:center;font-size:16px}
+.sidebar-foot{padding:16px 20px;border-top:1px solid #1e293b;font-size:11px;color:#64748b}
+/* MAIN */
+.main{flex:1;margin-left:240px;min-width:0}
+.topbar{background:#fff;border-bottom:1px solid var(--borde);padding:14px 28px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
+.topbar h1{font-size:17px}
+.menu-btn{display:none;background:none;border:none;font-size:22px;cursor:pointer}
+.nota{font-size:11px;color:var(--gris);margin-left:auto;background:var(--ambar-l);color:var(--ambar);padding:4px 10px;border-radius:6px}
+.content{padding:28px}
+.view{display:none;animation:fade .3s}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+/* KPI */
+.saludo{font-size:22px;font-weight:700;margin-bottom:4px}
+.saludo-sub{color:var(--gris);margin-bottom:24px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.kpi{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:18px}
+.kpi .lbl{color:var(--gris);font-size:12px;margin-bottom:8px}
+.kpi .val{font-size:26px;font-weight:700}
+.kpi .ico{float:right;font-size:22px;opacity:.7}
+.card{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:20px;margin-bottom:20px}
+.card h3{font-size:15px;margin-bottom:14px}
+.btn{background:var(--verde);color:#fff;border:none;padding:11px 18px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--verde-d)}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.btn.sec{background:#fff;color:var(--txt);border:1px solid var(--borde)}
+.btn.sec:hover{background:var(--gris-l)}
+.btn.blue{background:var(--azul)}
+/* Actividad */
+.act-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--borde)}
+.act-item:last-child{border-bottom:none}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--verde-l);color:var(--verde-d);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.act-info{flex:1}
+.act-info .n{font-weight:600}
+.act-info .d{font-size:12px;color:var(--gris)}
+/* Badges */
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-borrador{background:var(--gris-l);color:var(--gris)}
+.b-revisado{background:var(--verde-l);color:var(--verde-d)}
+.b-enviado{background:#dbeafe;color:var(--azul)}
+/* Table */
+.toolbar{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.toolbar input,.toolbar select{padding:10px 12px;border:1px solid var(--borde);border-radius:8px;font-size:14px;background:#fff}
+.toolbar input{flex:1;min-width:180px}
+table{width:100%;border-collapse:collapse;background:#fff}
+.tbl-wrap{background:#fff;border:1px solid var(--borde);border-radius:12px;overflow:hidden}
+th{text-align:left;padding:13px 16px;font-size:12px;color:var(--gris);text-transform:uppercase;background:var(--gris-l);border-bottom:1px solid var(--borde)}
+td{padding:13px 16px;border-bottom:1px solid var(--borde)}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:#f8fafc}
+tbody tr:last-child td{border-bottom:none}
+.chip{display:inline-block;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;margin:1px}
+.chip-r{background:var(--rojo-l);color:var(--rojo)}
+.chip-g{background:var(--verde-l);color:var(--verde-d)}
+.chip-none{color:var(--gris)}
+/* Drawer */
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;display:none}
+.overlay.open{display:block}
+.drawer{position:fixed;top:0;right:-440px;width:420px;max-width:90vw;height:100vh;background:#fff;z-index:201;box-shadow:-4px 0 24px rgba(0,0,0,.1);transition:right .3s;overflow-y:auto}
+.drawer.open{right:0}
+.drawer-head{padding:22px;border-bottom:1px solid var(--borde);display:flex;align-items:center;gap:14px}
+.drawer-head .close{margin-left:auto;background:none;border:none;font-size:24px;cursor:pointer;color:var(--gris)}
+.drawer-body{padding:22px}
+.dstats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.dstat{background:var(--gris-l);border-radius:8px;padding:12px}
+.dstat .l{font-size:11px;color:var(--gris)}
+.dstat .v{font-size:17px;font-weight:700;margin-top:2px}
+.sec-lbl{font-size:12px;font-weight:700;color:var(--gris);text-transform:uppercase;margin:18px 0 8px}
+.hist-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--borde)}
+/* Wizard */
+.steps{display:flex;margin-bottom:28px;gap:8px}
+.step{flex:1;text-align:center;padding-bottom:12px;border-bottom:3px solid var(--borde);color:var(--gris);font-weight:600;font-size:13px}
+.step.active{border-color:var(--verde);color:var(--verde-d)}
+.step .num{display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--borde);color:var(--gris);align-items:center;justify-content:center;margin-right:6px;font-size:12px}
+.step.active .num{background:var(--verde);color:#fff}
+.wstep{display:none}
+.wstep.active{display:block}
+.field{margin-bottom:20px}
+.field label{display:block;font-weight:600;margin-bottom:7px;font-size:13px}
+.field input,.field select{width:100%;padding:11px 12px;border:1px solid var(--borde);border-radius:8px;font-size:14px;background:#fff}
+.macrobar{display:flex;height:32px;border-radius:8px;overflow:hidden;margin-top:8px;font-size:12px;font-weight:600;color:#fff}
+.macrobar span{display:flex;align-items:center;justify-content:center}
+.mp{background:#3b82f6}.mg{background:#f59e0b}.mh{background:#10b981}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px;border:1px solid var(--borde);border-radius:8px;margin-bottom:10px}
+.switch{position:relative;width:44px;height:24px}
+.switch input{display:none}
+.slider{position:absolute;inset:0;background:#cbd5e1;border-radius:24px;transition:.2s;cursor:pointer}
+.slider:before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked+.slider{background:var(--verde)}
+.switch input:checked+.slider:before{transform:translateX(20px)}
+.alergwarn{background:var(--ambar-l);color:var(--ambar);padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:16px;display:none}
+.wnav{display:flex;justify-content:space-between;margin-top:24px}
+.progress-box{text-align:center;padding:40px 20px}
+.progmsg{font-size:16px;font-weight:600;margin-bottom:20px;color:var(--verde-d)}
+.progbar{height:12px;background:var(--gris-l);border-radius:20px;overflow:hidden;max-width:400px;margin:0 auto}
+.progbar .fill{height:100%;width:0;background:var(--verde);transition:width .6s}
+/* Plan */
+.plan-head{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.plan-head .kcal{font-size:14px;color:var(--gris)}
+.plan-layout{display:grid;grid-template-columns:1fr 300px;gap:20px}
+.tabs{display:flex;gap:4px;margin-bottom:16px;overflow-x:auto}
+.tab{padding:9px 16px;border:1px solid var(--borde);background:#fff;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;white-space:nowrap}
+.tab.active{background:var(--verde);color:#fff;border-color:var(--verde)}
+.meal{background:#fff;border:1px solid var(--borde);border-radius:10px;padding:16px;margin-bottom:12px;display:flex;align-items:flex-start;gap:14px}
+.meal-ico{width:42px;height:42px;border-radius:10px;background:var(--verde-l);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.meal-body{flex:1}
+.meal-body .mt{font-size:11px;color:var(--gris);text-transform:uppercase;font-weight:700}
+.meal-body .mn{font-weight:600;margin:3px 0}
+.meal-body .mg{color:var(--gris);font-size:12px}
+.meal-kcal{font-weight:700;color:var(--verde-d)}
+.summary{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:20px;position:sticky;top:80px;height:fit-content}
+.big-kcal{font-size:32px;font-weight:800;color:var(--verde-d)}
+.macro-line{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--borde);font-size:13px}
+.ok-alerg{background:var(--verde-l);color:var(--verde-d);padding:12px;border-radius:8px;font-weight:600;font-size:13px;margin:16px 0}
+@media(max-width:900px){
+.sidebar{left:-240px}.sidebar.open{left:0}.main{margin-left:0}.menu-btn{display:block}
+.kpis{grid-template-columns:1fr 1fr}.plan-layout{grid-template-columns:1fr}
+.summary{position:static}
+}
+@media(max-width:560px){.kpis{grid-template-columns:1fr}.content{padding:16px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar" id="sidebar">
+<div class="logo">🥗 NutriPlan <span class="demo">DEMO</span></div>
+<nav class="nav">
+<a class="active" data-view="dashboard"><span class="nav-ico">🏠</span> Inicio</a>
+<a data-view="pacientes"><span class="nav-ico">👥</span> Pacientes</a>
+<a data-view="generador"><span class="nav-ico">✨</span> Generador IA</a>
+<a data-view="plan" id="nav-plan" style="display:none"><span class="nav-ico">📋</span> Plan generado</a>
+</nav>
+<div class="sidebar-foot">v2.4 · Barcelona<br>Datos de ejemplo</div>
+</aside>
+
+<div class="main">
+<div class="topbar">
+<button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+<h1 id="pageTitle">Inicio</h1>
+<span class="nota">⚠ Datos de ejemplo — demo</span>
+</div>
+<div class="content">
+
+<!-- DASHBOARD -->
+<div class="view active" id="dashboard">
+<div class="saludo">Hola, Bet 👋</div>
+<div class="saludo-sub" id="fecha"></div>
+<div class="kpis">
+<div class="kpi"><span class="ico">📊</span><div class="lbl">Planes generados este mes</div><div class="val">47</div></div>
+<div class="kpi"><span class="ico">⏱️</span><div class="lbl">Tiempo medio generación</div><div class="val">2m 15s</div></div>
+<div class="kpi"><span class="ico">👥</span><div class="lbl">Pacientes activos</div><div class="val">32</div></div>
+<div class="kpi"><span class="ico">🕐</span><div class="lbl">Horas ahorradas</div><div class="val">18h</div></div>
+</div>
+<div style="margin-bottom:20px"><button class="btn" onclick="go('generador')">+ Generar nuevo plan</button></div>
+<div class="card">
+<h3>Actividad reciente</h3>
+<div id="actividad"></div>
+</div>
+</div>
+
+<!-- PACIENTES -->
+<div class="view" id="pacientes">
+<div class="toolbar">
+<input id="buscar" placeholder="🔍 Buscar paciente..." oninput="renderPac()">
+<select id="filtroObj" onchange="renderPac()">
+<option value="">Todos los objetivos</option>
+<option>Perder peso</option><option>Mantener</option>
+<option>Ganar masa</option><option>Deportivo</option>
+</select>
+</div>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>Nombre</th><th>Edad</th><th>Objetivo</th><th>Alergias/Intol.</th><th>Último plan</th><th>Estado</th></tr></thead>
+<tbody id="pacBody"></tbody>
+</table>
+</div>
+</div>
+
+<!-- GENERADOR -->
+<div class="view" id="generador">
+<div class="card" style="max-width:720px;margin:0 auto">
+<div class="steps">
+<div class="step active" data-s="1"><span class="num">1</span>Parámetros</div>
+<div class="step" data-s="2"><span class="num">2</span>Criterios</div>
+<div class="step" data-s="3"><span class="num">3</span>Generación</div>
+</div>
+
+<div class="wstep active" data-w="1">
+<div class="alergwarn" id="alergWarn"></div>
+<div class="field"><label>Paciente</label>
+<select id="wPac" onchange="onPacSelect()"></select></div>
+<div class="field"><label>Objetivo calórico (auto-sugerido)</label>
+<input type="number" id="wKcal" value="1650"> </div>
+<div class="field"><label>Reparto de macros</label>
+<div class="macrobar"><span class="mp" style="width:32%">P 32%</span><span class="mg" style="width:30%">G 30%</span><span class="mh" style="width:38%">H 38%</span></div>
+</div>
+<div class="field"><label>Nº de comidas/día</label>
+<select id="wComidas"><option>3</option><option selected>5</option><option>6</option></select></div>
+</div>
+
+<div class="wstep" data-w="2">
+<div class="field"><label>Plantilla base</label>
+<select id="wPlantilla">
+<option>Pérdida grasa mediterránea</option>
+<option>Deportivo alto proteína</option>
+<option>Mantenimiento equilibrado</option>
+<option>Vegetariana flexible</option>
+</select></div>
+<div class="toggle-row"><span>Excluir alérgenos detectados</span>
+<label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+<div class="toggle-row"><span>Respetar preferencias</span>
+<label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+<div class="toggle-row"><span>Incluir lista de la compra</span>
+<label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+</div>
+
+<div class="wstep" data-w="3">
+<div class="progress-box">
+<div class="progmsg" id="progMsg">Listo para generar el plan</div>
+<div class="progbar"><div class="fill" id="progFill"></div></div>
+<div style="margin-top:28px"><button class="btn" id="genBtn" onclick="generar()">✨ Generar plan</button></div>
+</div>
+</div>
+
+<div class="wnav">
+<button class="btn sec" id="prevBtn" onclick="wstep(-1)" style="visibility:hidden">← Anterior</button>
+<button class="btn" id="nextBtn" onclick="wstep(1)">Siguiente →</button>
+</div>
+</div>
+</div>
+
+<!-- PLAN -->
+<div class="view" id="plan">
+<div class="plan-head">
+<div class="avatar" id="planAv">MP</div>
+<div>
+<div style="font-weight:700;font-size:17px" id="planNom">Marta Puig</div>
+<div class="kcal" id="planKcal">Objetivo: 1.650 kcal · Plan semanal</div>
+</div>
+<span class="badge b-borrador" id="planBadge" style="margin-left:8px">Borrador · listo para revisar</span>
+</div>
+<div class="plan-layout">
+<div>
+<div class="tabs" id="dayTabs"></div>
+<div id="mealsBox"></div>
+</div>
+<div class="summary">
+<div style="color:var(--gris);font-size:12px">Total diario</div>
+<div class="big-kcal">1.510 <span style="font-size:16px;color:var(--gris)">kcal</span></div>
+<div style="margin-top:16px">
+<div class="macro-line"><span>🔵 Proteínas</span><b>32%</b></div>
+<div class="macro-line"><span>🟠 Grasas</span><b>30%</b></div>
+<div class="macro-line" style="border:none"><span>🟢 Hidratos</span><b>38%</b></div>
+</div>
+<div class="ok-alerg" id="okAlerg">✓ Sin alérgenos detectados</div>
+<button class="btn" style="width:100%;margin-bottom:8px" id="revBtn" onclick="marcarRevisado()">✓ Marcar como revisado</button>
+<button class="btn sec" style="width:100%;margin-bottom:8px" onclick="alert('Editor de comida — demo')">✏️ Editar comida</button>
+<button class="btn blue" style="width:100%" onclick="alert('Exportando PDF... (simulado)')">📄 Exportar PDF</button>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer"></div>
+
+<script>
+const pacientes=[
+{id:0,nom:"Marta Puig",edad:34,obj:"Perder peso",peso:68,alt:165,alerg:["Lactosa"],pref:["Sin lactosa"],act:"Moderada",estado:"Revisado"},
+{id:1,nom:"Jordi Ferrer",edad:41,obj:"Deportivo",peso:82,alt:180,alerg:[],pref:["Alta proteína"],act:"Alta",estado:"Enviado"},
+{id:2,nom:"Aina Solé",edad:28,obj:"Mantener",peso:60,alt:170,alerg:["Frutos secos","Gluten"],pref:["Sin gluten"],act:"Ligera",estado:"Borrador"},
+{id:3,nom:"Carlos Ruiz",edad:52,obj:"Perder peso",peso:95,alt:178,alerg:["Marisco"],pref:[],act:"Sedentaria",estado:"Revisado"},
+{id:4,nom:"Núria Camps",edad:37,obj:"Ganar masa",peso:55,alt:162,alerg:[],pref:["Vegetariana"],act:"Alta",estado:"Borrador"},
+{id:5,nom:"Laia Vidal",edad:45,obj:"Mantener",peso:70,alt:168,alerg:["Lactosa","Huevo"],pref:["Sin lactosa"],act:"Moderada",estado:"Enviado"},
+];
+// persistir estados
+const saved=JSON.parse(localStorage.getItem('np_estados')||'{}');
+pacientes.forEach(p=>{if(saved[p.id])p.estado=saved[p.id]});
+
+const ultPlan=["hace 3 días","hace 1 día","hace 5 días","hace 2 sem","hace 6 días","hace 4 días"];
+
+const comidasMarta={
+Lun:[["Desayuno","🍞","Tostada integral con aguacate y tomate + café solo","2 rebanadas",320],
+["Media mañana","🫐","Yogur de soja con arándanos","1 unidad",140],
+["Comida","🐟","Merluza al horno con quinoa y verduras asadas","150g + 60g",480],
+["Merienda","🌰","Puñado de almendras + manzana","25g + 1 pza",190],
+["Cena","🥣","Crema de calabacín + tortilla francesa (2 huevos)","300ml",380]],
+};
+["Mar","Mié","Jue","Vie","Sáb","Dom"].forEach(d=>{
+comidasMarta[d]=[
+["Desayuno","🥣","Copos de avena con bebida de soja y plátano","50g",300],
+["Media mañana","🍎","Fruta de temporada + té verde","1 pza",120],
+["Comida","🍗","Pollo a la plancha con arroz integral y ensalada","150g + 70g",490],
+["Merienda","🥕","Bastones de zanahoria con hummus","100g",170],
+["Cena","🥗","Ensalada templada de garbanzos y verduras","1 bol",370]];
+});
+
+let selectedPac=0;
+
+function fecha(){
+const d=new Date();
+const o={weekday:'long',day:'numeric',month:'long',year:'numeric'};
+document.getElementById('fecha').textContent=d.toLocaleDateString('es-ES',o).replace(/^\w/,c=>c.toUpperCase());
+}
+fecha();
+
+function go(v){
+document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
+document.getElementById(v).classList.add('active');
+document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('active',a.dataset.view===v));
+const titles={dashboard:'Inicio',pacientes:'Pacientes',generador:'Generador IA',plan:'Plan generado'};
+document.getElementById('pageTitle').textContent=titles[v];
+document.getElementById('sidebar').classList.remove('open');
+window.scrollTo(0,0);
+}
+document.querySelectorAll('.nav a').forEach(a=>a.onclick=()=>go(a.dataset.view));
+
+// ACTIVIDAD
+function renderAct(){
+const box=document.getElementById('actividad');
+const rec=[pacientes[0],pacientes[1],pacientes[2],pacientes[3],pacientes[4]];
+box.innerHTML=rec.map((p,i)=>{
+const bc={Borrador:'b-borrador',Revisado:'b-revisado',Enviado:'b-enviado'}[p.estado];
+return `<div class="act-item"><div class="avatar">${ini(p.nom)}</div>
+<div class="act-info"><div class="n">${p.nom}</div><div class="d">Plan generado ${ultPlan[i]}</div></div>
+<span class="badge ${bc}">${p.estado}</span></div>`;
+}).join('');
+}
+function ini(n){return n.split(' ').map(x=>x[0]).join('').slice(0,2)}
+
+// PACIENTES
+function renderPac(){
+const q=(document.getElementById('buscar').value||'').toLowerCase();
+const f=document.getElementById('filtroObj').value;
+const body=document.getElementById('pacBody');
+const rows=pacientes.filter(p=>p.nom.toLowerCase().includes(q)&&(!f||p.obj===f));
+body.innerHTML=rows.map(p=>{
+const bc={Borrador:'b-borrador',Revisado:'b-revisado',Enviado:'b-enviado'}[p.estado];
+const al=p.alerg.length?p.alerg.map(a=>`<span class="chip chip-r">${a}</span>`).join(''):'<span class="chip-none">—</span>';
+return `<tr onclick="openDrawer(${p.id})"><td><b>${p.nom}</b></td><td>${p.edad}</td><td>${p.obj}</td>
+<td>${al}</td><td>${ultPlan[p.id]}</td><td><span class="badge ${bc}">${p.estado}</span></td></tr>`;
+}).join('')||'<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:30px">Sin resultados</td></tr>';
+}
+
+// DRAWER
+function openDrawer(id){
+const p=pacientes[id];
+const imc=(p.peso/((p.alt/100)**2)).toFixed(1);
+const al=p.alerg.length?p.alerg.map(a=>`<span class="chip chip-r">${a}</span>`).join(''):'<span class="chip-none">Ninguna</span>';
+const pr=p.pref.length?p.pref.map(a=>`<span class="chip chip-g">${a}</span>`).join(''):'<span class="chip-none">—</span>';
+document.getElementById('drawer').innerHTML=`
+<div class="drawer-head"><div class="avatar" style="width:48px;height:48px">${ini(p.nom)}</div>
+<div><div style="font-weight:700;font-size:16px">${p.nom}</div><div style="color:var(--gris);font-size:13px">${p.obj}</div></div>
+<button class="close" onclick="closeDrawer()">×</button></div>
+<div class="drawer-body">
+<div class="dstats">
+<div class="dstat"><div class="l">Edad</div><div class="v">${p.edad} años</div></div>
+<div class="dstat"><div class="l">Peso</div><div class="v">${p.peso} kg</div></div>
+<div class="dstat"><div class="l">Altura</div><div class="v">${p.alt} cm</div></div>
+<div class="dstat"><div class="l">IMC</div><div class="v">${imc}</div></div>
+</div>
+<div class="dstat" style="margin-bottom:8px"><div class="l">Actividad física</div><div class="v" style="font-size:15px">${p.act}</div></div>
+<div class="sec-lbl">Alergias / Intolerancias</div><div>${al}</div>
+<div class="sec-lbl">Preferencias</div><div>${pr}</div>
+<div class="sec-lbl">Historial de planes</div>
+<div class="hist-item"><span>Plan semanal</span><span style="color:var(--gris);font-size:12px">${ultPlan[id]}</span></div>
+<div class="hist-item"><span>Plan semanal</span><span style="color:var(--gris);font-size:12px">hace 3 sem</span></div>
+<div class="hist-item"><span>Plan mensual</span><span style="color:var(--gris);font-size:12px">hace 5 sem</span></div>
+<button class="btn" style="width:100%;margin-top:20px" onclick="closeDrawer();selectedPac=${id};go('generador');document.getElementById('wPac').value=${id};onPacSelect()">✨ Generar plan para este paciente</button>
+</div>`;
+document.getElementById('drawer').classList.add('open');
+document.getElementById('overlay').classList.add('open');
+}
+function closeDrawer(){
+document.getElementById('drawer').classList.remove('open');
+document.getElementById('overlay').classList.remove('open');
+}
+
+// WIZARD
+let curStep=1;
+function fillPacSelect(){
+document.getElementById('wPac').innerHTML=pacientes.map(p=>`<option value="${p.id}">${p.nom} — ${p.obj}</option>`).join('');
+onPacSelect();
+}
+function onPacSelect(){
+const id=+document.getElementById('wPac').value;
+selectedPac=id;
+const p=pacientes[id];
+const w=document.getElementById('alergWarn');
+if(p.alerg.length){w.style.display='block';w.textContent='⚠ Excluyendo: '+p.alerg.join(', ').toLowerCase();}
+else w.style.display='none';
+const sug={"Perder peso":1650,"Mantener":2000,"Ganar masa":2600,"Deportivo":2400}[p.obj]||1800;
+document.getElementById('wKcal').value=sug;
+}
+function wstep(dir){
+curStep+=dir;
+document.querySelectorAll('.wstep').forEach(e=>e.classList.toggle('active',+e.dataset.w===curStep));
+document.querySelectorAll('.step').forEach(e=>e.classList.toggle('active',+e.dataset.s<=curStep));
+document.getElementById('prevBtn').style.visibility=curStep>1?'visible':'hidden';
+document.getElementById('nextBtn').style.display=curStep<3?'inline-flex':'none';
+}
+function generar(){
+const btn=document.getElementById('genBtn');btn.disabled=true;
+const msgs=["Analizando criterios…","Aplicando plantilla…","Ajustando calorías…"];
+const fill=document.getElementById('progFill');const pm=document.getElementById('progMsg');
+let i=0;
+function nxt(){
+if(i<msgs.length){pm.textContent=msgs[i];fill.style.width=((i+1)/msgs.length*100)+'%';i++;setTimeout(nxt,800);}
+else{pm.textContent="✓ ¡Plan generado!";setTimeout(()=>{renderPlan();btn.disabled=false;fill.style.width='0';curStep=1;wstep(0);curStep=1;
+document.querySelectorAll('.wstep').forEach(e=>e.classList.toggle('active',+e.dataset.w===1));
+document.querySelectorAll('.step').forEach(e=>e.classList.toggle('active',+e.dataset.s===1));
+document.getElementById('prevBtn').style.visibility='hidden';document.getElementById('nextBtn').style.display='inline-flex';
+document.getElementById('nav-plan').style.display='flex';go('plan');},600);}
+}
+fill.style.width='0';nxt();
+}
+
+// PLAN
+let planEstado='Borrador';
+let planPacId=0;
+function renderPlan(){
+const p=pacientes[selectedPac];planPacId=p.id;
+const kcal=document.getElementById('wKcal').value;
+document.getElementById('planAv').textContent=ini(p.nom);
+document.getElementById('planNom').textContent=p.nom;
+document.getElementById('planKcal').textContent=`Objetivo: ${Number(kcal).toLocaleString('es-ES')} kcal · Plan semanal`;
+planEstado='Borrador';
+const badge=document.getElementById('planBadge');
+badge.className='badge b-borrador';badge.textContent='Borrador · listo para revisar';
+document.getElementById('revBtn').style.display='block';
+const oa=document.getElementById('okAlerg');
+if(p.alerg.length){oa.textContent='✓ Excluidos: '+p.alerg.join(', ')+' — sin alérgenos';}
+else oa.textContent='✓ Sin alérgenos detectados';
+// tabs
+const days=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+document.getElementById('dayTabs').innerHTML=days.map((d,i)=>`<div class="tab ${i===0?'active':''}" onclick="selDay('${d}',this)">${d}</div>`).join('');
+selDay('Lun',null);
+}
+function selDay(d,el){
+if(el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
+const meals=comidasMarta[d];
+document.getElementById('mealsBox').innerHTML=meals.map(m=>`
+<div class="meal"><div class="meal-ico">${m[1]}</div>
+<div class="meal-body"><div class="mt">${m[0]}</div><div class="mn">${m[2]}</div><div class="mg">${m[3]}</div></div>
+<div class="meal-kcal">${m[4]} kcal</div></div>`).join('');
+}
+function marcarRevisado(){
+planEstado='Revisado';
+const badge=document.getElementById('planBadge');
+badge.className='badge b-revisado';badge.textContent='✓ Revisado';
+document.getElementById('revBtn').style.display='none';
+// actualizar paciente + localStorage
+const p=pacientes.find(x=>x.id===planPacId);
+if(p){p.estado='Revisado';saved[p.id]='Revisado';localStorage.setItem('np_estados',JSON.stringify(saved));}
+renderPac();renderAct();
+}
+
+// INIT
+renderAct();renderPac();fillPacSelect();
+</script>
+</body>
+</html>

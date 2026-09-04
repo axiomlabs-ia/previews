@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DocFlow AI — Automazione documentale</title>
+<style>
+:root{
+--bg:#f4f6fb;--card:#fff;--ink:#1a2233;--muted:#6b7689;--brand:#4f46e5;--brand2:#6366f1;
+--green:#16a34a;--greenbg:#dcfce7;--orange:#ea580c;--orangebg:#ffedd5;--red:#dc2626;--redbg:#fee2e2;
+--blue:#2563eb;--bluebg:#dbeafe;--border:#e6e9f0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+.app{display:flex;min-height:100vh}
+/* Sidebar */
+.sidebar{width:248px;background:#1e2235;color:#c7cce0;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:50;transition:transform .25s}
+.logo{padding:20px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #2c3150}
+.logo .mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#a855f7);display:flex;align-items:center;justify-content:center;font-size:20px}
+.logo b{color:#fff;font-size:16px}
+.logo small{display:block;color:#8891b0;font-size:11px}
+.nav{padding:12px;flex:1}
+.nav a{display:flex;align-items:center;gap:12px;padding:11px 14px;color:#c7cce0;text-decoration:none;border-radius:10px;margin-bottom:4px;font-weight:500;cursor:pointer}
+.nav a:hover{background:#2c3150;color:#fff}
+.nav a.active{background:var(--brand);color:#fff}
+.nav a .ic{font-size:17px}
+.sb-foot{padding:16px;border-top:1px solid #2c3150;font-size:12px;color:#8891b0}
+.sb-foot .av{display:flex;align-items:center;gap:10px}
+.sb-foot .circle{width:34px;height:34px;border-radius:50%;background:#6366f1;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+/* Main */
+.main{flex:1;margin-left:248px;display:flex;flex-direction:column;min-width:0}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:30}
+.topbar .menu-btn{display:none;font-size:22px;background:none;border:none;cursor:pointer}
+.topbar h1{font-size:18px}
+.topbar .sub{color:var(--muted);font-size:12px}
+.demo-badge{background:#fde047;color:#854d0e;font-weight:800;padding:4px 10px;border-radius:6px;font-size:11px;letter-spacing:.5px}
+.demo-note{margin-left:auto;color:var(--muted);font-size:12px;font-style:italic}
+.content{padding:24px;max-width:1280px;width:100%}
+.view{display:none}
+.view.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h2.sec{font-size:20px;margin-bottom:4px}
+.sec-desc{color:var(--muted);margin-bottom:20px}
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px}
+.kpi .lab{color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.kpi .val{font-size:30px;font-weight:800;margin-top:6px}
+.kpi .ic{float:right;font-size:22px;opacity:.7}
+.grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px}
+.card h3{font-size:15px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+/* bar chart */
+.chart{display:flex;align-items:flex-end;gap:14px;height:170px;padding-top:10px}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%}
+.bar{width:60%;background:linear-gradient(180deg,#6366f1,#a855f7);border-radius:6px 6px 0 0;transition:.3s;position:relative}
+.bar:hover{filter:brightness(1.1)}
+.bar span{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:var(--ink)}
+.bar-wrap small{color:var(--muted);font-size:11px}
+.bar-chart-area{display:flex;flex-direction:column;height:200px}
+/* feed */
+.feed-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.feed-item:last-child{border:none}
+.feed-item .t{margin-left:auto;color:var(--muted);font-size:12px;white-space:nowrap}
+/* badges */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.b-green{background:var(--greenbg);color:var(--green)}
+.b-orange{background:var(--orangebg);color:var(--orange)}
+.b-red{background:var(--redbg);color:var(--red)}
+.b-blue{background:var(--bluebg);color:var(--blue)}
+.scad-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.scad-row:last-child{border:none}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.scad-row .d{margin-left:auto;font-weight:700}
+/* table */
+.toolbar{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.toolbar input,.toolbar select{padding:9px 12px;border:1px solid var(--border);border-radius:9px;font-size:13px;background:#fff}
+.toolbar input{flex:1;min-width:180px}
+.btn{background:var(--brand);color:#fff;border:none;padding:9px 16px;border-radius:9px;font-weight:600;cursor:pointer;font-size:13px}
+.btn:hover{background:#4338ca}
+.btn.ghost{background:#fff;color:var(--brand);border:1px solid var(--brand)}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;border:1px solid var(--border)}
+th,td{padding:13px 14px;text-align:left;font-size:13px}
+th{background:#f8f9fc;color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+tbody tr{border-top:1px solid var(--border);cursor:pointer}
+tbody tr:hover{background:#f6f7fd}
+.docprog{font-weight:700}
+/* drawer */
+.overlay{position:fixed;inset:0;background:rgba(20,25,45,.45);z-index:100;display:none}
+.overlay.open{display:block}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:560px;max-width:94vw;background:#f4f6fb;z-index:101;transform:translateX(100%);transition:.3s;overflow-y:auto}
+.drawer.open{transform:none}
+.drawer-head{background:#fff;padding:20px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5}
+.drawer-head .close{float:right;font-size:24px;border:none;background:none;cursor:pointer;color:var(--muted)}
+.drawer-body{padding:20px}
+.check-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13px}
+.check-row:last-child{border:none}
+.check-row .dt{margin-left:auto;color:var(--muted);font-size:12px}
+.ai-field{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--border);font-size:13px}
+.ai-field:last-child{border:none}
+.ai-field .lab{color:var(--muted)}
+.ai-field .ok{color:var(--green);margin-left:6px}
+.chat{display:flex;flex-direction:column;gap:10px}
+.msg{max-width:80%;padding:10px 13px;border-radius:12px;font-size:13px;line-height:1.4}
+.msg.bot{background:var(--brand);color:#fff;align-self:flex-start;border-bottom-left-radius:3px}
+.msg.cli{background:#fff;border:1px solid var(--border);align-self:flex-end;border-bottom-right-radius:3px}
+.msg .meta{display:block;font-size:10px;opacity:.7;margin-top:4px}
+/* calendar */
+.cal-wrap{display:grid;grid-template-columns:1fr 320px;gap:16px}
+.cal{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-head h3{font-size:16px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-grid .wd{text-align:center;font-size:11px;color:var(--muted);font-weight:700;padding-bottom:4px}
+.cell{min-height:64px;border:1px solid var(--border);border-radius:8px;padding:5px;font-size:12px}
+.cell.empty{background:#fafbfd;border:none}
+.cell .num{color:var(--muted);font-weight:600}
+.cell.today{border-color:var(--brand);background:#eef0fe}
+.ev{font-size:10px;color:#fff;border-radius:4px;padding:2px 4px;margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.ev.red{background:var(--red)}.ev.orange{background:var(--orange)}.ev.green{background:var(--green)}
+/* automation */
+.rule{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)}
+.rule:last-child{border:none}
+.rule .txt b{display:block}
+.rule .txt small{color:var(--muted)}
+.switch{margin-left:auto;width:46px;height:26px;border-radius:20px;background:#ccd1de;position:relative;cursor:pointer;flex-shrink:0;transition:.2s}
+.switch.on{background:var(--green)}
+.switch::after{content:"";position:absolute;width:20px;height:20px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s}
+.switch.on::after{left:23px}
+.tpl{background:#f8f9fc;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;font-size:13px;line-height:1.5}
+.tpl .var{background:#e0e7ff;color:#4338ca;border-radius:4px;padding:1px 5px;font-weight:600;font-family:monospace}
+.doctypes{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.doctype{background:#f8f9fc;border:1px solid var(--border);border-radius:10px;padding:14px}
+.doctype b{display:block;margin-bottom:6px}
+.doctype small{color:var(--muted);font-size:11px;line-height:1.5}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:13px 22px;border-radius:10px;z-index:200;opacity:0;transition:.3s;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:980px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2,.cal-wrap{grid-template-columns:1fr}}
+@media(max-width:760px){
+.sidebar{transform:translateX(-100%)}.sidebar.open{transform:none}
+.main{margin-left:0}.topbar .menu-btn{display:block}.demo-note{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">
+      <div class="mark">🤖</div>
+      <div><b>DocFlow AI</b><small>Il Consulente Group</small></div>
+    </div>
+    <nav class="nav">
+      <a class="active" data-v="dashboard" onclick="nav(this)"><span class="ic">📊</span> Dashboard</a>
+      <a data-v="pratiche" onclick="nav(this)"><span class="ic">📁</span> Pratiche</a>
+      <a data-v="scadenzario" onclick="nav(this)"><span class="ic">📅</span> Scadenzario</a>
+      <a data-v="automazioni" onclick="nav(this)"><span class="ic">⚙️</span> Automazioni / Bot</a>
+    </nav>
+    <div class="sb-foot">
+      <div class="av"><div class="circle">GC</div><div><b style="color:#fff">Giulia Conti</b><br>Consulente fiscale</div></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+      <div>
+        <h1 id="pageTitle">Dashboard</h1>
+        <div class="sub">Automazione documentale per Il Consulente Group — Roma</div>
+      </div>
+      <span class="demo-badge">DEMO</span>
+      <span class="demo-note">⚠️ Dati di esempio — nessun dato reale</span>
+    </header>
+
+    <div class="content">
+      <!-- DASHBOARD -->
+      <section class="view active" id="dashboard">
+        <div class="kpis">
+          <div class="kpi"><span class="ic">📁</span><div class="lab">Pratiche attive</div><div class="val">18</div></div>
+          <div class="kpi"><span class="ic">⏳</span><div class="lab">Documenti in attesa</div><div class="val">37</div></div>
+          <div class="kpi"><span class="ic">📤</span><div class="lab">Solleciti oggi</div><div class="val">12</div></div>
+          <div class="kpi"><span class="ic">✅</span><div class="lab">Tasso completamento</div><div class="val">84%</div></div>
+        </div>
+        <div class="grid2">
+          <div>
+            <div class="card">
+              <h3>📈 Documenti ricevuti negli ultimi 7 giorni</h3>
+              <div class="bar-chart-area">
+                <div class="chart">
+                  <div class="bar-wrap"><div class="bar" style="height:40%"><span>4</span></div><small>Lun</small></div>
+                  <div class="bar-wrap"><div class="bar" style="height:70%"><span>7</span></div><small>Mar</small></div>
+                  <div class="bar-wrap"><div class="bar" style="height:55%"><span>5</span></div><small>Mer</small></div>
+                  <div class="bar-wrap"><div class="bar" style="height:90%"><span>9</span></div><small>Gio</small></div>
+                  <div class="bar-wrap"><div class="bar" style="height:60%"><span>6</span></div><small>Ven</small></div>
+                  <div class="bar-wrap"><div class="bar" style="height:30%"><span>3</span></div><small>Sab</small></div>
+                  <div class="bar-wrap"><div class="bar" style="height:100%"><span>11</span></div><small>Dom</small></div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>🔔 Attività recenti del bot</h3>
+              <div class="feed-item"><span>📤</span><div>Sollecito inviato a <b>Bianchi Costruzioni Srl</b></div><span class="t">14:32</span></div>
+              <div class="feed-item"><span>✅</span><div>Estratto IBAN da <b>fattura_marzo.pdf</b> — IT60X0542811101000000123456</div><span class="t">13:10</span></div>
+              <div class="feed-item"><span>📥</span><div>Ricevuto <b>visura_bianchi.pdf</b> da Bianchi Costruzioni</div><span class="t">11:48</span></div>
+              <div class="feed-item"><span>⚠️</span><div>Documento <b>registro cespiti</b> illeggibile — richiesto rinvio</div><span class="t">10:22</span></div>
+              <div class="feed-item"><span>📤</span><div>Secondo sollecito a <b>Trattoria da Luca</b></div><span class="t">09:15</span></div>
+              <div class="feed-item"><span>🤖</span><div>Notifica consulente: pratica <b>GreenTech</b> a -2gg scadenza</div><span class="t">08:40</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <h3>⏰ Scadenze imminenti</h3>
+              <div class="scad-row"><span class="dot" style="background:var(--red)"></span><div>F24 trimestrale<br><small style="color:var(--muted)">Trattoria da Luca</small></div><span class="d" style="color:var(--red)">25/06</span></div>
+              <div class="scad-row"><span class="dot" style="background:var(--orange)"></span><div>Dichiarazione redditi<br><small style="color:var(--muted)">Bianchi Costruzioni Srl</small></div><span class="d" style="color:var(--orange)">28/06</span></div>
+              <div class="scad-row"><span class="dot" style="background:var(--orange)"></span><div>Regime forfettario<br><small style="color:var(--muted)">Rossi Mario</small></div><span class="d" style="color:var(--orange)">30/06</span></div>
+              <div class="scad-row"><span class="dot" style="background:var(--green)"></span><div>Credito d'imposta R&S<br><small style="color:var(--muted)">GreenTech Innovation Spa</small></div><span class="d" style="color:var(--green)">10/07</span></div>
+            </div>
+            <div class="card">
+              <h3>🤖 Stato bot</h3>
+              <p style="color:var(--muted);line-height:1.6">Il bot è <b style="color:var(--green)">attivo</b> e monitora 18 pratiche. Prossimo ciclo di solleciti previsto alle <b>18:00</b>.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PRATICHE -->
+      <section class="view" id="pratiche">
+        <h2 class="sec">Pratiche</h2>
+        <p class="sec-desc">Stato di avanzamento della raccolta documenti per ogni cliente.</p>
+        <div class="toolbar">
+          <select id="fStato" onchange="filterTable()">
+            <option value="">Tutti gli stati</option>
+            <option>Completata</option>
+            <option>In attesa</option>
+            <option>In ritardo</option>
+          </select>
+          <input id="fSearch" placeholder="🔍 Cerca cliente..." oninput="filterTable()">
+          <button class="btn" onclick="showToast('Modulo nuova richiesta documenti aperto (demo)')">+ Nuova richiesta documenti</button>
+        </div>
+        <table id="tblPratiche">
+          <thead><tr><th>Cliente</th><th>Tipo pratica</th><th>Documenti</th><th>Stato</th><th>Ultimo sollecito</th><th>Scadenza</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <!-- SCADENZARIO -->
+      <section class="view" id="scadenzario">
+        <h2 class="sec">Scadenzario</h2>
+        <p class="sec-desc">Giugno 2025 — eventi colorati per livello di urgenza.</p>
+        <div class="cal-wrap">
+          <div class="cal">
+            <div class="cal-head"><h3>📅 Giugno 2025</h3><div><span class="badge b-red">Oggi/Scaduto</span> <span class="badge b-orange">Entro 3gg</span> <span class="badge b-green">OK</span></div></div>
+            <div class="cal-grid" id="calGrid"></div>
+          </div>
+          <div class="card">
+            <h3>📌 Prossime scadenze</h3>
+            <div class="scad-row"><span class="dot" style="background:var(--green)"></span><div>Iscrizione CCIAA<br><small style="color:var(--muted)">Caffè Centrale Snc</small></div><span class="d">12/06</span></div>
+            <div class="scad-row"><span class="dot" style="background:var(--green)"></span><div>Bilancio 2024<br><small style="color:var(--muted)">Studio Verdi & Associati</small></div><span class="d">15/06</span></div>
+            <div class="scad-row"><span class="dot" style="background:var(--red)"></span><div>F24 trimestrale<br><small style="color:var(--muted)">Trattoria da Luca</small></div><span class="d">25/06</span></div>
+            <div class="scad-row"><span class="dot" style="background:var(--orange)"></span><div>Dichiarazione redditi<br><small style="color:var(--muted)">Bianchi Costruzioni</small></div><span class="d">28/06</span></div>
+            <div class="scad-row"><span class="dot" style="background:var(--orange)"></span><div>Regime forfettario<br><small style="color:var(--muted)">Rossi Mario</small></div><span class="d">30/06</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AUTOMAZIONI -->
+      <section class="view" id="automazioni">
+        <h2 class="sec">Automazioni / Bot</h2>
+        <p class="sec-desc">Configura le regole con cui il bot raccoglie documenti e sollecita i clienti.</p>
+        <div class="card">
+          <h3>🔁 Regole di automazione attive</h3>
+          <div class="rule"><div class="txt"><b>Sollecito dopo 3 giorni di silenzio</b><small>Invia il template "Primo sollecito" se il cliente non risponde.</small></div><div class="switch on" onclick="toggle(this)"></div></div>
+          <div class="rule"><div class="txt"><b>Secondo sollecito dopo 7 giorni</b><small>Promemoria più incisivo con scadenza evidenziata.</small></div><div class="switch on" onclick="toggle(this)"></div></div>
+          <div class="rule"><div class="txt"><b>Notifica consulente se documento mancante a -2gg dalla scadenza</b><small>Alert interno via email + dashboard.</small></div><div class="switch on" onclick="toggle(this)"></div></div>
+          <div class="rule"><div class="txt"><b>Estrazione automatica dati ad ogni upload</b><small>L'AI legge il documento e compila i campi della pratica.</small></div><div class="switch on" onclick="toggle(this)"></div></div>
+          <div class="rule"><div class="txt"><b>Auto-archiviazione pratiche completate</b><small>Sposta nell'archivio quando 100% documenti ricevuti.</small></div><div class="switch" onclick="toggle(this)"></div></div>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <h3>✉️ Template messaggi</h3>
+            <div class="tpl">Gentile <span class="var">{nome}</span>, manca ancora il documento «<span class="var">{documento}</span>» per completare la pratica. La scadenza è il <span class="var">{scadenza}</span>. Può caricarlo da questo link 👉 [carica documento]. Grazie, Il Consulente Group.</div>
+            <div class="tpl">Buongiorno <span class="var">{nome}</span>, le ricordiamo che mancano <b>2 giorni</b> alla scadenza del <span class="var">{scadenza}</span>. Documenti ancora attesi: <span class="var">{documento}</span>.</div>
+            <button class="btn ghost" onclick="showToast('Editor template aperto (demo)')">✏️ Modifica template</button>
+          </div>
+          <div class="card">
+            <h3>🧠 Estrazione dati AI — documenti riconosciuti</h3>
+            <div class="doctypes">
+              <div class="doctype"><b>📄 Fattura</b><small>N° fattura, data, P.IVA, imponibile, IVA, IBAN</small></div>
+              <div class="doctype"><b>🏛️ Visura</b><small>Ragione sociale, P.IVA, sede, capitale, ATECO, PEC</small></div>
+              <div class="doctype"><b>💶 F24</b><small>Codici tributo, importi, scadenza, saldo</small></div>
+              <div class="doctype"><b>🪪 Carta d'identità</b><small>Nome, cognome, CF, data nascita, scadenza</small></div>
+              <div class="doctype"><b>�PDF Contratto</b><small>Parti, oggetto, durata, importo, firme</small></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER dettaglio pratica -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head">
+    <button class="close" onclick="closeDrawer()">×</button>
+    <h2 id="dCliente" style="font-size:19px">Bianchi Costruzioni Srl</h2>
+    <div style="margin-top:8px"><span id="dStato" class="badge b-orange">In ritardo</span> <span style="color:var(--muted);margin-left:8px">Scadenza: <b id="dScad">28/06</b></span></div>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const pratiche=[
+ {cliente:"Bianchi Costruzioni Srl",tipo:"Dichiarazione redditi",doc:"6/8",stato:"In ritardo",cls:"b-orange",sollecito:"2 giorni fa",scad:"28/06"},
+ {cliente:"Studio Verdi & Associati",tipo:"Bilancio 2024",doc:"8/8",stato:"Completata",cls:"b-green",sollecito:"—",scad:"15/06"},
+ {cliente:"Rossi Mario (P.IVA)",tipo:"Regime forfettario",doc:"3/5",stato:"In attesa",cls:"b-blue",sollecito:"Oggi",scad:"30/06"},
+ {cliente:"Trattoria da Luca",tipo:"F24 trimestrale",doc:"2/4",stato:"In ritardo",cls:"b-red",sollecito:"4 giorni fa",scad:"25/06"},
+ {cliente:"GreenTech Innovation Spa",tipo:"Credito d'imposta R&S",doc:"5/9",stato:"In attesa",cls:"b-blue",sollecito:"1 giorno fa",scad:"10/07"},
+ {cliente:"Caffè Centrale Snc",tipo:"Iscrizione CCIAA",doc:"4/4",stato:"Completata",cls:"b-green",sollecito:"—",scad:"12/06"},
+];
+const titles={dashboard:"Dashboard",pratiche:"Pratiche",scadenzario:"Scadenzario",automazioni:"Automazioni / Bot"};
+
+function nav(el){
+ document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
+ el.classList.add('active');
+ const v=el.dataset.v;
+ document.querySelectorAll('.view').forEach(s=>s.classList.remove('active'));
+ document.getElementById(v).classList.add('active');
+ document.getElementById('pageTitle').textContent=titles[v];
+ document.getElementById('sidebar').classList.remove('open');
+ window.scrollTo(0,0);
+}
+
+function renderTable(){
+ const tb=document.querySelector('#tblPratiche tbody');
+ const fS=document.getElementById('fStato').value.toLowerCase();
+ const fQ=document.getElementById('fSearch').value.toLowerCase();
+ tb.innerHTML='';
+ pratiche.filter(p=>(!fS||p.stato.toLowerCase()===fS)&&(!fQ||p.cliente.toLowerCase().includes(fQ)))
+ .forEach((p,i)=>{
+   const tr=document.createElement('tr');
+   tr.onclick=()=>openDrawer(p);
+   tr.innerHTML=`<td><b>${p.cliente}</b></td><td>${p.tipo}</td><td class="docprog">${p.doc}</td><td><span class="badge ${p.cls}">${p.stato}</span></td><td>${p.sollecito}</td><td>${p.scad}</td>`;
+   tb.appendChild(tr);
+ });
+}
+function filterTable(){renderTable();}
+
+const checklist=[
+ ["Visura camerale","✅ Ricevuto","24/06","b-green"],
+ ["Bilancio esercizio 2024","✅ Ricevuto","24/06","b-green"],
+ ["Estratti conto bancari","⏳ In attesa","—","b-orange"],
+ ["Fatture acquisto Q1","✅ Ricevuto","23/06","b-green"],
+ ["Fatture vendita Q1","✅ Ricevuto","23/06","b-green"],
+ ["F24 versamenti","⏳ In attesa","—","b-orange"],
+ ["Documento identità legale rappr.","✅ Ricevuto","22/06","b-green"],
+ ["Registro cespiti","⚠️ Da rifare (illeggibile)","—","b-red"],
+];
+const aiData=[
+ ["Ragione sociale","Bianchi Costruzioni Srl"],["P.IVA","09823451007"],
+ ["Sede legale","Via Tuscolana 412, Roma"],["Capitale sociale","€ 50.000"],
+ ["Codice ATECO","41.20.00"],["PEC","bianchi.costruzioni@pec.it"],
+];
+
+function openDrawer(p){
+ document.getElementById('dCliente').textContent=p.cliente;
+ const st=document.getElementById('dStato');st.textContent=p.stato;st.className='badge '+p.cls;
+ document.getElementById('dScad').textContent=p.scad;
+ const isBianchi=p.cliente.startsWith("Bianchi");
+ let body=`<div class="card"><h3>📋 Checklist documenti (${p.doc})</h3>`;
+ checklist.forEach(c=>{body+=`<div class="check-row"><span class="badge ${c[3]}">${c[1]}</span><div>${c[0]}</div><span class="dt">${c[2]}</span></div>`;});
+ body+=`</div>`;
+ body+=`<div class="card"><h3>🧠 Dati estratti dall'AI <small style="color:var(--muted);font-weight:400">— visura_bianchi.pdf</small></h3>`;
+ aiData.forEach(d=>{body+=`<div class="ai-field"><span class="lab">${d[0]}</span><span>${d[1]}<span class="ok">✓</span></span></div>`;});
+ body+=`</div>`;
+ body+=`<div class="card"><h3>💬 Comunicazioni bot ↔ cliente</h3><div class="chat">
+   <div class="msg bot">Gentile cliente, per la pratica «Dichiarazione redditi» mancano: Estratti conto, F24, Registro cespiti.<span class="meta">DocFlow AI · 22/06 09:00</span></div>
+   <div class="msg cli">Carico la visura e le fatture nei prossimi giorni.<span class="meta">Bianchi · 22/06 14:21</span></div>
+   <div class="msg bot">✅ Ricevuti: visura, bilancio, fatture, documento identità. Mancano ancora 2 documenti.<span class="meta">DocFlow AI · 24/06 10:05</span></div>
+   <div class="msg bot">⚠️ Il registro cespiti risulta illeggibile, può ricaricarlo? Inoltre attendiamo gli estratti conto.<span class="meta">DocFlow AI · 26/06 14:32</span></div>
+ </div>
+ <button class="btn" style="margin-top:14px;width:100%" onclick="showToast('📨 Sollecito inviato a '+document.getElementById('dCliente').textContent)">📨 Invia sollecito ora</button>
+ </div>`;
+ document.getElementById('drawerBody').innerHTML=body;
+ document.getElementById('overlay').classList.add('open');
+ document.getElementById('drawer').classList.add('open');
+}
+function closeDrawer(){document.getElementById('overlay').classList.remove('open');document.getElementById('drawer').classList.remove('open');}
+function toggle(el){el.classList.toggle('on');showToast('Regola '+(el.classList.contains('on')?'attivata':'disattivata'));}
+
+let toastT;
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
+
+// calendar
+function buildCal(){
+ const events={12:["green","CCIAA Caffè Centrale"],15:["green","Bilancio Verdi"],25:["red","F24 da Luca"],28:["orange","Dich. Bianchi"],30:["orange","Forfett. Rossi"]};
+ const grid=document.getElementById('calGrid');
+ ["Lun","Mar","Mer","Gio","Ven","Sab","Dom"].forEach(d=>{const e=document.createElement('div');e.className='wd';e.textContent=d;grid.appendChild(e);});
+ // Giugno 2025 inizia di Domenica -> offset 6
+ const offset=6, days=30, today=24;
+ for(let i=0;i<offset;i++){const e=document.createElement('div');e.className='cell empty';grid.appendChild(e);}
+ for(let d=1;d<=days;d++){
+   const c=document.createElement('div');c.className='cell'+(d===today?' today':'');
+   c.innerHTML=`<div class="num">${d}</div>`;
+   if(events[d]){c.innerHTML+=`<div class="ev ${events[d][0]}">${events[d][1]}</div>`;}
+   c.onclick=()=>{if(events[d])showToast('📅 '+events[d][1]);};
+   grid.appendChild(c);
+ }
+}
+renderTable();buildCal();
+</script>
+</body>
+</html>

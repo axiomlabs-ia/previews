@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dori Csengeri - G'Local Boutique</title>
+  <meta name="description" content="Dori Csengeri su G'Local Boutique Roma. Haute couture del bijoux con cristalli Swarovski.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="icon" href="https://glocalboutique.com/wp-content/uploads/2021/06/GLOCAL-logo-45.png">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div id="header-slot"></div>
+
+  <section class="brand-hero" style="background: linear-gradient(135deg, #8D6959, #A8876F);">
+    <div class="brand-hero-overlay"></div>
+    <div class="container brand-hero-content">
+      <span class="section-label">Brand</span>
+      <h1>Dori Csengeri</h1>
+    </div>
+  </section>
+
+  <section class="brand-about">
+    <div class="container">
+      <div class="brand-about-grid">
+        <div class="brand-about-text">
+          <h2 class="section-title">Dori Csengeri</h2>
+          <p>Dori Csengeri rappresenta l'haute couture del bijoux. Le sue creazioni combinano cristalli Swarovski, seta e lavorazioni sartoriali per dare vita a pezzi unici che sono vere e proprie opere d'arte indossabili. Ogni gioiello e realizzato a mano con una cura maniacale dei dettagli.</p>
+          <a href="https://glocalboutique.com/brand/dori-csengeri/" class="btn btn-primary">Vedi tutti i prodotti su G'Local</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="shop-content brand-products">
+    <div class="container">
+      <h2 class="section-title" style="text-align:center; margin-bottom:2rem;">I nostri pezzi selezionati</h2>
+      <div id="product-grid" class="product-grid"></div>
+    </div>
+  </section>
+
+  <div id="footer-slot"></div>
+
+  <script src="../js/products.js"></script>
+  <script src="../js/store.js"></script>
+  <script src="../js/components.js"></script>
+  <script src="../js/main.js"></script>
+  <script>
+    Components.inject('../');
+    // Show all products since we don't have brand data per product
+    Store.init('all');
+  </script>
+</body>
+</html>

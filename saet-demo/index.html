@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAET ServiceHub</title>
+<style>
+:root{
+  --bg:#f4f6fa;--card:#fff;--ink:#1e293b;--muted:#64748b;--line:#e2e8f0;
+  --pri:#1d4ed8;--pri-d:#1e40af;--ok:#16a34a;--warn:#d97706;--err:#dc2626;
+  --sb:#0f172a;--sb-h:#1e293b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+.layout{display:flex;min-height:100vh}
+/* Sidebar */
+.sidebar{width:240px;background:var(--sb);color:#cbd5e1;flex-shrink:0;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;z-index:50}
+.logo{padding:20px 18px;font-weight:700;color:#fff;font-size:18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #1e293b}
+.logo .b{background:var(--pri);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.nav{padding:12px 0;flex:1}
+.nav a{display:flex;align-items:center;gap:12px;padding:12px 18px;color:#cbd5e1;text-decoration:none;cursor:pointer;font-size:14px;border-left:3px solid transparent}
+.nav a:hover{background:var(--sb-h);color:#fff}
+.nav a.active{background:var(--sb-h);color:#fff;border-left-color:var(--pri)}
+.nav .ic{font-size:17px;width:22px;text-align:center}
+.sb-foot{padding:14px 18px;font-size:11px;color:#64748b;border-top:1px solid #1e293b}
+/* Main */
+.main{flex:1;margin-left:240px;display:flex;flex-direction:column;min-width:0}
+.topbar{background:#fff;border-bottom:1px solid var(--line);height:60px;display:flex;align-items:center;gap:16px;padding:0 22px;position:sticky;top:0;z-index:40}
+.menu-btn{display:none;font-size:22px;background:none;border:none;cursor:pointer}
+.search{flex:1;max-width:380px;position:relative}
+.search input{width:100%;padding:9px 12px 9px 34px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:13px}
+.search:before{content:"🔍";position:absolute;left:10px;top:8px;opacity:.5}
+.demo-badge{background:#fef3c7;color:#92400e;font-weight:700;font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid #fde68a}
+.topright{margin-left:auto;display:flex;align-items:center;gap:18px}
+.bell{position:relative;font-size:20px;cursor:pointer}
+.bell .n{position:absolute;top:-6px;right:-6px;background:var(--err);color:#fff;font-size:10px;font-weight:700;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center}
+.avatar{display:flex;align-items:center;gap:10px;cursor:pointer}
+.avatar .av{width:36px;height:36px;border-radius:50%;background:var(--pri);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.avatar .info{font-size:12px;line-height:1.3}
+.avatar .info b{display:block;font-size:13px}
+.content{padding:24px;flex:1}
+.view{display:none}.view.active{display:block}
+h1{font-size:22px;margin-bottom:4px}
+.sub{color:var(--muted);margin-bottom:20px;font-size:13px}
+.note{font-size:11px;color:var(--muted);font-style:italic}
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+.kpi .k{font-size:12px;color:var(--muted);margin-bottom:8px}
+.kpi .v{font-size:28px;font-weight:700}
+.kpi.danger .v{color:var(--err)}
+.kpi .ic{float:right;font-size:22px;opacity:.7}
+/* Cards */
+.grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:18px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px}
+.panel h3{font-size:15px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+/* Bar chart */
+.chart{display:flex;align-items:flex-end;gap:14px;height:160px;padding-top:10px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%}
+.bar .col{width:100%;background:linear-gradient(180deg,var(--pri),#60a5fa);border-radius:6px 6px 0 0;margin-top:auto;transition:.3s}
+.bar .lb{font-size:11px;color:var(--muted)}
+.bar .vn{font-size:11px;font-weight:600}
+/* lists */
+.li{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.li:last-child{border:none}
+.li .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.li .t{flex:1}.li .t b{font-size:13px}.li .t span{display:block;font-size:11px;color:var(--muted)}
+.li .meta{font-size:11px;color:var(--muted);text-align:right}
+/* badges */
+.badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;display:inline-block;white-space:nowrap}
+.b-crit{background:#fee2e2;color:#b91c1c}.b-alta{background:#ffedd5;color:#c2410c}
+.b-media{background:#fef9c3;color:#a16207}.b-bassa{background:#e0f2fe;color:#0369a1}
+.b-aperto{background:#dbeafe;color:#1d4ed8}.b-corso{background:#fef3c7;color:#92400e}
+.b-attesa{background:#f3e8ff;color:#7c3aed}.b-chiuso{background:#dcfce7;color:#15803d}
+.b-op{background:#dcfce7;color:#15803d}.b-man{background:#fef3c7;color:#92400e}.b-fault{background:#fee2e2;color:#b91c1c}
+/* table */
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.toolbar select,.toolbar input{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:#fff}
+.btn{padding:9px 16px;border:none;border-radius:8px;background:var(--pri);color:#fff;font-weight:600;cursor:pointer;font-size:13px}
+.btn:hover{background:var(--pri-d)}
+.btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:11px 12px;color:var(--muted);font-size:11px;text-transform:uppercase;border-bottom:1px solid var(--line);font-weight:600}
+td{padding:12px;border-bottom:1px solid var(--line)}
+tbody tr{cursor:pointer}tbody tr:hover{background:#f8fafc}
+.tbl-wrap{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;overflow-x:auto}
+/* drawer */
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:60;display:none}
+.overlay.open{display:block}
+.drawer{position:fixed;top:0;right:-460px;width:440px;max-width:90vw;height:100%;background:#fff;z-index:70;transition:right .3s;display:flex;flex-direction:column;box-shadow:-6px 0 24px rgba(0,0,0,.15)}
+.drawer.open{right:0}
+.dr-head{padding:18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.dr-head h3{font-size:17px}
+.dr-body{padding:18px;overflow-y:auto;flex:1}
+.close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted)}
+.field{margin-bottom:16px}
+.field label{font-size:11px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:5px;font-weight:600}
+.timeline{border-left:2px solid var(--line);margin-left:6px;padding-left:18px}
+.tl{position:relative;padding-bottom:16px}
+.tl:before{content:"";position:absolute;left:-25px;top:3px;width:11px;height:11px;border-radius:50%;background:var(--pri);border:2px solid #fff;box-shadow:0 0 0 2px var(--pri)}
+.tl b{font-size:13px}.tl span{font-size:11px;color:var(--muted);display:block}
+.attach{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:8px;margin-bottom:8px;font-size:13px}
+.dr-body select{width:100%;padding:9px;border:1px solid var(--line);border-radius:8px}
+/* calendar */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal .dow{font-size:11px;color:var(--muted);text-align:center;font-weight:600;padding:6px 0}
+.cal .day{background:#fff;border:1px solid var(--line);border-radius:8px;min-height:78px;padding:6px;cursor:pointer;font-size:12px}
+.cal .day:hover{border-color:var(--pri)}
+.cal .day.empty{background:transparent;border:none;cursor:default}
+.cal .day.sel{border-color:var(--pri);box-shadow:0 0 0 1px var(--pri)}
+.cal .num{font-weight:600;margin-bottom:4px}
+.ev{font-size:10px;padding:2px 4px;border-radius:4px;margin-bottom:3px;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ev-prev{background:#16a34a}.ev-corr{background:#dc2626}.ev-coll{background:#2563eb}
+.legend{display:flex;gap:18px;margin:16px 0;flex-wrap:wrap;font-size:12px}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:13px;height:13px;border-radius:3px;display:inline-block}
+.toggle{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.toggle button{padding:8px 16px;border:none;background:#fff;cursor:pointer;font-size:13px}
+.toggle button.active{background:var(--pri);color:#fff}
+/* impianti cards */
+.icards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.icard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;cursor:pointer;transition:.2s}
+.icard:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.08);border-color:var(--pri)}
+.icard .top{display:flex;justify-content:space-between;align-items:start;margin-bottom:10px}
+.icard h4{font-size:15px}.icard .cli{color:var(--muted);font-size:12px;margin-bottom:12px}
+.icard .row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-top:1px solid var(--line)}
+.icard .row span:first-child{color:var(--muted)}
+.back{background:none;border:none;color:var(--pri);cursor:pointer;font-size:13px;margin-bottom:14px;font-weight:600}
+/* toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:13px 22px;border-radius:10px;z-index:90;opacity:0;transition:.35s;font-size:13px}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+@media(max-width:980px){.grid2{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){.sidebar{left:-240px;transition:.3s}.sidebar.open{left:0}.main{margin-left:0}.menu-btn{display:block}.search{display:none}.avatar .info{display:none}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo"><span class="b">⚡</span> SAET ServiceHub</div>
+    <nav class="nav">
+      <a class="active" data-v="dashboard"><span class="ic">📊</span> Dashboard</a>
+      <a data-v="ticket"><span class="ic">🎫</span> Ticket</a>
+      <a data-v="interventi"><span class="ic">📅</span> Interventi</a>
+      <a data-v="impianti"><span class="ic">🏭</span> Impianti</a>
+      <a data-v="report"><span class="ic">📈</span> Storico / Report</a>
+    </nav>
+    <div class="sb-foot">v2.4.1 · Ambiente DEMO<br>© SAET Impianti Elettrici</div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+      <div class="search"><input placeholder="Cerca ticket, impianti, clienti..."></div>
+      <span class="demo-badge">● DEMO</span>
+      <div class="topright">
+        <div class="bell" onclick="toast('Nessuna nuova notifica')">🔔<span class="n">3</span></div>
+        <div class="avatar">
+          <div class="av">MR</div>
+          <div class="info"><b>M. Rossi</b>Resp. Service</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <section class="view active" id="dashboard">
+        <h1>Dashboard</h1>
+        <p class="sub">Panoramica operativa · <span class="note">Dati di esempio</span></p>
+        <div class="kpis">
+          <div class="kpi"><span class="ic">🎫</span><div class="k">Ticket aperti</div><div class="v">14</div></div>
+          <div class="kpi"><span class="ic">🔧</span><div class="k">Interventi questa settimana</div><div class="v">8</div></div>
+          <div class="kpi"><span class="ic">🏭</span><div class="k">Impianti monitorati</div><div class="v">47</div></div>
+          <div class="kpi danger"><span class="ic">⚠️</span><div class="k">SLA a rischio</div><div class="v">3</div></div>
+        </div>
+        <div class="grid2">
+          <div class="panel">
+            <h3>Ticket per mese</h3>
+            <div class="chart">
+              <div class="bar"><span class="vn">19</span><div class="col" style="height:55%"></div><span class="lb">Gen</span></div>
+              <div class="bar"><span class="vn">24</span><div class="col" style="height:70%"></div><span class="lb">Feb</span></div>
+              <div class="bar"><span class="vn">17</span><div class="col" style="height:48%"></div><span class="lb">Mar</span></div>
+              <div class="bar"><span class="vn">29</span><div class="col" style="height:85%"></div><span class="lb">Apr</span></div>
+              <div class="bar"><span class="vn">22</span><div class="col" style="height:64%"></div><span class="lb">Mag</span></div>
+              <div class="bar"><span class="vn">31</span><div class="col" style="height:100%"></div><span class="lb">Giu</span></div>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>Ticket urgenti</h3>
+            <div class="li"><span class="dot" style="background:var(--err)"></span><div class="t"><b>TK-2041 · Sottostazione SE-07</b><span>Guasto trasformatore AT/MT</span></div><span class="badge b-crit">Critica</span></div>
+            <div class="li"><span class="dot" style="background:var(--warn)"></span><div class="t"><b>TK-2039 · UPS Sala CED</b><span>Allarme batteria</span></div><span class="badge b-alta">Alta</span></div>
+            <div class="li"><span class="dot" style="background:var(--warn)"></span><div class="t"><b>TK-2043 · QGBT Linea 3</b><span>Sovratemperatura quadro</span></div><span class="badge b-alta">Alta</span></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Prossimi interventi programmati</h3>
+          <div class="li"><span class="dot" style="background:var(--ok)"></span><div class="t"><b>Manutenzione preventiva semestrale</b><span>Cabina MT/BT Nord-1 · Veneto Energia Srl</span></div><span class="meta">12/06 · L. Bianchi</span></div>
+          <div class="li"><span class="dot" style="background:var(--err)"></span><div class="t"><b>Termografia quadri</b><span>QGBT Linea 3 · Acciaierie Padova SpA</span></div><span class="meta">14/06 · A. Verdi</span></div>
+          <div class="li"><span class="dot" style="background:var(--ok)"></span><div class="t"><b>Verifica UPS + test autonomia</b><span>UPS Sala CED · Banca Patavina</span></div><span class="meta">17/06 · M. Rossi</span></div>
+          <div class="li"><span class="dot" style="background:var(--pri)"></span><div class="t"><b>Collaudo PLC-12</b><span>Quadro Automazione · Logistica Euganea</span></div><span class="meta">20/06 · L. Bianchi</span></div>
+          <div class="li"><span class="dot" style="background:var(--ok)"></span><div class="t"><b>Manutenzione rifasamento</b><span>Sistema R-220 · Cartiera Brenta</span></div><span class="meta">25/06 · A. Verdi</span></div>
+        </div>
+      </section>
+
+      <!-- TICKET -->
+      <section class="view" id="ticket">
+        <h1>Ticket di assistenza</h1>
+        <p class="sub">Gestione richieste e segnalazioni · <span class="note">Dati di esempio</span></p>
+        <div class="toolbar">
+          <select id="fStato" onchange="filterT()">
+            <option value="">Tutti gli stati</option>
+            <option>Aperto</option><option>In corso</option><option>In attesa ricambi</option><option>Chiuso</option>
+          </select>
+          <select id="fPrio" onchange="filterT()">
+            <option value="">Tutte le priorità</option>
+            <option>Critica</option><option>Alta</option><option>Media</option><option>Bassa</option>
+          </select>
+          <input id="fSearch" placeholder="Cerca per impianto / cliente..." oninput="filterT()">
+          <button class="btn" style="margin-left:auto" onclick="toast('Modulo nuovo ticket aperto')">+ Nuovo ticket</button>
+        </div>
+        <div class="tbl-wrap">
+          <table id="ticketTbl">
+            <thead><tr><th>ID</th><th>Impianto</th><th>Cliente</th><th>Tipo</th><th>Priorità</th><th>Stato</th><th>Tecnico</th><th>Apertura</th><th>SLA</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- INTERVENTI -->
+      <section class="view" id="interventi">
+        <h1>Interventi programmati</h1>
+        <p class="sub">Pianificazione manutenzioni · <span class="note">Dati di esempio</span> · Giugno 2024</p>
+        <div class="toolbar">
+          <div class="toggle">
+            <button class="active" id="tCal" onclick="vMode('cal')">📅 Calendario</button>
+            <button id="tList" onclick="vMode('list')">📋 Lista</button>
+          </div>
+        </div>
+        <div class="panel" id="calView">
+          <div class="cal" id="calGrid"></div>
+          <div class="legend">
+            <span><i class="ev-prev"></i> Manutenzione preventiva</span>
+            <span><i class="ev-corr"></i> Manutenzione correttiva</span>
+            <span><i class="ev-coll"></i> Collaudo</span>
+          </div>
+          <div id="dayDetail" style="border-top:1px solid var(--line);padding-top:14px">
+            <b>Seleziona un giorno per i dettagli</b>
+          </div>
+        </div>
+        <div class="tbl-wrap" id="listView" style="display:none">
+          <table><thead><tr><th>Data</th><th>Intervento</th><th>Impianto</th><th>Cliente</th><th>Tecnico</th></tr></thead>
+          <tbody id="intList"></tbody></table>
+        </div>
+      </section>
+
+      <!-- IMPIANTI -->
+      <section class="view" id="impianti">
+        <div id="impList">
+          <h1>Impianti</h1>
+          <p class="sub">Parco impianti gestiti · <span class="note">Dati di esempio</span></p>
+          <div class="icards" id="impCards"></div>
+        </div>
+        <div id="impDetail" style="display:none"></div>
+      </section>
+
+      <!-- REPORT -->
+      <section class="view" id="report">
+        <h1>Storico tecnico / Report</h1>
+        <p class="sub">Analisi interventi e affidabilità · <span class="note">Dati di esempio</span></p>
+        <div class="kpis" style="grid-template-columns:repeat(2,1fr);max-width:560px">
+          <div class="kpi"><span class="ic">⏱️</span><div class="k">MTBF medio</div><div class="v">184 <small style="font-size:14px;color:var(--muted)">giorni</small></div></div>
+          <div class="kpi"><span class="ic">🔧</span><div class="k">Tempo medio risoluzione</div><div class="v">3h 42m</div></div>
+        </div>
+        <div class="toolbar">
+          <select><option>Tutti gli impianti</option><option>Cabina Nord-1</option><option>QGBT Linea 3</option><option>UPS Sala CED</option></select>
+          <select><option>Ultimi 12 mesi</option><option>Ultimi 6 mesi</option><option>Ultimo trimestre</option></select>
+          <button class="btn" style="margin-left:auto" onclick="toast('📄 Report generato con successo')">⬇ Esporta PDF</button>
+        </div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>Data</th><th>Impianto</th><th>Tipo</th><th>Durata</th><th>Tecnico</th><th>Esito</th></tr></thead>
+          <tbody>
+            <tr><td>09/06/24</td><td>Cabina Nord-1</td><td>Collaudo</td><td>2h 10m</td><td>L. Bianchi</td><td><span class="badge b-chiuso">Conforme</span></td></tr>
+            <tr><td>28/05/24</td><td>UPS Sala CED</td><td>Manutenzione</td><td>1h 30m</td><td>M. Rossi</td><td><span class="badge b-chiuso">Conforme</span></td></tr>
+            <tr><td>15/05/24</td><td>QGBT Linea 3</td><td>Correttiva</td><td>4h 50m</td><td>A. Verdi</td><td><span class="badge b-chiuso">Risolto</span></td></tr>
+            <tr><td>02/05/24</td><td>Rifasamento R-220</td><td>Preventiva</td><td>2h 05m</td><td>A. Verdi</td><td><span class="badge b-chiuso">Conforme</span></td></tr>
+            <tr><td>19/04/24</td><td>Sottostazione SE-07</td><td>Correttiva</td><td>6h 20m</td><td>L. Bianchi</td><td><span class="badge b-man">Da ricontrollare</span></td></tr>
+            <tr><td>11/04/24</td><td>Cabina Nord-1</td><td>Termografia</td><td>1h 15m</td><td>A. Verdi</td><td><span class="badge b-chiuso">Conforme</span></td></tr>
+          </tbody></table>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- Drawer -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer">
+  <div class="dr-head"><h3 id="drTitle">Ticket</h3><button class="close" onclick="closeDrawer()">×</button></div>
+  <div class="dr-body" id="drBody"></div>
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---- DATI ---- */
+const tickets=[
+ {id:'TK-2041',imp:'Sottostazione SE-07',cli:'Comune di Selvazzano',tipo:'Guasto',prio:'Critica',stato:'In corso',tec:'L. Bianchi',ap:'12/06 09:14',sla:'⚠ 2h',desc:'Scatto protezione SEPAM su sottostazione AT/MT. Linea in emergenza, alimentazione di backup attiva.'},
+ {id:'TK-2040',imp:'Quadro QGBT Linea 3',cli:'Acciaierie Padova SpA',tipo:'Manutenzione',prio:'Media',stato:'Aperto',tec:'A. Verdi',ap:'12/06 08:30',sla:'18h',desc:'Manutenzione programmata serraggio connessioni e pulizia quadro distribuzione BT.'},
+ {id:'TK-2039',imp:'UPS Sala CED',cli:'Banca Patavina',tipo:'Allarme batteria',prio:'Alta',stato:'In corso',tec:'M. Rossi',ap:'11/06 16:45',sla:'6h',desc:'Allarme degrado batterie UPS 80kVA. Necessaria verifica autonomia e sostituzione stringa.'},
+ {id:'TK-2038',imp:'Sistema Rifasamento R-220',cli:'Cartiera Brenta',tipo:'Anomalia',prio:'Bassa',stato:'In attesa ricambi',tec:'A. Verdi',ap:'10/06 11:20',sla:'—',desc:'Banco condensatori con fattore di potenza fuori range. In attesa ricambi gradini.'},
+ {id:'TK-2037',imp:'Cabina MT/BT Nord-1',cli:'Veneto Energia Srl',tipo:'Collaudo',prio:'Media',stato:'Chiuso',tec:'L. Bianchi',ap:'09/06 14:00',sla:'✓',desc:'Collaudo finale cabina trasformazione 20kV/400V. Esito conforme.'}
+];
+const events={
+ 12:[{t:'Manutenzione preventiva semestrale',i:'Cabina Nord-1',c:'Veneto Energia',tec:'L. Bianchi',cls:'ev-prev',lbl:'Manut. preventiva'}],
+ 14:[{t:'Termografia quadri',i:'Acciaierie Padova',c:'Acciaierie Padova SpA',tec:'A. Verdi',cls:'ev-corr',lbl:'Termografia'}],
+ 17:[{t:'Verifica UPS + test autonomia',i:'UPS Sala CED',c:'Banca Patavina',tec:'M. Rossi',cls:'ev-prev',lbl:'Verifica UPS'}],
+ 20:[{t:'Collaudo PLC-12',i:'Quadro Automazione',c:'Logistica Euganea',tec:'L. Bianchi',cls:'ev-coll',lbl:'Collaudo'}],
+ 25:[{t:'Manutenzione rifasamento',i:'Sistema R-220',c:'Cartiera Brenta',tec:'A. Verdi',cls:'ev-prev',lbl:'Manut. rifasam.'}]
+};
+const impianti=[
+ {n:'Cabina MT/BT "Nord-1"',cli:'Veneto Energia Srl',tipo:'Trasformazione 20kV/400V',stato:'Operativo',sc:'b-op',ult:'09/06/24'},
+ {n:'Quadro QGBT Linea 3',cli:'Acciaierie Padova SpA',tipo:'Distribuzione BT',stato:'In manutenzione',sc:'b-man',ult:'15/05/24'},
+ {n:'Sistema Rifasamento R-220',cli:'Cartiera Brenta',tipo:'Rifasamento automatico',stato:'Operativo',sc:'b-op',ult:'02/05/24'},
+ {n:'Sottostazione SE-07',cli:'Comune di Selvazzano',tipo:'Trasformazione AT/MT',stato:'Fault',sc:'b-fault',ult:'19/04/24'},
+ {n:'UPS Sala CED',cli:'Banca Patavina',tipo:'Continuità 80kVA',stato:'Operativo',sc:'b-op',ult:'28/05/24'},
+ {n:'Quadro Automazione PLC-12',cli:'Logistica Euganea',tipo:'Controllo motori',stato:'Operativo',sc:'b-op',ult:'20/04/24'}
+];
+const prioCls={'Critica':'b-crit','Alta':'b-alta','Media':'b-media','Bassa':'b-bassa'};
+const statoCls={'Aperto':'b-aperto','In corso':'b-corso','In attesa ricambi':'b-attesa','Chiuso':'b-chiuso'};
+
+/* ---- NAV ---- */
+document.querySelectorAll('.nav a').forEach(a=>a.onclick=()=>{
+  document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+  a.classList.add('active');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(a.dataset.v).classList.add('active');
+  document.getElementById('sidebar').classList.remove('open');
+  // reset impianti view
+  document.getElementById('impList').style.display='block';
+  document.getElementById('impDetail').style.display='none';
+});
+
+/* ---- TICKET TABLE ---- */
+function renderTickets(){
+  const tb=document.querySelector('#ticketTbl tbody');
+  const st=fStato.value,pr=fPrio.value,q=fSearch.value.toLowerCase();
+  tb.innerHTML='';
+  tickets.filter(t=>(!st||t.stato===st)&&(!pr||t.prio===pr)&&(!q||(t.imp+t.cli+t.id).toLowerCase().includes(q)))
+  .forEach(t=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><b>${t.id}</b></td><td>${t.imp}</td><td>${t.cli}</td><td>${t.tipo}</td>
+    <td><span class="badge ${prioCls[t.prio]}">${t.prio}</span></td>
+    <td><span class="badge ${statoCls[t.stato]}">${t.stato}</span></td>
+    <td>${t.tec}</td><td>${t.ap}</td><td>${t.sla}</td>`;
+    tr.onclick=()=>openTicket(t);
+    tb.appendChild(tr);
+  });
+}
+function filterT(){renderTickets()}
+const fStato=document.getElementById('fStato'),fPrio=document.getElementById('fPrio'),fSearch=document.getElementById('fSearch');
+
+function openTicket(t){
+  drTitle.textContent=t.id+' · '+t.tipo;
+  drBody.innerHTML=`
+    <div class="field"><label>Impianto</label><b>${t.imp}</b><br><span style="color:var(--muted);font-size:12px">${t.cli}</span></div>
+    <div class="field"><label>Priorità / Apertura</label><span class="badge ${prioCls[t.prio]}">${t.prio}</span> &nbsp; ${t.ap}</div>
+    <div class="field"><label>Descrizione</label>${t.desc}</div>
+    <div class="field"><label>Stato ticket</label>
+      <select id="stSel" onchange="toast('Stato aggiornato → '+this.value)">
+        ${['Aperto','In corso','In attesa ricambi','Chiuso'].map(s=>`<option ${s===t.stato?'selected':''}>${s}</option>`).join('')}
+      </select></div>
+    <div class="field"><label>Timeline attività</label>
+      <div class="timeline">
+        <div class="tl"><b>Ticket aperto</b><span>${t.ap} · Sistema</span></div>
+        <div class="tl"><b>Assegnato a ${t.tec}</b><span>+12 min · Dispatcher</span></div>
+        <div class="tl"><b>Sopralluogo effettuato</b><span>+1h 20m · ${t.tec}</span></div>
+        <div class="tl"><b>Diagnosi in corso</b><span>+2h 05m · ${t.tec}</span></div>
+      </div></div>
+    <div class="field"><label>Allegati</label>
+      <div class="attach">📄 verbale_intervento_${t.id}.pdf <span style="margin-left:auto;color:var(--muted)">214 KB</span></div>
+      <div class="attach">📷 foto_quadro_01.jpg <span style="margin-left:auto;color:var(--muted)">1.2 MB</span></div>
+    </div>
+    <button class="btn" style="width:100%" onclick="toast('Modifiche salvate')">Salva modifiche</button>`;
+  overlay.classList.add('open');drawer.classList.add('open');
+}
+function closeDrawer(){overlay.classList.remove('open');drawer.classList.remove('open');}
+const overlay=document.getElementById('overlay'),drawer=document.getElementById('drawer'),
+drTitle=document.getElementById('drTitle'),drBody=document.getElementById('drBody');
+
+/* ---- CALENDAR ---- (Giugno 2024 inizia Sabato) ---- */
+function buildCal(){
+  const grid=document.getElementById('calGrid');
+  ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].forEach(d=>{
+    const e=document.createElement('div');e.className='dow';e.textContent=d;grid.appendChild(e);
+  });
+  const firstDow=5; // sab(=5 con lun=0)
+  const days=30;
+  for(let i=0;i<firstDow;i++){const e=document.createElement('div');e.className='day empty';grid.appendChild(e);}
+  for(let d=1;d<=days;d++){
+    const cell=document.createElement('div');cell.className='day';cell.dataset.d=d;
+    let h=`<div class="num">${d}</div>`;
+    if(events[d])events[d].forEach(ev=>h+=`<div class="ev ${ev.cls}">${ev.lbl}</div>`);
+    cell.innerHTML=h;
+    cell.onclick=()=>selDay(d,cell);
+    grid.appendChild(cell);
+  }
+}
+function selDay(d,cell){
+  document.querySelectorAll('.cal .day').forEach(x=>x.classList.remove('sel'));
+  cell.classList.add('sel');
+  const dd=document.getElementById('dayDetail');
+  if(events[d]){
+    dd.innerHTML='<b>'+d+' Giugno 2024 — interventi:</b>'+events[d].map(ev=>
+      `<div class="li"><span class="dot" style="background:var(--pri)"></span><div class="t"><b>${ev.t}</b><span>${ev.i} · ${ev.c}</span></div><span class="meta">${ev.tec}</span></div>`).join('');
+  }else{
+    dd.innerHTML='<b>'+d+' Giugno 2024</b><p style="color:var(--muted);margin-top:8px">Nessun intervento programmato.</p>';
+  }
+}
+function vMode(m){
+  tCal.classList.toggle('active',m==='cal');tList.classList.toggle('active',m==='list');
+  calView.style.display=m==='cal'?'block':'none';
+  listView.style.display=m==='list'?'block':'none';
+}
+const tCal=document.getElementById('tCal'),tList=document.getElementById('tList'),
+calView=document.getElementById('calView'),listView=document.getElementById('listView');
+function buildIntList(){
+  const tb=document.getElementById('intList');
+  Object.keys(events).forEach(d=>events[d].forEach(ev=>{
+    tb.innerHTML+=`<tr><td>${d}/06</td><td>${ev.t}</td><td>${ev.i}</td><td>${ev.c}</td><td>${ev.tec}</td></tr>`;
+  }));
+}
+
+/* ---- IMPIANTI ---- */
+function buildImp(){
+  const c=document.getElementById('impCards');
+  impianti.forEach((m,idx)=>{
+    const card=document.createElement('div');card.className='icard';
+    card.innerHTML=`<div class="top"><h4>${m.n}</h4><span class="badge ${m.sc}">${m.stato}</span></div>
+      <div class="cli">${m.cli}</div>
+      <div class="row"><span>Tipo</span><b>${m.tipo}</b></div>
+      <div class="row"><span>Ultimo intervento</span><b>${m.ult}</b></div>`;
+    card.onclick=()=>impDet(m);
+    c.appendChild(card);
+  });
+}
+function impDet(m){
+  document.getElementById('impList').style.display='none';
+  const d=document.getElementById('impDetail');d.style.display='block';
+  d.innerHTML=`
+    <button class="back" onclick="backImp()">← Torna agli impianti</button>
+    <h1>${m.n} <span class="badge ${m.sc}">${m.stato}</span></h1>
+    <p class="sub">${m.cli} · ${m.tipo}</p>
+    <div class="grid2">
+      <div class="panel"><h3>Scheda tecnica componenti</h3>
+        <table><thead><tr><th>Componente</th><th>Modello / Dato</th><th>Anno</th></tr></thead><tbody>
+          <tr><td>Trasformatore</td><td>630 kVA — Olio</td><td>2019</td></tr>
+          <tr><td>Interruttore MT</td><td>ABB VD4 — 24kV</td><td>2019</td></tr>
+          <tr><td>Sezionatore</td><td>Tripolare 630A</td><td>2019</td></tr>
+          <tr><td>Protezioni</td><td>Relè SEPAM S40</td><td>2020</td></tr>
+        </tbody></table>
+      </div>
+      <div class="panel"><h3>Anagrafica</h3>
+        <div class="field"><label>Cliente</label>${m.cli}</div>
+        <div class="field"><label>Ubicazione</label>Selvazzano Dentro (PD)</div>
+        <div class="field"><label>Tensione</label>20kV / 400V</div>
+        <div class="field"><label>Contratto</label>Full Service — scad. 31/12/2025</div>
+        <div class="field"><label>Prossima manutenzione</label><b style="color:var(--pri)">12/06/2024 — preventiva semestrale</b></div>
+      </div>
+    </div>
+    <div class="panel"><h3>Storico interventi (ultimi 12 mesi)</h3>
+      <div class="timeline">
+        <div class="tl"><b>Collaudo finale — Conforme</b><span>09/06/2024 · L. Bianchi</span></div>
+        <div class="tl"><b>Manutenzione preventiva</b><span>11/04/2024 · A. Verdi · termografia OK</span></div>
+        <div class="tl"><b>Sostituzione fusibili MT</b><span>22/01/2024 · L. Bianchi</span></div>
+        <div class="tl"><b>Verifica messa a terra</b><span>15/11/2023 · M. Rossi · conforme CEI 11-1</span></div>
+      </div>
+    </div>`;
+}
+function backImp(){document.getElementById('impList').style.display='block';document.getElementById('impDetail').style.display='none';}
+
+/* ---- TOAST ---- */
+let tt;
+function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),2600);}
+
+/* INIT */
+renderTickets();buildCal();buildIntList();buildImp();
+</script>
+</body>
+</html>

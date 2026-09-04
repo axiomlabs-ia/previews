@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NurtureFlow AI</title>
+<style>
+:root{
+--bg:#f4f6fb;--card:#fff;--pri:#6c4de6;--pri-d:#5638c9;--txt:#1e2340;
+--muted:#7a809d;--border:#e6e9f2;--hot:#e5484d;--warm:#f5a623;--cold:#3b82f6;
+--green:#12b76a;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,sans-serif}
+body{background:var(--bg);color:var(--txt);font-size:14px}
+.app{display:flex;min-height:100vh}
+/* Sidebar */
+.sidebar{width:250px;background:#1c1938;color:#cfd0e8;position:fixed;top:0;bottom:0;left:0;display:flex;flex-direction:column;z-index:100;transition:.3s}
+.logo{padding:22px 20px;font-size:19px;font-weight:700;color:#fff;display:flex;align-items:center;gap:10px;border-bottom:1px solid #2c2850}
+.logo .dot{background:linear-gradient(135deg,#6c4de6,#a78bfa);width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.nav{flex:1;padding:14px 0;overflow:auto}
+.nav a{display:flex;align-items:center;gap:12px;padding:12px 22px;color:#b7b9d8;cursor:pointer;font-weight:500;border-left:3px solid transparent}
+.nav a:hover{background:#251f47;color:#fff}
+.nav a.active{background:#251f47;color:#fff;border-left-color:var(--pri)}
+.nav a .ic{font-size:17px}
+.side-foot{padding:16px 22px;font-size:12px;color:#8a8cb0;border-top:1px solid #2c2850}
+/* Main */
+.main{flex:1;margin-left:250px;display:flex;flex-direction:column}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:15px 26px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar h1{font-size:18px}
+.topbar .sub{font-size:12px;color:var(--muted);font-weight:400}
+.badge-demo{background:#ffe8c2;color:#9a5b00;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.5px}
+.top-right{display:flex;align-items:center;gap:14px}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--pri);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600}
+.hamb{display:none;font-size:22px;background:none;border:none;cursor:pointer}
+.content{padding:24px 26px}
+.demo-note{font-size:12px;color:var(--muted);margin-bottom:16px;background:#fff;border:1px dashed var(--border);padding:8px 12px;border-radius:8px;display:inline-block}
+.view{display:none}
+.view.active{display:block}
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px}
+.kpi .lbl{color:var(--muted);font-size:12px;margin-bottom:8px}
+.kpi .val{font-size:26px;font-weight:700}
+.kpi .chg{font-size:12px;margin-top:6px;font-weight:600}
+.up{color:var(--green)}.down{color:var(--hot)}
+.row2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px}
+.panel h3{font-size:15px;margin-bottom:16px}
+/* chart */
+.chart{display:flex;align-items:flex-end;gap:12px;height:180px;padding-top:10px}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+.bar{width:100%;background:linear-gradient(180deg,#8b6cf0,#6c4de6);border-radius:6px 6px 0 0;transition:.3s}
+.bar-wrap span{font-size:11px;color:var(--muted)}
+/* funnel */
+.funnel{display:flex;flex-direction:column;gap:8px}
+.fstage{background:var(--pri);color:#fff;border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin:0 auto}
+.fstage small{opacity:.8}
+.drop{text-align:center;font-size:11px;color:var(--hot);font-weight:600}
+/* feed */
+.feed-item{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
+.feed-item:last-child{border:none}
+.feed-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;background:#f0edfd;flex-shrink:0}
+.feed-item .t{font-size:12px;color:var(--muted);margin-top:2px}
+/* table */
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.filters input,.filters select{padding:9px 12px;border:1px solid var(--border);border-radius:9px;font-size:13px;background:#fff}
+.filters input{flex:1;min-width:180px}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;border:1px solid var(--border)}
+th{background:#faf9ff;text-align:left;padding:12px 14px;font-size:12px;color:var(--muted);font-weight:600}
+td{padding:12px 14px;border-top:1px solid var(--border);font-size:13px}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:#faf9ff}
+.score{display:inline-block;padding:3px 9px;border-radius:20px;font-weight:700;font-size:12px;color:#fff}
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.b-qual{background:#e0f7ec;color:#0d8a4f}
+.b-nurt{background:#eef0fd;color:#5638c9}
+.b-cli{background:#e5f0ff;color:#1d6fd8}
+.b-freddo{background:#eef1f5;color:#64748b}
+select.state{border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:12px}
+.chan{font-size:12px}
+/* drawer */
+.overlay{display:none;position:fixed;inset:0;background:rgba(20,18,40,.4);z-index:200}
+.overlay.open{display:block}
+.drawer{position:fixed;top:0;right:-460px;width:440px;max-width:90vw;height:100%;background:#fff;z-index:210;transition:.3s;box-shadow:-6px 0 30px rgba(0,0,0,.1);overflow:auto}
+.drawer.open{right:0}
+.dr-head{padding:22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start}
+.dr-head .x{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted)}
+.dr-body{padding:22px}
+.dr-body h4{font-size:12px;color:var(--muted);text-transform:uppercase;margin:18px 0 8px;letter-spacing:.5px}
+.dr-field{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.dr-field .k{color:var(--muted)}
+.timeline-mini{list-style:none}
+.timeline-mini li{padding:8px 0 8px 20px;position:relative;font-size:13px;border-left:2px solid var(--pri);margin-left:6px}
+.timeline-mini li:before{content:'';position:absolute;left:-6px;top:12px;width:10px;height:10px;border-radius:50%;background:var(--pri)}
+/* cards seq */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
+.seqcard{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px;cursor:pointer;transition:.2s}
+.seqcard:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(108,77,230,.13);border-color:var(--pri)}
+.seqcard .ch{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:#eef0fd;color:var(--pri);display:inline-block;margin-bottom:10px}
+.seqcard h4{font-size:15px;margin-bottom:12px}
+.seqcard .stats{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:12px;margin-top:4px}
+.seqcard .stats b{display:block;color:var(--txt);font-size:15px}
+.pct-bar{height:6px;background:var(--border);border-radius:5px;margin-top:8px;overflow:hidden}
+.pct-bar i{display:block;height:100%;background:var(--green)}
+/* workflow timeline */
+.wf{max-width:520px}
+.wf-step{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;gap:14px;align-items:center;position:relative}
+.wf-conn{width:2px;height:26px;background:var(--pri);margin-left:34px}
+.wf-ic{width:40px;height:40px;border-radius:10px;background:#f0edfd;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.wf-step small{color:var(--muted);font-size:12px}
+.wf-cond{background:#fff8ec;border-color:#f5d99a}
+.wf-cond .wf-ic{background:#fdf0d5}
+/* template split */
+.split{display:grid;grid-template-columns:280px 1fr;gap:16px}
+.tpl-list{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.tpl-item{padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer}
+.tpl-item:hover{background:#faf9ff}
+.tpl-item.active{background:#f0edfd;border-left:3px solid var(--pri)}
+.tpl-item .tt{font-weight:600;font-size:13px}
+.tpl-item .td{font-size:11px;color:var(--muted);margin-top:3px}
+.preview-box{background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px}
+.toggle{display:inline-flex;background:#eef0fd;border-radius:10px;padding:4px;margin-bottom:20px}
+.toggle button{border:none;background:none;padding:8px 18px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;color:var(--muted)}
+.toggle button.on{background:#fff;color:var(--pri);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.email-mock{border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.email-mock .eh{background:#faf9ff;padding:14px 16px;border-bottom:1px solid var(--border);font-size:13px}
+.email-mock .eb{padding:20px 16px;font-size:14px;line-height:1.6}
+.wa-mock{background:#e5ddd5;padding:20px;border-radius:12px}
+.wa-bubble{background:#dcf8c6;padding:12px 14px;border-radius:12px 12px 12px 3px;max-width:85%;font-size:14px;line-height:1.5;position:relative}
+.wa-bubble .time{font-size:10px;color:#667;text-align:right;margin-top:4px}
+/* calendar */
+.cal{display:grid;grid-template-columns:60px repeat(5,1fr);background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.cal .ch{padding:12px;text-align:center;font-size:12px;font-weight:600;background:#faf9ff;border-bottom:1px solid var(--border)}
+.cal .tcol{padding:10px 6px;font-size:11px;color:var(--muted);text-align:right;border-right:1px solid var(--border)}
+.cal .cell{border-top:1px solid var(--border);border-right:1px solid var(--border);min-height:56px;padding:4px;position:relative}
+.ev{border-radius:7px;padding:5px 7px;font-size:11px;color:#fff;margin-bottom:3px;cursor:pointer;line-height:1.3}
+.ev1{background:#6c4de6}.ev2{background:#f5a623}.ev3{background:#12b76a}
+.legend{display:flex;gap:18px;margin-bottom:14px;flex-wrap:wrap;font-size:12px}
+.legend span{display:flex;align-items:center;gap:6px}
+.leg-dot{width:12px;height:12px;border-radius:4px}
+@media(max-width:900px){
+.sidebar{left:-250px}.sidebar.open{left:0}.main{margin-left:0}
+.hamb{display:block}.kpi-grid{grid-template-columns:repeat(2,1fr)}
+.row2{grid-template-columns:1fr}.split{grid-template-columns:1fr}
+.cal{font-size:11px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar" id="sidebar">
+<div class="logo"><span class="dot">🌱</span> NurtureFlow</div>
+<nav class="nav">
+<a class="active" onclick="go('dash',this)"><span class="ic">📊</span> Dashboard</a>
+<a onclick="go('leads',this)"><span class="ic">👥</span> Lead &amp; Scoring</a>
+<a onclick="go('seq',this)"><span class="ic">⚡</span> Sequenze</a>
+<a onclick="go('msg',this)"><span class="ic">✉️</span> Messaggi &amp; Template</a>
+<a onclick="go('cal',this)"><span class="ic">📅</span> Calendario</a>
+</nav>
+<div class="side-foot">NurtureFlow AI v2.4<br>Piano: Growth</div>
+</aside>
+
+<div class="main">
+<div class="topbar">
+<div style="display:flex;align-items:center;gap:14px">
+<button class="hamb" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+<div>
+<h1 id="ttl">Dashboard</h1>
+<div class="sub">Da lead freddo a cliente, in automatico. Powered by AI.</div>
+</div>
+</div>
+<div class="top-right">
+<span class="badge-demo">● DEMO</span>
+<div class="avatar">CS</div>
+</div>
+</div>
+
+<div class="content">
+<div class="demo-note">⚠️ Ambiente dimostrativo — Dati di esempio (settore Wellness &amp; Fitness · Corposostenibile)</div>
+
+<!-- DASHBOARD -->
+<section class="view active" id="dash">
+<div class="kpi-grid">
+<div class="kpi"><div class="lbl">Lead totali questo mese</div><div class="val">342</div><div class="chg up">▲ 18% vs mese scorso</div></div>
+<div class="kpi"><div class="lbl">Lead qualificati (hot)</div><div class="val">58</div><div class="chg up">▲ 9 nuovi hot</div></div>
+<div class="kpi"><div class="lbl">Tasso conversione</div><div class="val">14,3%</div><div class="chg up">▲ 2,1 pt</div></div>
+<div class="kpi"><div class="lbl">Fatturato attribuito</div><div class="val">€ 9.840</div><div class="chg up">▲ € 1.420</div></div>
+</div>
+<div class="row2">
+<div class="panel">
+<h3>Download ebook per settimana</h3>
+<div class="chart" id="chart"></div>
+</div>
+<div class="panel">
+<h3>Funnel di conversione</h3>
+<div class="funnel">
+<div class="fstage" style="width:100%"><span>📥 Download</span><b>342</b></div>
+<div class="drop">▼ -15%</div>
+<div class="fstage" style="width:85%;background:#7d5ee8"><span>🌿 Nurturing</span><b>289</b></div>
+<div class="drop">▼ -80%</div>
+<div class="fstage" style="width:55%;background:#8e70eb"><span>🔥 Qualificato</span><b>58</b></div>
+<div class="drop">▼ -64%</div>
+<div class="fstage" style="width:35%;background:var(--green)"><span>🏆 Cliente</span><b>21</b></div>
+</div>
+</div>
+</div>
+<div class="panel">
+<h3>Attività recenti</h3>
+<div class="feed-item"><div class="feed-ic">🆕</div><div><b>Giulia Ferraro</b> è entrata nel funnel dopo il download "Ricomposizione corporea"<div class="t">2 ore fa</div></div></div>
+<div class="feed-item"><div class="feed-ic">📖</div><div><b>Federica Sala</b> ha aperto l'email "Il tuo piano personalizzato è pronto"<div class="t">5 ore fa</div></div></div>
+<div class="feed-item"><div class="feed-ic">📅</div><div>Appuntamento fissato: <b>Elena Rizzo</b> · Prima consulenza<div class="t">Oggi, 09:12</div></div></div>
+<div class="feed-item"><div class="feed-ic">💬</div><div><b>Sara Conti</b> ha risposto al messaggio WhatsApp di nurturing<div class="t">Ieri</div></div></div>
+<div class="feed-item"><div class="feed-ic">🔥</div><div>Lead score aggiornato: <b>Marco Belluardo</b> è ora HOT (78)<div class="t">Ieri</div></div></div>
+</div>
+</section>
+
+<!-- LEADS -->
+<section class="view" id="leads">
+<div class="filters">
+<input type="text" id="search" placeholder="🔍 Cerca per nome o email..." onkeyup="filterLeads()">
+<select id="fState" onchange="filterLeads()">
+<option value="">Tutti gli stati</option>
+<option>Qualificato</option><option>Nurturing</option><option>Cliente</option><option>Freddo</option>
+</select>
+<select id="fScore" onchange="filterLeads()">
+<option value="">Tutti i punteggi</option>
+<option value="hot">🔴 Hot (75-100)</option>
+<option value="warm">🟠 Warm (40-74)</option>
+<option value="cold">🔵 Cold (0-39)</option>
+</select>
+</div>
+<table>
+<thead><tr><th>Nome</th><th>Email</th><th>Ebook</th><th>Score</th><th>Stato</th><th>Ultimo contatto</th><th>Canale</th></tr></thead>
+<tbody id="leadBody"></tbody>
+</table>
+</section>
+
+<!-- SEQUENZE -->
+<section class="view" id="seq">
+<div id="seqList">
+<div class="card-grid">
+<div class="seqcard" onclick="openWf('Benvenuto ebook')"><span class="ch">✉️ Email</span><h4>Benvenuto ebook</h4><div class="pct-bar"><i style="width:62%"></i></div><div class="stats"><div><b>3</b>step</div><div><b>289</b>lead attivi</div><div><b>62%</b>apertura</div></div></div>
+<div class="seqcard" onclick="openWf('Nurturing 7 giorni')"><span class="ch">🔀 Misto</span><h4>Nurturing 7 giorni</h4><div class="pct-bar"><i style="width:54%"></i></div><div class="stats"><div><b>6</b>step</div><div><b>178</b>lead attivi</div><div><b>54%</b>apertura</div></div></div>
+<div class="seqcard" onclick="openWf('Recupero consulenza')"><span class="ch">💬 WhatsApp</span><h4>Recupero consulenza</h4><div class="pct-bar"><i style="width:71%"></i></div><div class="stats"><div><b>4</b>step</div><div><b>42</b>lead attivi</div><div><b>71%</b>apertura</div></div></div>
+<div class="seqcard" onclick="openWf('Riattivazione lead freddi')"><span class="ch">✉️ Email</span><h4>Riattivazione lead freddi</h4><div class="pct-bar"><i style="width:29%"></i></div><div class="stats"><div><b>5</b>step</div><div><b>96</b>lead attivi</div><div><b>29%</b>apertura</div></div></div>
+</div>
+</div>
+<div id="wfView" style="display:none">
+<button onclick="closeWf()" style="background:none;border:1px solid var(--border);padding:8px 14px;border-radius:9px;cursor:pointer;margin-bottom:18px">← Torna alle sequenze</button>
+<div class="panel">
+<h3 id="wfTitle">Workflow</h3>
+<div class="wf">
+<div class="wf-step"><div class="wf-ic">✉️</div><div><b>Email di benvenuto</b><br><small>"Ecco il tuo ebook + un regalo"</small></div></div>
+<div class="wf-conn"></div>
+<div class="wf-step"><div class="wf-ic">⏱️</div><div><b>Attesa 2 giorni</b><br><small>Pausa automatica</small></div></div>
+<div class="wf-conn"></div>
+<div class="wf-step"><div class="wf-ic">💬</div><div><b>WhatsApp check-in</b><br><small>"Hai iniziato a leggere?"</small></div></div>
+<div class="wf-conn"></div>
+<div class="wf-step wf-cond"><div class="wf-ic">🔀</div><div><b>Condizione: SE score &gt; 60</b><br><small>Ramo lead caldi</small></div></div>
+<div class="wf-conn"></div>
+<div class="wf-step"><div class="wf-ic">🔔</div><div><b>Notifica al team</b><br><small>"Lead caldo pronto per consulenza"</small></div></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- MESSAGGI -->
+<section class="view" id="msg">
+<div class="split">
+<div class="tpl-list" id="tplList">
+<div class="tpl-item active" onclick="selTpl(this,0)"><div class="tt">Benvenuto + Ebook</div><div class="td">Email · Benvenuto ebook</div></div>
+<div class="tpl-item" onclick="selTpl(this,1)"><div class="tt">Piano personalizzato</div><div class="td">Email · Nurturing 7 giorni</div></div>
+<div class="tpl-item" onclick="selTpl(this,2)"><div class="tt">Check-in WhatsApp</div><div class="td">WhatsApp · Nurturing</div></div>
+<div class="tpl-item" onclick="selTpl(this,3)"><div class="tt">Offerta consulenza</div><div class="td">WhatsApp · Recupero</div></div>
+</div>
+<div class="preview-box">
+<div class="toggle">
+<button id="tEmail" class="on" onclick="setMode('email')">✉️ Email</button>
+<button id="tWa" onclick="setMode('wa')">💬 WhatsApp</button>
+</div>
+<div id="prev"></div>
+</div>
+</div>
+</section>
+
+<!-- CALENDARIO -->
+<section class="view" id="cal">
+<div class="legend">
+<span><i class="leg-dot" style="background:#6c4de6"></i> Prima consulenza</span>
+<span><i class="leg-dot" style="background:#f5a623"></i> Follow-up</span>
+<span><i class="leg-dot" style="background:#12b76a"></i> Check-in nutrizionale</span>
+</div>
+<div class="cal" id="calGrid"></div>
+</section>
+
+</div>
+</div>
+</div>
+
+<!-- DRAWER -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+<div class="dr-head">
+<div><h2 id="drName" style="font-size:19px"></h2><span id="drState"></span></div>
+<button class="x" onclick="closeDrawer()">×</button>
+</div>
+<div class="dr-body" id="drBody"></div>
+</div>
+
+<script>
+const leads=[
+{n:'Giulia Ferraro',e:'g.ferraro@gmail.com',eb:'Ricomposizione corporea',s:92,st:'Qualificato',lc:'2 ore fa',ch:'💬 WhatsApp'},
+{n:'Marco Belluardo',e:'marco.bel@outlook.it',eb:'7 ricette sostenibili',s:78,st:'Nurturing',lc:'Ieri',ch:'✉️ Email'},
+{n:'Sara Conti',e:'sara.conti88@gmail.com',eb:'Dimagrire senza dieta',s:65,st:'Nurturing',lc:'3 giorni fa',ch:'💬 WhatsApp'},
+{n:'Luca Ferrante',e:'l.ferrante@libero.it',eb:'Ricomposizione corporea',s:54,st:'Nurturing',lc:'4 giorni fa',ch:'✉️ Email'},
+{n:'Elena Rizzo',e:'elena.rizzo@gmail.com',eb:'7 ricette sostenibili',s:88,st:'Cliente',lc:'Oggi',ch:'💬 WhatsApp'},
+{n:'Davide Moro',e:'dav.moro@gmail.com',eb:'Dimagrire senza dieta',s:31,st:'Freddo',lc:'12 giorni fa',ch:'✉️ Email'},
+{n:'Chiara Villa',e:'chiara.v@icloud.com',eb:'Ricomposizione corporea',s:70,st:'Qualificato',lc:'1 giorno fa',ch:'💬 WhatsApp'},
+{n:'Antonio Greco',e:'a.greco@gmail.com',eb:'7 ricette sostenibili',s:22,st:'Freddo',lc:'18 giorni fa',ch:'✉️ Email'},
+{n:'Federica Sala',e:'fede.sala@gmail.com',eb:'Dimagrire senza dieta',s:81,st:'Nurturing',lc:'5 ore fa',ch:'💬 WhatsApp'},
+{n:'Paolo Neri',e:'paolo.neri@tin.it',eb:'Ricomposizione corporea',s:47,st:'Nurturing',lc:'6 giorni fa',ch:'✉️ Email'}
+];
+function scoreColor(s){return s>=75?'#e5484d':s>=40?'#f5a623':'#3b82f6'}
+function scoreTier(s){return s>=75?'hot':s>=40?'warm':'cold'}
+function stBadge(st){const m={Qualificato:'b-qual',Nurturing:'b-nurt',Cliente:'b-cli',Freddo:'b-freddo'};return m[st]}
+function renderLeads(list){
+document.getElementById('leadBody').innerHTML=list.map(l=>`<tr onclick='openDrawer(${JSON.stringify(l)})'>
+<td><b>${l.n}</b></td><td style="color:var(--muted)">${l.e}</td><td>${l.eb}</td>
+<td><span class="score" style="background:${scoreColor(l.s)}">${l.s}</span></td>
+<td><span class="badge ${stBadge(l.st)}">${l.st}</span></td>
+<td>${l.lc}</td><td class="chan">${l.ch}</td></tr>`).join('');
+}
+function filterLeads(){
+const q=document.getElementById('search').value.toLowerCase();
+const st=document.getElementById('fState').value;
+const sc=document.getElementById('fScore').value;
+renderLeads(leads.filter(l=>
+(l.n.toLowerCase().includes(q)||l.e.toLowerCase().includes(q))&&
+(!st||l.st===st)&&(!sc||scoreTier(l.s)===sc)));
+}
+renderLeads(leads);
+
+function openDrawer(l){
+document.getElementById('drName').textContent=l.n;
+document.getElementById('drState').innerHTML=`<span class="badge ${stBadge(l.st)}">${l.st}</span> <span class="score" style="background:${scoreColor(l.s)};margin-left:6px">Score ${l.s}</span>`;
+document.getElementById('drBody').innerHTML=`
+<h4>Informazioni</h4>
+<div class="dr-field"><span class="k">Email</span><span>${l.e}</span></div>
+<div class="dr-field"><span class="k">Ebook scaricato</span><span>${l.eb}</span></div>
+<div class="dr-field"><span class="k">Canale preferito</span><span>${l.ch}</span></div>
+<div class="dr-field"><span class="k">Ultimo contatto</span><span>${l.lc}</span></div>
+<div class="dr-field"><span class="k">Sequenza attiva</span><span>Nurturing 7 giorni</span></div>
+<h4>Timeline attività</h4>
+<ul class="timeline-mini">
+<li>Ha scaricato "${l.eb}"</li>
+<li>Email di benvenuto aperta</li>
+<li>Cliccato link piano personalizzato</li>
+<li>Score aggiornato a <b>${l.s}</b> dall'AI</li>
+</ul>
+<h4>Azioni</h4>
+<button style="background:var(--pri);color:#fff;border:none;padding:10px 16px;border-radius:9px;cursor:pointer;margin-right:8px" onclick="alert('Messaggio inviato a ${l.n} (demo)')">💬 Invia messaggio</button>
+<button style="background:#fff;border:1px solid var(--border);padding:10px 16px;border-radius:9px;cursor:pointer" onclick="alert('Consulenza proposta (demo)')">📅 Proponi consulenza</button>`;
+document.getElementById('overlay').classList.add('open');
+document.getElementById('drawer').classList.add('open');
+}
+function closeDrawer(){document.getElementById('overlay').classList.remove('open');document.getElementById('drawer').classList.remove('open')}
+
+function go(id,el){
+document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
+el.classList.add('active');
+const t={dash:'Dashboard',leads:'Lead & Scoring',seq:'Sequenze (Automazioni)',msg:'Messaggi & Template',cal:'Calendario Consulenze'};
+document.getElementById('ttl').textContent=t[id];
+document.getElementById('sidebar').classList.remove('open');
+closeWf();
+}
+function openWf(name){document.getElementById('seqList').style.display='none';document.getElementById('wfView').style.display='block';document.getElementById('wfTitle').textContent='Workflow: '+name}
+function closeWf(){document.getElementById('seqList').style.display='block';document.getElementById('wfView').style.display='none'}
+
+// chart
+const chartData=[142,168,155,203,187,241,268,289];
+const labels=['S1','S2','S3','S4','S5','S6','S7','S8'];
+const max=Math.max(...chartData);
+document.getElementById('chart').innerHTML=chartData.map((v,i)=>
+`<div class="bar-wrap"><div class="bar" style="height:${v/max*150}px" title="${v} download"></div><span>${labels[i]}</span></div>`).join('');
+
+// templates
+const templates=[
+{email:{subj:'Il tuo ebook è pronto 🎁 + una sorpresa',from:'Corposostenibile <ciao@corposostenibile.it>',body:'Ciao Giulia,<br><br>grazie per aver scaricato <b>"Guida alla ricomposizione corporea in 30 giorni"</b>!<br><br>Dentro trovi il metodo che ha aiutato oltre 800 persone a cambiare fisico senza diete estreme.<br><br>👉 Come bonus, ti regalo la mia checklist settimanale gratuita.<br><br>A presto,<br>Il team Corposostenibile'},wa:'Ciao Giulia! 🌱 Ecco il tuo ebook sulla ricomposizione corporea. Vuoi anche la checklist bonus? Rispondi SÌ 👇'},
+{email:{subj:'Ho preparato il tuo piano personalizzato 📋',from:'Corposostenibile <ciao@corposostenibile.it>',body:'Ciao Marco,<br><br>in base a quello che ci hai raccontato, ho creato una bozza di piano nutrizionale su misura per te.<br><br>Non è la solita dieta: è un approccio sostenibile che puoi mantenere nel tempo.<br><br>👉 Vuoi che ne parliamo in una call gratuita di 20 minuti?'},wa:'Marco, ho preparato una bozza del tuo piano personalizzato 📋 Ti va di vederla insieme in una call di 20 min? 😊'},
+{email:{subj:'Come sta andando la lettura?',from:'Corposostenibile <ciao@corposostenibile.it>',body:'Ciao,<br><br>volevo solo sapere se hai avuto modo di iniziare l\'ebook e se hai domande.<br><br>Sono qui per aiutarti!'},wa:'Ciao Sara! 👋 Hai iniziato a leggere l\'ebook? Se hai domande scrivimi pure, rispondo io in persona 💚'},
+{email:{subj:'Un posto libero per la tua consulenza',from:'Corposostenibile <ciao@corposostenibile.it>',body:'Ciao,<br><br>si è liberato un posto per una consulenza gratuita questa settimana.<br><br>Prenota ora prima che vada esaurito!'},wa:'🔥 Federica, si è liberato un posto per la consulenza gratuita questa settimana! Ti interessa? Prenoti in 1 click 👇'}
+];
+let curTpl=0,curMode='email';
+function selTpl(el,i){document.querySelectorAll('.tpl-item').forEach(t=>t.classList.remove('active'));el.classList.add('active');curTpl=i;renderPrev()}
+function setMode(m){curMode=m;document.getElementById('tEmail').classList.toggle('on',m==='email');document.getElementById('tWa').classList.toggle('on',m==='wa');renderPrev()}
+function renderPrev(){
+const t=templates[curTpl];
+if(curMode==='email'){
+document.getElementById('prev').innerHTML=`<div class="email-mock">
+<div class="eh"><b>Oggetto:</b> ${t.email.subj}<br><span style="color:var(--muted)">Da: ${t.email.from}</span></div>
+<div class="eb">${t.email.body}</div></div>`;
+}else{
+document.getElementById('prev').innerHTML=`<div class="wa-mock"><div class="wa-bubble">${t.wa}<div class="time">10:24 ✓✓</div></div></div>`;
+}
+}
+renderPrev();
+
+// calendar
+const days=['Lun 3','Mar 4','Mer 5','Gio 6','Ven 7'];
+const hours=['09:00','10:00','11:00','12:00','15:00','16:00'];
+const events={
+'09:00-0':{c:'ev1',t:'E. Rizzo · Prima consulenza'},
+'10:00-2':{c:'ev3',t:'G. Ferraro · Check-in'},
+'11:00-1':{c:'ev2',t:'M. Belluardo · Follow-up'},
+'15:00-3':{c:'ev1',t:'C. Villa · Prima consulenza'},
+'16:00-4':{c:'ev3',t:'F. Sala · Check-in'},
+'10:00-0':{c:'ev2',t:'S. Conti · Follow-up'}
+};
+let calHtml='<div class="ch"></div>'+days.map(d=>`<div class="ch">${d}</div>`).join('');
+hours.forEach(h=>{
+calHtml+=`<div class="tcol">${h}</div>`;
+for(let d=0;d<5;d++){
+const ev=events[h+'-'+d];
+calHtml+=`<div class="cell">${ev?`<div class="ev ${ev.c}" onclick="alert('${ev.t}')">${ev.t}</div>`:''}</div>`;
+}
+});
+document.getElementById('calGrid').innerHTML=calHtml;
+</script>
+</body>
+</html>

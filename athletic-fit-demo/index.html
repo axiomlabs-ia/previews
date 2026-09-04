@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriPilot AI</title>
+<style>
+:root{
+--bg:#f4f6fb;--card:#fff;--ink:#1a2233;--muted:#6b7688;--line:#e6eaf1;
+--brand:#12b886;--brand-d:#0ca678;--accent:#4263eb;
+--red:#fa5252;--orange:#fd7e14;--blue:#4dabf7;--green:#40c057;
+--shadow:0 2px 12px rgba(30,40,60,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+.app{display:flex;min-height:100vh}
+/* sidebar */
+.sidebar{width:240px;background:#0f1b2d;color:#c8d0dd;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:40}
+.logo{padding:22px 20px;font-size:20px;font-weight:800;color:#fff;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.08)}
+.logo span{color:var(--brand)}
+.nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:4px}
+.nav a{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:9px;color:#c8d0dd;text-decoration:none;font-weight:500;cursor:pointer;transition:.15s}
+.nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav a.active{background:var(--brand);color:#fff}
+.nav .ico{font-size:17px;width:20px;text-align:center}
+.side-foot{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:#7c889b}
+.badge-demo{display:inline-block;background:var(--orange);color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;letter-spacing:.5px;margin-left:8px}
+/* main */
+.main{flex:1;margin-left:240px;display:flex;flex-direction:column;min-width:0}
+.topbar{background:var(--card);border-bottom:1px solid var(--line);padding:16px 26px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:30}
+.topbar h1{font-size:19px;font-weight:700}
+.topbar .sub{font-size:12px;color:var(--muted);margin-top:2px}
+.demo-note{font-size:11px;color:var(--muted);background:#fff6e9;border:1px solid #ffe3b3;padding:6px 12px;border-radius:8px}
+.content{padding:26px;max-width:1200px}
+.view{display:none;animation:fade .25s}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+/* kpi */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+.kpi{background:var(--card);border-radius:14px;padding:18px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.kpi .lab{font-size:12px;color:var(--muted);font-weight:600}
+.kpi .val{font-size:28px;font-weight:800;margin-top:6px}
+.kpi .ico{float:right;font-size:22px;background:#eefaf5;width:42px;height:42px;border-radius:12px;display:grid;place-items:center}
+.kpi.warn .ico{background:#fff0f0}
+.grid2{display:grid;grid-template-columns:1.3fr 1fr;gap:16px}
+.panel{background:var(--card);border-radius:14px;padding:20px;box-shadow:var(--shadow);border:1px solid var(--line);margin-bottom:16px}
+.panel h3{font-size:15px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+/* alert list */
+.alert-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;border:1px solid var(--line);margin-bottom:9px}
+.alert-item .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dot.red{background:var(--red)}.dot.orange{background:var(--orange)}.dot.blue{background:var(--blue)}
+.alert-item .txt{flex:1}
+.alert-item .txt b{display:block;font-size:13px}
+.alert-item .txt small{color:var(--muted)}
+.tag{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;text-transform:uppercase}
+.tag.red{background:#ffe3e3;color:#c92a2a}
+.tag.orange{background:#ffe8cc;color:#d9480f}
+.tag.blue{background:#d0ebff;color:#1971c2}
+/* bar chart */
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:11px;font-size:13px}
+.bar-row .nm{width:120px;flex-shrink:0}
+.bar-track{flex:1;background:#eef1f6;border-radius:8px;height:16px;overflow:hidden}
+.bar-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--brand),var(--brand-d))}
+.bar-row .pc{width:38px;text-align:right;font-weight:700;color:var(--muted)}
+/* timeline */
+.tl-item{display:flex;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.tl-item:last-child{border:none}
+.tl-item .tm{color:var(--muted);font-size:12px;width:48px;flex-shrink:0}
+.tl-item .em{font-size:16px}
+/* buttons */
+.btn{border:none;padding:8px 14px;border-radius:9px;font-weight:600;cursor:pointer;font-size:13px;transition:.15s}
+.btn-p{background:var(--brand);color:#fff}.btn-p:hover{background:var(--brand-d)}
+.btn-s{background:#eef1f6;color:var(--ink)}.btn-s:hover{background:#e0e5ee}
+.btn-g{background:#e6f4ff;color:#1971c2}
+.btn-sm{padding:6px 11px;font-size:12px}
+/* filters */
+.filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.chip{padding:8px 15px;border-radius:20px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:600;font-size:13px}
+.chip.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+.search{padding:9px 14px;border:1px solid var(--line);border-radius:10px;font-size:13px;flex:1;min-width:180px;max-width:280px}
+/* table */
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+th,td{text-align:left;padding:13px 16px;font-size:13px}
+th{background:#f8fafc;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+tbody tr{border-top:1px solid var(--line);cursor:pointer;transition:.12s}
+tbody tr:hover{background:#f6fbf9}
+.st{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px}
+.st.attivo{background:#e6f9f0;color:#0ca678}
+.st.rischio{background:#ffe8cc;color:#d9480f}
+.st.fermo{background:#ffe3e3;color:#c92a2a}
+.mini-bar{width:70px;height:8px;background:#eef1f6;border-radius:6px;display:inline-block;vertical-align:middle;overflow:hidden;margin-left:6px}
+.mini-fill{height:100%;background:var(--brand)}
+/* cards diari */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.dcard{background:var(--card);border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--line);overflow:hidden;transition:.2s}
+.dcard.rev{opacity:.55}
+.dcard .ph{height:120px;display:grid;place-items:center;font-size:44px;background:linear-gradient(135deg,#e8f5f0,#dbeeff)}
+.dcard .bd{padding:14px}
+.dcard .mtag{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:#eef1f6;color:var(--muted);text-transform:uppercase}
+.dcard h4{font-size:14px;margin:8px 0 4px}
+.dcard .cl{font-size:12px;color:var(--muted)}
+.dcard .note{font-size:12px;color:var(--orange);margin-top:6px;font-style:italic}
+.dcard .revbadge{font-size:10px;font-weight:700;background:#ffe3e3;color:#c92a2a;padding:3px 8px;border-radius:6px}
+.dcard .foot{margin-top:12px;display:flex;justify-content:space-between;align-items:center}
+/* automations */
+.auto-row{display:flex;align-items:center;gap:16px;padding:16px;border:1px solid var(--line);border-radius:12px;margin-bottom:12px;background:#fff}
+.auto-row .info{flex:1}
+.auto-row .info b{display:block;margin-bottom:3px}
+.auto-row .info small{color:var(--muted)}
+.chn{font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px}
+.chn.wa{background:#e6f9f0;color:#0ca678}.chn.em{background:#e6f0ff;color:#3b5bdb}
+.count{font-weight:800;font-size:18px;text-align:center}
+.count small{display:block;font-size:10px;font-weight:600;color:var(--muted)}
+/* toggle */
+.switch{position:relative;width:46px;height:26px;flex-shrink:0}
+.switch input{display:none}
+.slider{position:absolute;inset:0;background:#ccd1db;border-radius:20px;cursor:pointer;transition:.2s}
+.slider:before{content:"";position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked+.slider{background:var(--brand)}
+.switch input:checked+.slider:before{transform:translateX(20px)}
+/* drawer */
+.drawer-bg{position:fixed;inset:0;background:rgba(15,27,45,.4);z-index:50;display:none}
+.drawer-bg.open{display:block}
+.drawer{position:fixed;top:0;right:-440px;width:420px;max-width:90vw;height:100%;background:#fff;z-index:60;box-shadow:-4px 0 24px rgba(0,0,0,.15);transition:right .3s;overflow-y:auto}
+.drawer.open{right:0}
+.drawer .dh{padding:22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:start}
+.drawer .db{padding:22px}
+.close-x{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted)}
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(15,27,45,.5);z-index:70;display:none;place-items:center}
+.modal-bg.open{display:grid}
+.modal{background:#fff;border-radius:16px;width:460px;max-width:92vw;padding:24px}
+.modal textarea{width:100%;min-height:110px;border:1px solid var(--line);border-radius:10px;padding:12px;font-family:inherit;font-size:13px;resize:vertical;margin:12px 0}
+/* toast */
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:#0f1b2d;color:#fff;padding:13px 22px;border-radius:12px;font-weight:600;font-size:13px;z-index:90;opacity:0;transition:.35s;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.hamburger{display:none;background:none;border:none;font-size:22px;cursor:pointer}
+@media(max-width:900px){
+.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}
+.sidebar{transform:translateX(-100%);transition:.3s}.sidebar.open{transform:none}
+.main{margin-left:0}.hamburger{display:block}.demo-note{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">🥗 Nutri<span>Pilot</span></div>
+    <nav class="nav" id="nav">
+      <a data-v="dash" class="active"><span class="ico">📊</span> Dashboard</a>
+      <a data-v="clienti"><span class="ico">👥</span> Clienti</a>
+      <a data-v="diari"><span class="ico">🍽️</span> Diari alimentari</a>
+      <a data-v="auto"><span class="ico">⚙️</span> Automazioni</a>
+      <a data-v="follow"><span class="ico">🔔</span> Follow-up & Alert</a>
+    </nav>
+    <div class="side-foot">Dr. Elena Conti<br>Nutrizionista · Athletic.Fit</div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div>
+          <h1 id="ttl">Dashboard <span class="badge-demo">DEMO</span></h1>
+          <div class="sub" id="sub">Panoramica aderenza e attività del bot</div>
+        </div>
+      </div>
+      <div class="demo-note">⚠️ Dati di esempio — ambiente dimostrativo</div>
+    </div>
+
+    <div class="content">
+      <!-- DASHBOARD -->
+      <section class="view active" id="dash">
+        <div class="kpis">
+          <div class="kpi"><div class="ico">🏃</div><div class="lab">Clienti attivi</div><div class="val">42</div></div>
+          <div class="kpi"><div class="ico">📈</div><div class="lab">Aderenza media</div><div class="val">78%</div></div>
+          <div class="kpi"><div class="ico">📝</div><div class="lab">Diari inviati oggi</div><div class="val">31<span style="font-size:16px;color:var(--muted)">/42</span></div></div>
+          <div class="kpi warn"><div class="ico">⚠️</div><div class="lab">Clienti a rischio</div><div class="val" style="color:var(--red)">5</div></div>
+        </div>
+        <div class="grid2">
+          <div>
+            <div class="panel">
+              <h3>📊 Aderenza settimanale per cliente</h3>
+              <div class="bar-row"><span class="nm">Thomas de Vries</span><div class="bar-track"><div class="bar-fill" style="width:95%"></div></div><span class="pc">95%</span></div>
+              <div class="bar-row"><span class="nm">Lisa van den Berg</span><div class="bar-track"><div class="bar-fill" style="width:92%"></div></div><span class="pc">92%</span></div>
+              <div class="bar-row"><span class="nm">Daan Jansen</span><div class="bar-track"><div class="bar-fill" style="width:88%"></div></div><span class="pc">88%</span></div>
+              <div class="bar-row"><span class="nm">Fleur Meijer</span><div class="bar-track"><div class="bar-fill" style="width:79%"></div></div><span class="pc">79%</span></div>
+              <div class="bar-row"><span class="nm">Noah Visser</span><div class="bar-track"><div class="bar-fill" style="width:70%"></div></div><span class="pc">70%</span></div>
+              <div class="bar-row"><span class="nm">Sofía Ramírez</span><div class="bar-track"><div class="bar-fill" style="width:61%;background:var(--orange)"></div></div><span class="pc">61%</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="panel">
+              <h3>🚨 Alert prioritari</h3>
+              <div class="alert-item"><span class="dot red"></span><div class="txt"><b>Marco Rossi</b><small>Non invia diari da 3 giorni</small></div><span class="tag red">Alto</span></div>
+              <div class="alert-item"><span class="dot red"></span><div class="txt"><b>Emma Bakker</b><small>Aderenza sotto il 50%</small></div><span class="tag red">Alto</span></div>
+              <div class="alert-item"><span class="dot orange"></span><div class="txt"><b>Sofía Ramírez</b><small>Ha saltato 2 allenamenti</small></div><span class="tag orange">Medio</span></div>
+              <div class="alert-item"><span class="dot blue"></span><div class="txt"><b>Noah Visser</b><small>Ha chiesto di spostare il check-in</small></div><span class="tag blue">Info</span></div>
+            </div>
+            <div class="panel">
+              <h3>🤖 Attività del bot oggi</h3>
+              <div class="tl-item"><span class="tm">08:00</span><span class="em">☀️</span><div>Promemoria colazione inviato a <b>42 clienti</b></div></div>
+              <div class="tl-item"><span class="tm">08:14</span><span class="em">📥</span><div>Diario colazione ricevuto da <b>Lisa v.d. Berg</b></div></div>
+              <div class="tl-item"><span class="tm">13:05</span><span class="em">📥</span><div>Diario pranzo ricevuto da <b>Daan Jansen</b></div></div>
+              <div class="tl-item"><span class="tm">18:00</span><span class="em">💪</span><div>Check-in allenamento inviato a <b>38 clienti</b></div></div>
+              <div class="tl-item"><span class="tm">18:32</span><span class="em">⚠️</span><div>Alert generato: <b>Marco Rossi</b> inattivo</div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CLIENTI -->
+      <section class="view" id="clienti">
+        <div class="filters">
+          <button class="chip active" data-f="all">Tutti</button>
+          <button class="chip" data-f="rischio">A rischio</button>
+          <button class="chip" data-f="fermo">Fermi</button>
+          <input class="search" id="search" placeholder="🔍 Cerca cliente...">
+        </div>
+        <table>
+          <thead><tr><th>Nome</th><th>Programma</th><th>Aderenza</th><th>Ultimo diario</th><th>Stato</th><th></th></tr></thead>
+          <tbody id="cli-body"></tbody>
+        </table>
+      </section>
+
+      <!-- DIARI -->
+      <section class="view" id="diari">
+        <div class="filters">
+          <button class="chip active" data-pf="all">Tutti i pasti</button>
+          <button class="chip" data-pf="Colazione">Colazione</button>
+          <button class="chip" data-pf="Pranzo">Pranzo</button>
+          <button class="chip" data-pf="Snack">Snack</button>
+          <button class="chip" data-pf="Cena">Cena</button>
+        </div>
+        <div class="cards" id="diari-cards"></div>
+      </section>
+
+      <!-- AUTOMAZIONI -->
+      <section class="view" id="auto">
+        <div class="panel">
+          <h3>⚙️ Automazioni attive</h3>
+          <div id="auto-list"></div>
+        </div>
+      </section>
+
+      <!-- FOLLOWUP -->
+      <section class="view" id="follow">
+        <div class="panel">
+          <h3>🔔 Feed alert & follow-up</h3>
+          <div id="follow-list"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER -->
+<div class="drawer-bg" id="drawerBg" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="dh">
+    <div><h2 id="dr-name" style="font-size:18px"></h2><small id="dr-prog" style="color:var(--muted)"></small></div>
+    <button class="close-x" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="db" id="dr-body"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3 style="margin-bottom:4px">💬 Invia messaggio</h3>
+    <small style="color:var(--muted)" id="mod-to"></small>
+    <textarea id="mod-txt"></textarea>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-s" onclick="closeModal()">Annulla</button>
+      <button class="btn btn-p" onclick="sendMsg()">Invia via WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const clienti=[
+ {n:"Lisa van den Berg",p:"Ricomposizione",a:92,u:"Oggi 08:14",s:"attivo"},
+ {n:"Daan Jansen",p:"Definizione",a:88,u:"Oggi 07:50",s:"attivo"},
+ {n:"Sofía Ramírez",p:"Massa",a:61,u:"2 giorni fa",s:"rischio"},
+ {n:"Thomas de Vries",p:"Endurance",a:95,u:"Oggi 09:02",s:"attivo"},
+ {n:"Emma Bakker",p:"Perdita peso",a:45,u:"4 giorni fa",s:"fermo"},
+ {n:"Marco Rossi",p:"Definizione",a:38,u:"3 giorni fa",s:"fermo"},
+ {n:"Fleur Meijer",p:"Ricomposizione",a:79,u:"Ieri 21:10",s:"attivo"},
+ {n:"Noah Visser",p:"Massa",a:70,u:"Oggi 12:30",s:"attivo"}
+];
+const stLbl={attivo:"Attivo",rischio:"A rischio",fermo:"Fermo"};
+const diari=[
+ {em:"🥣",tag:"Colazione",t:"Porridge + frutti di bosco",cl:"Lisa van den Berg",tm:"08:14",note:"",rev:false},
+ {em:"🍗",tag:"Pranzo",t:"Pollo, riso e broccoli",cl:"Daan Jansen",tm:"13:05",note:"",rev:false},
+ {em:"🥜",tag:"Snack",t:"Skyr + noci",cl:"Fleur Meijer",tm:"16:40",note:"Poca acqua oggi, mal di testa",rev:false},
+ {em:"🐟",tag:"Cena",t:"Salmone e patate dolci",cl:"Thomas de Vries",tm:"20:15",note:"",rev:true},
+ {em:"🍳",tag:"Colazione",t:"Uova strapazzate e avocado",cl:"Noah Visser",tm:"08:30",note:"",rev:false},
+ {em:"🥗",tag:"Pranzo",t:"Insalata di quinoa e tonno",cl:"Sofía Ramírez",tm:"13:40",note:"",rev:false}
+];
+const autos=[
+ {n:"Promemoria colazione",tr:"Ogni giorno · 08:00",ch:"wa",cnt:294,on:true},
+ {n:"Check-in allenamento",tr:"Ogni giorno · 18:00",ch:"wa",cnt:210,on:true},
+ {n:"Richiesta diario cena",tr:"Ogni giorno · 21:00",ch:"wa",cnt:287,on:true},
+ {n:"Alert nutrizionista (2 diari saltati)",tr:"Evento · condizionale",ch:"em",cnt:12,on:true}
+];
+const alerts=[
+ {n:"Marco Rossi",m:"Non invia diari da 3 giorni",lv:"red",lvl:"Alto"},
+ {n:"Emma Bakker",m:"Aderenza sotto il 50%",lv:"red",lvl:"Alto"},
+ {n:"Sofía Ramírez",m:"Ha saltato 2 allenamenti",lv:"orange",lvl:"Medio"},
+ {n:"Noah Visser",m:"Ha chiesto di spostare il check-in",lv:"blue",lvl:"Info"}
+];
+
+// NAV
+const subs={dash:"Panoramica aderenza e attività del bot",clienti:"Elenco e gestione dei tuoi clienti",diari:"Diari alimentari ricevuti dai clienti",auto:"Flussi automatici del bot",follow:"Alert generati e azioni di follow-up"};
+const titles={dash:"Dashboard",clienti:"Clienti",diari:"Diari alimentari",auto:"Automazioni",follow:"Follow-up & Alert"};
+document.querySelectorAll('#nav a').forEach(a=>{
+ a.onclick=()=>{
+  document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('active'));
+  a.classList.add('active');
+  const v=a.dataset.v;
+  document.querySelectorAll('.view').forEach(s=>s.classList.remove('active'));
+  document.getElementById(v).classList.add('active');
+  document.getElementById('ttl').innerHTML=titles[v]+' <span class="badge-demo">DEMO</span>';
+  document.getElementById('sub').textContent=subs[v];
+  document.getElementById('sidebar').classList.remove('open');
+ };
+});
+
+// CLIENTI render
+let curFilter='all',curSearch='';
+function renderCli(){
+ const b=document.getElementById('cli-body');b.innerHTML='';
+ clienti.filter(c=>{
+   const mf=curFilter==='all'||c.s===curFilter;
+   const ms=c.n.toLowerCase().includes(curSearch);
+   return mf&&ms;
+ }).forEach(c=>{
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><b>${c.n}</b></td><td>${c.p}</td>
+   <td>${c.a}%<span class="mini-bar"><span class="mini-fill" style="width:${c.a}%;background:${c.a<50?'var(--red)':c.a<70?'var(--orange)':'var(--brand)'}"></span></span></td>
+   <td>${c.u}</td><td><span class="st ${c.s}">${stLbl[c.s]}</span></td>
+   <td><button class="btn btn-s btn-sm">Apri ▸</button></td>`;
+  tr.onclick=()=>openDrawer(c);
+  b.appendChild(tr);
+ });
+}
+document.querySelectorAll('#clienti .chip').forEach(ch=>{
+ ch.onclick=()=>{document.querySelectorAll('#clienti .chip').forEach(x=>x.classList.remove('active'));ch.classList.add('active');curFilter=ch.dataset.f;renderCli();};
+});
+document.getElementById('search').oninput=e=>{curSearch=e.target.value.toLowerCase();renderCli();};
+
+// DRAWER
+function openDrawer(c){
+ document.getElementById('dr-name').textContent=c.n;
+ document.getElementById('dr-prog').textContent=c.p+' · '+stLbl[c.s];
+ document.getElementById('dr-body').innerHTML=`
+  <p style="font-size:12px;color:var(--muted);margin-bottom:6px">ADERENZA</p>
+  <div class="bar-track" style="height:22px"><div class="bar-fill" style="width:${c.a}%;background:${c.a<50?'var(--red)':c.a<70?'var(--orange)':'var(--brand)'}">&nbsp;</div></div>
+  <div style="text-align:right;font-weight:800;margin-top:4px">${c.a}%</div>
+  <h4 style="margin:20px 0 10px">🍽️ Ultimi 5 diari</h4>
+  <div class="tl-item"><span class="tm">Oggi</span><span class="em">🥣</span><div>Colazione registrata</div></div>
+  <div class="tl-item"><span class="tm">Oggi</span><span class="em">🍗</span><div>Pranzo registrato</div></div>
+  <div class="tl-item"><span class="tm">Ieri</span><span class="em">🐟</span><div>Cena registrata</div></div>
+  <div class="tl-item"><span class="tm">Ieri</span><span class="em">🥜</span><div>Snack registrato</div></div>
+  <div class="tl-item"><span class="tm">-2gg</span><span class="em">🥗</span><div>Pranzo registrato</div></div>
+  <h4 style="margin:20px 0 10px">🤖 Messaggi bot recenti</h4>
+  <div class="tl-item"><span class="tm">08:00</span><span class="em">☀️</span><div>Promemoria colazione</div></div>
+  <div class="tl-item"><span class="tm">18:00</span><span class="em">💪</span><div>Check-in allenamento</div></div>
+  <div class="tl-item"><span class="tm">21:00</span><span class="em">🌙</span><div>Richiesta diario cena</div></div>
+  <button class="btn btn-p" style="width:100%;margin-top:20px" onclick="toast('Messaggio inviato ✓')">📩 Invia promemoria</button>`;
+ document.getElementById('drawer').classList.add('open');
+ document.getElementById('drawerBg').classList.add('open');
+}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawerBg').classList.remove('open');}
+
+// DIARI
+let pf='all';
+function renderDiari(){
+ const w=document.getElementById('diari-cards');w.innerHTML='';
+ diari.filter(d=>pf==='all'||d.tag===pf).forEach((d,i)=>{
+  const idx=diari.indexOf(d);
+  const c=document.createElement('div');c.className='dcard'+(d.rev?' rev':'');
+  c.innerHTML=`<div class="ph">${d.em}</div>
+   <div class="bd">
+     <span class="mtag">${d.tag}</span> ${d.rev?'':'<span class="revbadge">Da rivedere</span>'}
+     <h4>${d.t}</h4>
+     <div class="cl">👤 ${d.cl} · ⏱ ${d.tm}</div>
+     ${d.note?`<div class="note">📝 ${d.note}</div>`:''}
+     <div class="foot">
+       ${d.rev?'<span style="color:var(--green);font-size:12px;font-weight:600">✓ Rivisto</span>':`<button class="btn btn-p btn-sm" onclick="markRev(${idx})">Segna come rivisto</button>`}
+     </div>
+   </div>`;
+  w.appendChild(c);
+ });
+}
+function markRev(i){diari[i].rev=true;renderDiari();toast('Diario segnato come rivisto ✓');}
+document.querySelectorAll('#diari .chip').forEach(ch=>{
+ ch.onclick=()=>{document.querySelectorAll('#diari .chip').forEach(x=>x.classList.remove('active'));ch.classList.add('active');pf=ch.dataset.pf;renderDiari();};
+});
+
+// AUTO
+function renderAuto(){
+ const w=document.getElementById('auto-list');w.innerHTML='';
+ autos.forEach((a,i)=>{
+  const r=document.createElement('div');r.className='auto-row';
+  r.innerHTML=`<div style="font-size:22px">${a.ch==='wa'?'💬':'📧'}</div>
+   <div class="info"><b>${a.n}</b><small>${a.tr}</small></div>
+   <span class="chn ${a.ch}">${a.ch==='wa'?'WhatsApp':'Email'}</span>
+   <div class="count">${a.cnt}<small>invii/7gg</small></div>
+   <div style="text-align:center;min-width:70px"><label class="switch"><input type="checkbox" ${a.on?'checked':''} onchange="toggleAuto(${i},this.checked)"><span class="slider"></span></label><div style="font-size:11px;font-weight:700;margin-top:4px;color:${a.on?'var(--brand)':'var(--muted)'}" id="stlbl-${i}">${a.on?'Attiva':'Disattiva'}</div></div>`;
+  w.appendChild(r);
+ });
+}
+function toggleAuto(i,v){autos[i].on=v;document.getElementById('stlbl-'+i).textContent=v?'Attiva':'Disattiva';document.getElementById('stlbl-'+i).style.color=v?'var(--brand)':'var(--muted)';toast('Automazione aggiornata');}
+
+// FOLLOW
+function renderFollow(){
+ const w=document.getElementById('follow-list');w.innerHTML='';
+ alerts.forEach((a,i)=>{
+  const r=document.createElement('div');r.className='alert-item';r.id='alert-'+i;
+  r.innerHTML=`<span class="dot ${a.lv}"></span>
+   <div class="txt"><b>${a.n}</b><small>${a.m}</small></div>
+   <span class="tag ${a.lv}">${a.lvl}</span>
+   <button class="btn btn-g btn-sm" onclick="openModal('${a.n}')">Invia messaggio</button>
+   <button class="btn btn-s btn-sm" onclick="markHandled(${i})">Segna gestito</button>`;
+  w.appendChild(r);
+ });
+}
+function markHandled(i){
+ const el=document.getElementById('alert-'+i);
+ el.style.opacity='.4';el.querySelectorAll('button').forEach(b=>b.remove());
+ const g=document.createElement('span');g.className='tag';g.style.background='#e6f9f0';g.style.color='#0ca678';g.textContent='✓ Gestito';el.appendChild(g);
+ toast('Alert segnato come gestito ✓');
+}
+
+// MODAL
+function openModal(name){
+ document.getElementById('mod-to').textContent='Destinatario: '+name;
+ document.getElementById('mod-txt').value=`Ciao ${name.split(' ')[0]}! 👋 Ho notato che il tuo diario alimentare non è aggiornato. Va tutto bene? Fammi sapere se hai bisogno di supporto. — Dr. Elena`;
+ document.getElementById('modalBg').classList.add('open');
+}
+function closeModal(){document.getElementById('modalBg').classList.remove('open');}
+function sendMsg(){closeModal();toast('Messaggio inviato ✓');}
+
+// TOAST
+let tT;
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),2200);}
+
+renderCli();renderDiari();renderAuto();renderFollow();
+</script>
+</body>
+</html>

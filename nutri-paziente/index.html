@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriDiario — Portale Paziente</title>
+<style>
+:root{
+  --green:#2e9e6b; --green-d:#237a52; --bg:#f4f7f5; --card:#fff;
+  --txt:#243b32; --muted:#7a8a82; --border:#e2ebe6; --accent:#e8f5ee;
+  --carb:#4a90d9; --prot:#e06c4f; --fat:#e0b04f;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);line-height:1.4}
+.app{display:flex;min-height:100vh}
+/* Sidebar */
+.sidebar{width:240px;background:linear-gradient(160deg,#237a52,#2e9e6b);color:#fff;position:fixed;top:0;bottom:0;left:0;display:flex;flex-direction:column;padding:20px 0;z-index:100}
+.brand{padding:0 20px 18px;border-bottom:1px solid rgba(255,255,255,.15)}
+.brand h1{font-size:1.3rem;display:flex;align-items:center;gap:8px}
+.brand .demo{background:#fff;color:var(--green-d);font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle}
+.brand small{opacity:.85;font-size:.72rem;display:block;margin-top:4px}
+.nav{margin-top:14px;flex:1}
+.nav a{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none;padding:13px 22px;font-size:.95rem;opacity:.85;cursor:pointer;border-left:3px solid transparent}
+.nav a:hover{opacity:1;background:rgba(255,255,255,.08)}
+.nav a.active{opacity:1;background:rgba(255,255,255,.15);border-left-color:#fff;font-weight:600}
+.nav a .ic{font-size:1.15rem}
+.side-foot{padding:16px 22px;font-size:.72rem;opacity:.8;border-top:1px solid rgba(255,255,255,.15)}
+.user{display:flex;align-items:center;gap:10px;padding:0 22px 14px}
+.avatar{width:38px;height:38px;border-radius:50%;background:#fff;color:var(--green-d);display:flex;align-items:center;justify-content:center;font-weight:700}
+.user b{font-size:.9rem}.user span{font-size:.72rem;opacity:.8;display:block}
+/* Main */
+.main{flex:1;margin-left:240px;padding:26px 34px 90px}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;margin-bottom:22px}
+.topbar h2{font-size:1.5rem}
+.topbar .date{color:var(--muted);font-size:.9rem;margin-top:4px}
+.note-demo{background:#fff8e1;border:1px solid #f0e0a0;color:#8a7020;padding:7px 12px;border-radius:8px;font-size:.78rem}
+.view{display:none}.view.active{display:block}
+/* Cards */
+.grid{display:grid;gap:18px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.kpi .lbl{color:var(--muted);font-size:.8rem;font-weight:600}
+.kpi .val{font-size:1.9rem;font-weight:700;margin-top:6px}
+.kpi .sub{font-size:.82rem;margin-top:4px}
+.up{color:var(--green)}.down{color:#c0392b}
+.card h3{font-size:1.05rem;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.cols2{grid-template-columns:1.3fr 1fr}
+@media(max-width:900px){.cols2{grid-template-columns:1fr}}
+/* macro bars */
+.macro{margin-bottom:12px}
+.macro .top{display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:5px}
+.bar{height:9px;border-radius:6px;background:var(--accent);overflow:hidden}
+.bar > i{display:block;height:100%;border-radius:6px}
+.msg-box{background:var(--accent);border-left:4px solid var(--green);padding:16px;border-radius:10px}
+.msg-box p{font-size:.92rem;font-style:italic}
+.msg-box .sign{margin-top:10px;font-weight:600;font-size:.82rem;color:var(--green-d)}
+/* buttons */
+.btn{background:var(--green);color:#fff;border:none;padding:10px 16px;border-radius:9px;font-size:.88rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.btn:hover{background:var(--green-d)}
+.btn.ghost{background:#fff;color:var(--green);border:1.5px solid var(--green)}
+.btn.sm{padding:6px 11px;font-size:.8rem}
+/* tables */
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.3px}
+tbody tr:hover{background:var(--accent)}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600}
+.badge.active{background:var(--accent);color:var(--green-d)}
+.badge.video{background:#e6effa;color:#2b5f9e}
+.badge.studio{background:#f2ecfa;color:#6b3fa0}
+/* diario */
+.date-sel{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.date-sel button{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:1.1rem}
+.date-sel b{font-size:1rem}
+.meal{border:1px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden}
+.meal-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;cursor:pointer;background:#fff}
+.meal-head:hover{background:var(--accent)}
+.meal-head .t{font-weight:600;display:flex;align-items:center;gap:8px}
+.meal-head .kc{color:var(--muted);font-size:.85rem}
+.meal-body{padding:0 18px 12px;display:block}
+.meal-body.hide{display:none}
+.food{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--border);font-size:.88rem}
+.food .q{color:var(--muted);font-size:.8rem}
+.add-food{margin-top:10px}
+/* chart */
+.chart{width:100%;height:180px;display:block}
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:500;padding:16px}
+.overlay.show{display:flex}
+.modal{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:440px}
+.modal h3{margin-bottom:16px}
+.modal label{display:block;font-size:.82rem;font-weight:600;margin:12px 0 5px}
+.modal input,.modal select{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-size:.9rem}
+.modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+/* toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--green-d);color:#fff;padding:13px 20px;border-radius:10px;font-size:.9rem;box-shadow:0 4px 14px rgba(0,0,0,.2);opacity:0;transform:translateY(20px);transition:.3s;z-index:600}
+.toast.show{opacity:1;transform:translateY(0)}
+.plan-week{overflow-x:auto}
+ul.ind{list-style:none}
+ul.ind li{padding:8px 0;padding-left:26px;position:relative;font-size:.9rem}
+ul.ind li:before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700}
+.next-appt{background:linear-gradient(135deg,#2e9e6b,#237a52);color:#fff}
+.next-appt h3{color:#fff}
+.next-appt .big{font-size:1.4rem;font-weight:700;margin:6px 0}
+.next-appt .meta{opacity:.9;font-size:.9rem}
+/* mobile nav */
+.mnav{display:none}
+@media(max-width:768px){
+  .sidebar{display:none}
+  .main{margin-left:0;padding:18px 16px 80px}
+  .cols2{grid-template-columns:1fr}
+  .mnav{display:flex;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);z-index:200}
+  .mnav a{flex:1;text-align:center;padding:9px 2px;font-size:.65rem;color:var(--muted);text-decoration:none;cursor:pointer}
+  .mnav a.active{color:var(--green);font-weight:700}
+  .mnav a .ic{display:block;font-size:1.25rem;margin-bottom:2px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>🥗 NutriDiario<span class="demo">DEMO</span></h1>
+      <small>Il tuo percorso nutrizionale</small>
+    </div>
+    <div class="user">
+      <div class="avatar">GF</div>
+      <div><b>Giulia Ferretti</b><span>Obiettivo −5 kg</span></div>
+    </div>
+    <nav class="nav">
+      <a data-v="dash" class="active"><span class="ic">🏠</span> Dashboard</a>
+      <a data-v="diario"><span class="ic">📖</span> Diario Alimentare</a>
+      <a data-v="peso"><span class="ic">⚖️</span> Peso e Misure</a>
+      <a data-v="piano"><span class="ic">📋</span> Il Mio Piano</a>
+      <a data-v="appt"><span class="ic">📅</span> Appuntamenti</a>
+    </nav>
+    <div class="side-foot">© 2024 NutriDiario<br>Dati di esempio</div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h2 id="viewTitle">Dashboard</h2>
+        <div class="date" id="today"></div>
+      </div>
+      <div class="note-demo">⚠️ Dati di esempio — versione dimostrativa</div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="dash">
+      <div style="margin-bottom:8px;font-size:1.15rem;font-weight:600">Ciao, Giulia 👋</div>
+      <div class="grid kpis" style="margin-bottom:18px">
+        <div class="card kpi"><div class="lbl">Peso attuale</div><div class="val" id="kpiPeso">68,4 kg</div><div class="sub muted" style="color:var(--muted)">al 14/07</div></div>
+        <div class="card kpi"><div class="lbl">Variazione settimana</div><div class="val up">−0,6 kg</div><div class="sub up">↓ in calo, ottimo!</div></div>
+        <div class="card kpi"><div class="lbl">Aderenza piano</div><div class="val">82%</div><div class="sub" style="color:var(--muted)">ultimi 7 giorni</div></div>
+        <div class="card kpi"><div class="lbl">Prossimo check-up</div><div class="val">12 giorni</div><div class="sub" style="color:var(--muted)">Merc 26/07</div></div>
+      </div>
+      <div class="grid cols2">
+        <div class="card">
+          <h3>🍽️ Piano di oggi <span style="font-weight:400;font-size:.82rem;color:var(--muted);margin-left:auto">1.180 / 1.600 kcal</span></h3>
+          <div class="macro"><div class="top"><span>Carboidrati</span><span>132 / 180 g</span></div><div class="bar"><i style="width:73%;background:var(--carb)"></i></div></div>
+          <div class="macro"><div class="top"><span>Proteine</span><span>71 / 95 g</span></div><div class="bar"><i style="width:75%;background:var(--prot)"></i></div></div>
+          <div class="macro"><div class="top"><span>Grassi</span><span>40 / 55 g</span></div><div class="bar"><i style="width:73%;background:var(--fat)"></i></div></div>
+          <div class="macro"><div class="top"><span>Calorie totali</span><span>74%</span></div><div class="bar"><i style="width:74%;background:var(--green)"></i></div></div>
+        </div>
+        <div class="card">
+          <h3>📈 Andamento peso</h3>
+          <canvas class="chart" id="chartDash" width="500" height="180"></canvas>
+        </div>
+      </div>
+      <div class="card msg-box" style="margin-top:18px">
+        <h3 style="color:var(--green-d)">💬 Messaggio dal nutrizionista</h3>
+        <p>"Complimenti Giulia, ottima settimana! Il calo è graduale e sano. Continua così con l'idratazione e ricordati la camminata quotidiana. Ci vediamo al prossimo controllo."</p>
+        <div class="sign">— Il tuo nutrizionista</div>
+      </div>
+    </section>
+
+    <!-- DIARIO -->
+    <section class="view" id="diario">
+      <div class="date-sel">
+        <button onclick="shiftDay(-1)">←</button>
+        <b id="diarioDate">Oggi, 14 luglio</b>
+        <button onclick="shiftDay(1)">→</button>
+      </div>
+      <div class="card" style="margin-bottom:18px">
+        <h3>Riepilogo giornaliero <span style="margin-left:auto;font-weight:400;font-size:.85rem;color:var(--muted)">1.180 / 1.600 kcal</span></h3>
+        <div class="macro"><div class="top"><span>Carboidrati</span><span>132 / 180 g</span></div><div class="bar"><i style="width:73%;background:var(--carb)"></i></div></div>
+        <div class="macro"><div class="top"><span>Proteine</span><span>71 / 95 g</span></div><div class="bar"><i style="width:75%;background:var(--prot)"></i></div></div>
+        <div class="macro"><div class="top"><span>Grassi</span><span>40 / 55 g</span></div><div class="bar"><i style="width:73%;background:var(--fat)"></i></div></div>
+      </div>
+      <div id="meals"></div>
+    </section>
+
+    <!-- PESO -->
+    <section class="view" id="peso">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+        <div></div>
+        <button class="btn" onclick="openModal('modalPeso')">+ Nuovo rilevamento</button>
+      </div>
+      <div class="card" style="margin-bottom:18px">
+        <h3>📉 Andamento peso (kg)</h3>
+        <canvas class="chart" id="chartPeso" width="700" height="200"></canvas>
+      </div>
+      <div class="card">
+        <h3>Storico rilevamenti</h3>
+        <div style="overflow-x:auto">
+        <table id="pesoTable">
+          <thead><tr><th>Data</th><th>Peso</th><th>Vita</th><th>Fianchi</th><th>% MG</th><th>Note</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PIANO -->
+    <section class="view" id="piano">
+      <div class="card" style="margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px">
+        <div>
+          <h3 style="margin-bottom:6px">Piano Ipocalorico Bilanciato — 1.600 kcal</h3>
+          <div style="color:var(--muted);font-size:.85rem">Aggiornato il 10/07/2024 · <span class="badge active">Attivo</span></div>
+        </div>
+        <button class="btn" onclick="toast('📄 Download PDF avviato (demo)')">⬇️ Scarica PDF</button>
+      </div>
+      <div class="card plan-week" style="margin-bottom:18px">
+        <h3>Menù settimanale</h3>
+        <table>
+          <thead><tr><th>Giorno</th><th>Colazione</th><th>Pranzo</th><th>Cena</th></tr></thead>
+          <tbody>
+            <tr><td><b>Lun</b></td><td>Yogurt greco, avena, mirtilli</td><td>Pasta integrale, pollo, zucchine</td><td>Merluzzo al forno, spinaci</td></tr>
+            <tr><td><b>Mar</b></td><td>Pane integrale, ricotta, miele</td><td>Farro, ceci, pomodorini</td><td>Frittata di zucchine, insalata</td></tr>
+            <tr><td><b>Mer</b></td><td>Latte, fette biscottate, marmellata</td><td>Riso venere, gamberi, rucola</td><td>Petto tacchino, broccoli</td></tr>
+            <tr><td><b>Gio</b></td><td>Yogurt, frutta secca, banana</td><td>Orzo, tonno, fagiolini</td><td>Salmone, patate al vapore</td></tr>
+            <tr><td><b>Ven</b></td><td>Porridge avena, mela</td><td>Pasta, lenticchie, spinaci</td><td>Pesce spada, insalata mista</td></tr>
+            <tr><td><b>Sab</b></td><td>Uova, pane tostato, avocado</td><td>Quinoa, pollo, verdure grigliate</td><td>Pizza margherita (pasto libero)</td></tr>
+            <tr><td><b>Dom</b></td><td>Pancake avena, frutti di bosco</td><td>Risotto zucca, parmigiano</td><td>Vellutata verdure, crostini</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3>Indicazioni generali</h3>
+        <ul class="ind">
+          <li>Bere almeno 2 litri di acqua al giorno</li>
+          <li>Consumare 5 porzioni di frutta e verdura</li>
+          <li>Evitare fritti e cibi elaborati</li>
+          <li>Camminata di almeno 30 minuti al giorno</li>
+          <li>Limitare zuccheri semplici e bevande gassate</li>
+          <li>Preferire cotture al vapore, forno o griglia</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- APPUNTAMENTI -->
+    <section class="view" id="appt">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px">
+        <div></div>
+        <button class="btn" onclick="openModal('modalAppt')">+ Richiedi nuovo appuntamento</button>
+      </div>
+      <div class="card next-appt" style="margin-bottom:18px">
+        <h3>📅 Prossimo appuntamento</h3>
+        <div class="big">Mercoledì 26 luglio · 17:30</div>
+        <div class="meta">📍 Studio del nutrizionista</div>
+      </div>
+      <div class="card">
+        <h3>Storico visite</h3>
+        <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Data</th><th>Modalità</th><th>Esito</th></tr></thead>
+          <tbody>
+            <tr><td>05/07/2024</td><td><span class="badge video">Videochiamata</span></td><td>Revisione macro</td></tr>
+            <tr><td>21/06/2024</td><td><span class="badge studio">In studio</span></td><td>Controllo peso ok</td></tr>
+            <tr><td>02/06/2024</td><td><span class="badge studio">In studio</span></td><td>Prima visita + anamnesi</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- MOBILE NAV -->
+<nav class="mnav">
+  <a data-v="dash" class="active"><span class="ic">🏠</span>Home</a>
+  <a data-v="diario"><span class="ic">📖</span>Diario</a>
+  <a data-v="peso"><span class="ic">⚖️</span>Peso</a>
+  <a data-v="piano"><span class="ic">📋</span>Piano</a>
+  <a data-v="appt"><span class="ic">📅</span>Visite</a>
+</nav>
+
+<!-- MODAL PESO -->
+<div class="overlay" id="modalPeso">
+  <div class="modal">
+    <h3>Nuovo rilevamento</h3>
+    <label>Data</label><input type="date" id="pData">
+    <label>Peso (kg)</label><input type="number" step="0.1" id="pPeso" placeholder="es. 68.0">
+    <label>Vita (cm)</label><input type="number" id="pVita" placeholder="es. 77">
+    <label>Fianchi (cm)</label><input type="number" id="pFianchi" placeholder="es. 94">
+    <label>% Massa grassa</label><input type="number" step="0.1" id="pMg" placeholder="es. 28.5">
+    <label>Note</label><input type="text" id="pNote" placeholder="Facoltativo">
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="closeModal('modalPeso')">Annulla</button>
+      <button class="btn" onclick="savePeso()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FOOD -->
+<div class="overlay" id="modalFood">
+  <div class="modal">
+    <h3 id="foodTitle">Aggiungi alimento</h3>
+    <label>Alimento</label><input type="text" id="fName" placeholder="es. Banana">
+    <label>Quantità</label><input type="text" id="fQty" placeholder="es. 100g">
+    <label>Calorie (kcal)</label><input type="number" id="fKcal" placeholder="es. 90">
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="closeModal('modalFood')">Annulla</button>
+      <button class="btn" onclick="saveFood()">Aggiungi</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL APPT -->
+<div class="overlay" id="modalAppt">
+  <div class="modal">
+    <h3>Richiedi appuntamento</h3>
+    <label>Data preferita</label><input type="date" id="aData">
+    <label>Fascia oraria</label>
+    <select id="aOra"><option>Mattina (9:00–12:00)</option><option>Pomeriggio (15:00–18:00)</option><option>Sera (18:00–20:00)</option></select>
+    <label>Modalità</label>
+    <select id="aMod"><option>In studio</option><option>Videochiamata</option></select>
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="closeModal('modalAppt')">Annulla</button>
+      <button class="btn" onclick="reqAppt()">Invia richiesta</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// date
+const d=new Date();
+const mesi=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const gg=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
+document.getElementById('today').textContent=gg[d.getDay()].charAt(0).toUpperCase()+gg[d.getDay()].slice(1)+' '+d.getDate()+' '+mesi[d.getMonth()]+' '+d.getFullYear();
+
+// navigation
+const titles={dash:'Dashboard',diario:'Diario Alimentare',peso:'Peso e Misure',piano:'Il Mio Piano',appt:'Appuntamenti'};
+function nav(v){
+  document.querySelectorAll('.view').forEach(s=>s.classList.remove('active'));
+  document.getElementById(v).classList.add('active');
+  document.querySelectorAll('.nav a,.mnav a').forEach(a=>a.classList.toggle('active',a.dataset.v===v));
+  document.getElementById('viewTitle').textContent=titles[v];
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('.nav a,.mnav a').forEach(a=>a.addEventListener('click',()=>nav(a.dataset.v)));
+
+// meals data
+const meals=[
+  {name:'Colazione',icon:'☕',items:[
+    {n:'Yogurt greco',q:'150g',k:90},{n:"Fiocchi d'avena",q:'40g',k:150},{n:'Mirtilli',q:'80g',k:45},
+    {n:'Caffè amaro',q:'1 tazza',k:5},{n:'Miele',q:'10g',k:30},{n:'Mandorle',q:'15g',k:90}]},
+  {name:'Pranzo',icon:'🍝',items:[
+    {n:'Pasta integrale',q:'70g',k:250},{n:'Petto di pollo',q:'120g',k:160},
+    {n:'Zucchine grigliate',q:'150g',k:35},{n:'Olio EVO',q:'10g',k:90}]},
+  {name:'Cena',icon:'🍽️',items:[]},
+  {name:'Spuntini',icon:'🍎',items:[
+    {n:'Mela',q:'1 media',k:80},{n:'Crackers integrali',q:'30g',k:120},{n:'Tè verde',q:'1 tazza',k:0}]}
+];
+function renderMeals(){
+  const c=document.getElementById('meals');c.innerHTML='';
+  meals.forEach((m,i)=>{
+    const tot=m.items.reduce((s,it)=>s+it.k,0);
+    let foods=m.items.map(it=>`<div class="food"><span>${it.n} <span class="q">(${it.q})</span></span><span>${it.k} kcal</span></div>`).join('');
+    if(!m.items.length)foods='<div class="food" style="color:var(--muted);border:none">Nessun alimento registrato</div>';
+    c.innerHTML+=`<div class="meal">
+      <div class="meal-head" onclick="toggleMeal(${i})">
+        <span class="t">${m.icon} ${m.name}</span>
+        <span class="kc">${tot?tot+' kcal':'—'} ▾</span>
+      </div>
+      <div class="meal-body" id="mb${i}">
+        ${foods}
+        <button class="btn ghost sm add-food" onclick="openFood(${i})">+ Aggiungi alimento</button>
+      </div>
+    </div>`;
+  });
+}
+function toggleMeal(i){document.getElementById('mb'+i).classList.toggle('hide');}
+renderMeals();
+
+let curFood=0;
+function openFood(i){curFood=i;document.getElementById('foodTitle').textContent='Aggiungi a '+meals[i].name;openModal('modalFood');}
+function saveFood(){
+  const n=document.getElementById('fName').value.trim(),q=document.getElementById('fQty').value.trim(),k=parseInt(document.getElementById('fKcal').value)||0;
+  if(!n){toast('Inserisci il nome');return;}
+  meals[curFood].items.push({n,q:q||'-',k});
+  renderMeals();closeModal('modalFood');
+  document.getElementById('fName').value='';document.getElementById('fQty').value='';document.getElementById('fKcal').value='';
+  toast('✅ Alimento aggiunto a '+meals[curFood].name);
+}
+
+// diario date shift
+let dayOffset=0;
+const diarioDays=['Oggi, 14 luglio','Sab, 13 luglio','Ven, 12 luglio','Dom, 15 luglio','Lun, 16 luglio'];
+function shiftDay(dir){
+  dayOffset+=dir;
+  const lbl=dir<0?'Giorno precedente':'Giorno successivo';
+  document.getElementById('diarioDate').textContent = dayOffset===0?'Oggi, 14 luglio':(dayOffset<0?'12/13 luglio (precedente)':'15/16 luglio (successivo)');
+  if(dayOffset===0)document.getElementById('diarioDate').textContent='Oggi, 14 luglio';
+}
+
+// peso data
+let pesoData=[
+  {d:'02/06',p:71.2,v:82,f:98,mg:31.0,n:'Inizio percorso'},
+  {d:'09/06',p:70.5,v:81,f:97,mg:30.4,n:''},
+  {d:'16/06',p:70.1,v:80,f:97,mg:30.1,n:''},
+  {d:'23/06',p:69.6,v:79,f:96,mg:29.6,n:'Più energia'},
+  {d:'30/06',p:69.2,v:79,f:95,mg:29.2,n:''},
+  {d:'07/07',p:69.0,v:78,f:95,mg:28.9,n:''},
+  {d:'14/07',p:68.4,v:77,f:94,mg:28.5,n:'Ottima settimana'}
+];
+function renderPeso(){
+  const tb=document.querySelector('#pesoTable tbody');tb.innerHTML='';
+  pesoData.forEach(r=>{
+    tb.innerHTML+=`<tr><td>${r.d}</td><td><b>${r.p.toString().replace('.',',')} kg</b></td><td>${r.v} cm</td><td>${r.f} cm</td><td>${r.mg.toString().replace('.',',')}%</td><td style="color:var(--muted)">${r.n||'—'}</td></tr>`;
+  });
+  document.getElementById('kpiPeso').textContent=pesoData[pesoData.length-1].p.toString().replace('.',',')+' kg';
+}
+renderPeso();
+
+function savePeso(){
+  const p=parseFloat(document.getElementById('pPeso').value);
+  if(!p){toast('Inserisci il peso');return;}
+  let dt=document.getElementById('pData').value;
+  dt=dt?dt.slice(8,10)+'/'+dt.slice(5,7):'oggi';
+  pesoData.push({d:dt,p,v:parseInt(document.getElementById('pVita').value)||'-',f:parseInt(document.getElementById('pFianchi').value)||'-',mg:parseFloat(document.getElementById('pMg').value)||0,n:document.getElementById('pNote').value});
+  renderPeso();drawCharts();closeModal('modalPeso');
+  ['pPeso','pVita','pFianchi','pMg','pNote','pData'].forEach(id=>document.getElementById(id).value='');
+  toast('✅ Rilevamento salvato');
+}
+
+// charts
+function lineChart(canvas,vals,color){
+  const ctx=canvas.getContext('2d');const w=canvas.width,h=canvas.height;
+  ctx.clearRect(0,0,w,h);
+  const pad=34;const min=Math.min(...vals)-0.5,max=Math.max(...vals)+0.5;
+  const px=i=>pad+(i*(w-pad*1.4))/(vals.length-1);
+  const py=v=>h-pad-((v-min)/(max-min))*(h-pad*1.6);
+  // grid
+  ctx.strokeStyle='#eef3f0';ctx.lineWidth=1;
+  for(let g=0;g<=3;g++){const y=pad*0.6+g*(h-pad*1.6)/3;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(w-8,y);ctx.stroke();}
+  // area
+  ctx.beginPath();ctx.moveTo(px(0),py(vals[0]));
+  vals.forEach((v,i)=>ctx.lineTo(px(i),py(v)));
+  ctx.lineTo(px(vals.length-1),h-pad);ctx.lineTo(px(0),h-pad);ctx.closePath();
+  ctx.fillStyle=color+'22';ctx.fill();
+  // line
+  ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=2.5;
+  vals.forEach((v,i)=>{i?ctx.lineTo(px(i),py(v)):ctx.moveTo(px(i),py(v));});
+  ctx.stroke();
+  // points
+  vals.forEach((v,i)=>{ctx.beginPath();ctx.arc(px(i),py(v),3.5,0,7);ctx.fillStyle=color;ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();});
+  ctx.fillStyle='#7a8a82';ctx.font='10px sans-serif';
+  ctx.fillText(max.toFixed(1),4,pad*0.6+3);ctx.fillText(min.toFixed(1),4,h-pad+3);
+}
+function drawCharts(){
+  const vals=pesoData.map(r=>r.p);
+  lineChart(document.getElementById('chartPeso'),vals,'#2e9e6b');
+  lineChart(document.getElementById('chartDash'),vals.slice(-8),'#2e9e6b');
+}
+drawCharts();
+
+// appt
+function reqAppt(){
+  const dt=document.getElementById('aData').value;
+  if(!dt){toast('Seleziona una data');return;}
+  closeModal('modalAppt');toast('✅ Richiesta inviata! Ti confermeremo a breve.');
+}
+
+// modal + toast
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');}));
+let tt;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2800);}
+</script>
+</body>
+</html>

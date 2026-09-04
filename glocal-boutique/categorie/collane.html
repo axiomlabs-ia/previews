@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collane - G'Local Boutique</title>
+  <meta name="description" content="Collane d'autore di G'Local Boutique Roma. Corte e lunghe, designer internazionali.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="icon" href="https://glocalboutique.com/wp-content/uploads/2021/06/GLOCAL-logo-45.png">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="page-shop">
+  <div id="header-slot"></div>
+
+  <section class="shop-hero" style="background-image: url('https://glocalboutique.com/wp-content/uploads/2021/05/GLOCAL-categoria-collane-1920x1080-1.jpg');">
+    <div class="shop-hero-overlay"></div>
+    <div class="container shop-hero-content">
+      <h1>Collane</h1>
+      <p>Collane d'autore per ogni occasione</p>
+    </div>
+  </section>
+
+  <section class="shop-content">
+    <div class="container">
+      <div class="shop-layout">
+        <aside class="shop-sidebar">
+          <div id="price-filter"></div>
+          <div id="sub-filter"></div>
+        </aside>
+        <div class="shop-main">
+          <div class="shop-toolbar">
+            <span id="product-count"></span>
+            <div id="sort-control"></div>
+          </div>
+          <div id="product-grid" class="product-grid"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer-slot"></div>
+
+  <script src="../js/products.js"></script>
+  <script src="../js/store.js"></script>
+  <script src="../js/components.js"></script>
+  <script src="../js/main.js"></script>
+  <script>
+    Components.inject('../');
+    Store.init('collane', { subcategories: { corte: "Corte (da 0 a 70 cm)", lunghe: "Lunghe (oltre i 70 cm)" } });
+  </script>
+</body>
+</html>

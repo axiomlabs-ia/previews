@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriCoach by Ainhoa</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; }
+:root{
+  --green:#2e9e6b; --green-d:#1f7a51; --bg:#f4f7f5; --card:#fff; --text:#20342a;
+  --muted:#7a8c82; --border:#e3ebe6; --accent:#eaf6f0;
+}
+body{ background:var(--bg); color:var(--text); }
+.demo-badge{ position:fixed; top:10px; right:12px; z-index:999; background:#ff6b35; color:#fff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; letter-spacing:1px; box-shadow:0 2px 6px rgba(0,0,0,.2); }
+.hidden{ display:none !important; }
+
+/* SPLASH */
+#splash{ position:fixed; inset:0; z-index:500; background:linear-gradient(140deg,#2e9e6b,#1f7a51); display:flex; align-items:center; justify-content:center; flex-direction:column; color:#fff; text-align:center; padding:20px; }
+#splash .logo{ font-size:44px; font-weight:800; letter-spacing:-1px; }
+#splash .leaf{ font-size:56px; }
+#splash .claim{ font-size:18px; opacity:.9; margin:8px 0 30px; font-style:italic; }
+#splash .avatar-demo{ background:rgba(255,255,255,.15); border-radius:16px; padding:16px 22px; margin-bottom:26px; display:flex; align-items:center; gap:12px; }
+#splash .avatar-demo .circ{ width:46px; height:46px; border-radius:50%; background:#fff; color:var(--green); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:18px; }
+.btn-primary{ background:#fff; color:var(--green-d); border:none; padding:14px 30px; border-radius:30px; font-size:16px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.15); transition:transform .15s; }
+.btn-primary:hover{ transform:translateY(-2px); }
+.note{ font-size:12px; opacity:.75; margin-top:24px; }
+
+/* APP LAYOUT */
+#app{ display:flex; min-height:100vh; }
+.sidebar{ width:230px; background:var(--card); border-right:1px solid var(--border); padding:22px 14px; position:fixed; top:0; bottom:0; left:0; display:flex; flex-direction:column; }
+.sidebar .brand{ font-size:22px; font-weight:800; color:var(--green-d); padding:0 10px 22px; display:flex; align-items:center; gap:6px; }
+.nav-item{ display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:12px; cursor:pointer; color:var(--muted); font-weight:600; font-size:15px; margin-bottom:4px; }
+.nav-item .ico{ font-size:18px; }
+.nav-item:hover{ background:var(--accent); }
+.nav-item.active{ background:var(--green); color:#fff; }
+.sidebar .pat{ margin-top:auto; padding:14px 10px; border-top:1px solid var(--border); display:flex; align-items:center; gap:10px; font-size:13px; }
+.sidebar .pat .circ{ width:38px; height:38px; border-radius:50%; background:var(--green); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; }
+
+.main{ margin-left:230px; flex:1; padding:26px 30px 90px; max-width:1000px; }
+h1.title{ font-size:26px; margin-bottom:4px; }
+.subtitle{ color:var(--muted); font-size:14px; margin-bottom:22px; }
+
+.card{ background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px; }
+.grid-kpi{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+.kpi .lbl{ font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+.kpi .val{ font-size:26px; font-weight:800; margin-top:6px; }
+.kpi .val small{ font-size:14px; color:var(--muted); font-weight:600; }
+.two-col{ display:grid; grid-template-columns:1.3fr 1fr; gap:16px; margin-bottom:16px; }
+.section-h{ font-size:16px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+
+.coach-msg{ background:linear-gradient(135deg,#eaf6f0,#f4f7f5); border:1px solid var(--border); }
+.coach-msg .txt{ font-size:15px; line-height:1.5; margin:8px 0 14px; }
+.btn-sm{ background:var(--green); color:#fff; border:none; padding:8px 16px; border-radius:20px; font-weight:600; cursor:pointer; font-size:13px; }
+.btn-sm.ghost{ background:transparent; color:var(--green-d); border:1px solid var(--green); }
+.btn-sm:hover{ opacity:.9; }
+
+.chart{ width:100%; height:140px; }
+
+.cita{ display:flex; flex-direction:column; gap:6px; }
+.cita .when{ font-size:17px; font-weight:700; }
+.cita .place{ color:var(--muted); font-size:14px; }
+
+/* PLAN */
+.days{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+.day-btn{ padding:9px 15px; border-radius:20px; border:1px solid var(--border); background:#fff; cursor:pointer; font-weight:600; font-size:14px; }
+.day-btn.active{ background:var(--green); color:#fff; border-color:var(--green); }
+.meal{ display:flex; gap:14px; align-items:center; padding:14px 0; border-bottom:1px solid var(--border); }
+.meal .icon{ font-size:26px; width:40px; text-align:center; }
+.meal .info{ flex:1; }
+.meal .info .m{ font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+.meal .info .dish{ font-weight:600; font-size:15px; }
+.meal .macros{ font-size:12px; color:var(--muted); }
+.meal .kcal{ font-weight:700; color:var(--green-d); }
+.day-summary{ margin-top:16px; }
+.bar{ height:10px; background:#e8efe9; border-radius:6px; overflow:hidden; margin:4px 0 10px; }
+.bar span{ display:block; height:100%; border-radius:6px; }
+
+/* DIARIO */
+.tabs{ display:flex; gap:6px; margin-bottom:18px; }
+.tab{ padding:9px 18px; border-radius:10px; cursor:pointer; font-weight:600; background:#fff; border:1px solid var(--border); }
+.tab.active{ background:var(--green); color:#fff; border-color:var(--green); }
+.log-item{ display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+.log-item .k{ margin-left:auto; font-weight:700; color:var(--green-d); }
+.form-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; align-items:flex-end; }
+.field{ display:flex; flex-direction:column; gap:4px; }
+.field label{ font-size:12px; color:var(--muted); }
+input, select{ padding:9px 11px; border:1px solid var(--border); border-radius:9px; font-size:14px; background:#fff; }
+table{ width:100%; border-collapse:collapse; margin-top:14px; }
+th,td{ text-align:left; padding:10px 8px; border-bottom:1px solid var(--border); font-size:14px; }
+th{ color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.5px; }
+.up{ color:#d9534f; } .down{ color:var(--green); }
+
+/* COACH */
+.chat-banner{ background:var(--accent); border:1px solid var(--border); padding:10px 16px; border-radius:12px; font-size:13px; color:var(--green-d); font-weight:600; margin-bottom:16px; }
+.chat{ display:flex; flex-direction:column; gap:12px; margin-bottom:18px; }
+.bubble{ max-width:78%; padding:12px 16px; border-radius:16px; font-size:14px; line-height:1.45; }
+.bubble.ai{ background:#fff; border:1px solid var(--border); align-self:flex-start; border-bottom-left-radius:4px; }
+.bubble.me{ background:var(--green); color:#fff; align-self:flex-end; border-bottom-right-radius:4px; }
+.chips{ display:flex; gap:8px; flex-wrap:wrap; }
+.chip{ padding:9px 16px; border-radius:20px; border:1px solid var(--green); color:var(--green-d); background:#fff; cursor:pointer; font-size:13px; font-weight:600; }
+.chip:hover{ background:var(--accent); }
+
+/* PROGRESOS */
+.badges{ display:flex; gap:12px; flex-wrap:wrap; margin-top:16px; }
+.badge-b{ background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 18px; text-align:center; flex:1; min-width:140px; }
+.badge-b .emo{ font-size:32px; }
+.badge-b .n{ font-weight:700; margin-top:6px; font-size:14px; }
+
+/* BOTTOM NAV */
+.bottom-nav{ display:none; position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--border); justify-content:space-around; padding:8px 0; z-index:100; }
+.bottom-nav .nav-item{ flex-direction:column; gap:2px; font-size:10px; padding:4px 8px; margin:0; }
+.bottom-nav .nav-item .ico{ font-size:20px; }
+.bottom-nav .nav-item.active{ background:transparent; color:var(--green); }
+
+@media(max-width:820px){
+  .sidebar{ display:none; }
+  .main{ margin-left:0; padding:18px 16px 90px; }
+  .bottom-nav{ display:flex; }
+  .grid-kpi{ grid-template-columns:repeat(2,1fr); }
+  .two-col{ grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+<div class="demo-badge">DEMO</div>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="leaf">🥑</div>
+  <div class="logo">NutriCoach</div>
+  <div class="claim">Tu nutricionista, cada día</div>
+  <div class="avatar-demo">
+    <div class="circ">MS</div>
+    <div style="text-align:left">
+      <div style="font-weight:700">Marta Soler</div>
+      <div style="font-size:12px; opacity:.85">34 años · Perder peso + energía</div>
+    </div>
+  </div>
+  <button class="btn-primary" onclick="enter()">Entrar como paciente demo →</button>
+  <div class="note">Datos de ejemplo · Prototipo no conectado a datos reales</div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <aside class="sidebar">
+    <div class="brand">🥑 NutriCoach</div>
+    <div class="nav-item active" data-view="dashboard" onclick="nav('dashboard')"><span class="ico">🏠</span> Dashboard</div>
+    <div class="nav-item" data-view="plan" onclick="nav('plan')"><span class="ico">🍽️</span> Mi Plan</div>
+    <div class="nav-item" data-view="diario" onclick="nav('diario')"><span class="ico">📔</span> Diario</div>
+    <div class="nav-item" data-view="coach" onclick="nav('coach')"><span class="ico">🤖</span> Coach AI</div>
+    <div class="nav-item" data-view="progresos" onclick="nav('progresos')"><span class="ico">📈</span> Progresos</div>
+    <div class="pat">
+      <div class="circ">MS</div>
+      <div><div style="font-weight:700">Marta Soler</div><div style="color:var(--muted)">Día 24 de 90</div></div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section id="dashboard">
+      <h1 class="title">Hola, Marta 👋</h1>
+      <div class="subtitle">Día 24 de 90 · Sigue construyendo tus hábitos</div>
+      <div class="grid-kpi">
+        <div class="card kpi"><div class="lbl">Peso actual</div><div class="val" id="kpiPeso">74,9 <small>kg</small></div></div>
+        <div class="card kpi"><div class="lbl">Objetivo</div><div class="val">68,0 <small>kg</small></div></div>
+        <div class="card kpi"><div class="lbl">Adhesión</div><div class="val">82<small>%</small></div></div>
+        <div class="card kpi"><div class="lbl">Racha</div><div class="val">6 <small>días 🔥</small></div></div>
+      </div>
+
+      <div class="two-col">
+        <div class="card coach-msg">
+          <div class="section-h">🤖 Mensaje de tu coach AI</div>
+          <div class="txt" id="nudgeText">🎉 ¡Llevas 6 días seguidos registrando! Sigue así, Marta. Vas por muy buen camino.</div>
+          <button class="btn-sm" id="nudgeBtn" onclick="markRead()">Marcar como leído</button>
+        </div>
+        <div class="card">
+          <div class="section-h">📅 Próxima cita</div>
+          <div class="cita">
+            <div class="when">Jueves 12 jun · 17:30</div>
+            <div class="place">Clínica Ainhoa, Barcelona</div>
+            <button class="btn-sm ghost" id="citaBtn" onclick="confirmCita()" style="margin-top:8px; align-self:flex-start">Confirmar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-h">📉 Peso últimos 30 días</div>
+        <svg class="chart" id="dashChart" viewBox="0 0 400 140" preserveAspectRatio="none"></svg>
+      </div>
+    </section>
+
+    <!-- PLAN -->
+    <section id="plan" class="hidden">
+      <h1 class="title">Mi Plan 🍽️</h1>
+      <div class="subtitle">Plan mediterráneo personalizado · Objetivo 1.600 kcal/día</div>
+      <div class="days" id="dayTabs"></div>
+      <div class="card">
+        <div id="mealsList"></div>
+        <div class="day-summary" id="daySummary"></div>
+      </div>
+      <div style="margin-top:16px"><button class="btn-sm ghost" onclick="alert('📄 Descargando plan_nutricional_MartaSoler.pdf ... (simulado)')">📄 Descargar plan en PDF</button></div>
+    </section>
+
+    <!-- DIARIO -->
+    <section id="diario" class="hidden">
+      <h1 class="title">Diario 📔</h1>
+      <div class="subtitle">Registra tus comidas y tu peso cada día</div>
+      <div class="tabs">
+        <div class="tab active" id="tabComidas" onclick="switchDiario('comidas')">🍴 Comidas</div>
+        <div class="tab" id="tabPeso" onclick="switchDiario('peso')">⚖️ Peso</div>
+      </div>
+
+      <div id="diarioComidas" class="card">
+        <div class="section-h">Comidas registradas hoy</div>
+        <div id="comidasList"></div>
+        <div class="form-row">
+          <div class="field"><label>Comida</label><input id="cName" placeholder="Ej. Ensalada de garbanzos"></div>
+          <div class="field"><label>Kcal</label><input id="cKcal" type="number" placeholder="250" style="width:90px"></div>
+          <div class="field"><label>Momento</label>
+            <select id="cMom"><option>Desayuno</option><option>Almuerzo</option><option>Comida</option><option>Merienda</option><option>Cena</option></select>
+          </div>
+          <button class="btn-sm" onclick="addComida()">+ Añadir</button>
+        </div>
+      </div>
+
+      <div id="diarioPeso" class="card hidden">
+        <div class="section-h">Registrar peso de hoy</div>
+        <div class="form-row">
+          <div class="field"><label>Peso (kg)</label><input id="pInput" type="number" step="0.1" placeholder="74,7"></div>
+          <button class="btn-sm" onclick="addPeso()">Registrar</button>
+        </div>
+        <table><thead><tr><th>Fecha</th><th>Peso</th><th>Variación</th></tr></thead><tbody id="pesoTable"></tbody></table>
+      </div>
+    </section>
+
+    <!-- COACH -->
+    <section id="coach" class="hidden">
+      <h1 class="title">Coach AI 🤖</h1>
+      <div class="subtitle">Tu acompañamiento entre visitas</div>
+      <div class="chat-banner">✨ Basado en tus últimos registros</div>
+      <div class="chat" id="chatBox">
+        <div class="bubble ai">🎉 ¡Llevas 6 días seguidos registrando! Sigue así, Marta.</div>
+        <div class="bubble ai">📉 Has bajado 3,5 kg desde que empezaste. Vas por buen camino hacia tu objetivo.</div>
+        <div class="bubble ai">🥗 Veo que sueles saltarte la merienda. Prueba con fruta + frutos secos.</div>
+      </div>
+      <div class="chips" id="chips"></div>
+    </section>
+
+    <!-- PROGRESOS -->
+    <section id="progresos" class="hidden">
+      <h1 class="title">Mis Progresos 📈</h1>
+      <div class="subtitle">Tu evolución en los 90 días de plan</div>
+      <div class="card">
+        <div class="section-h">Evolución de peso — 90 días</div>
+        <svg class="chart" id="fullChart" viewBox="0 0 400 140" preserveAspectRatio="none" style="height:180px"></svg>
+      </div>
+      <div class="badges">
+        <div class="badge-b"><div class="emo">🔥</div><div class="n">7 días seguidos</div></div>
+        <div class="badge-b"><div class="emo">⬇️</div><div class="n">-3 kg logrados</div></div>
+        <div class="badge-b"><div class="emo">🎯</div><div class="n">Objetivo 30% completado</div></div>
+        <div class="badge-b"><div class="emo">💧</div><div class="n">Hidratación OK</div></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav hidden" id="bnav">
+  <div class="nav-item active" data-view="dashboard" onclick="nav('dashboard')"><span class="ico">🏠</span>Inicio</div>
+  <div class="nav-item" data-view="plan" onclick="nav('plan')"><span class="ico">🍽️</span>Plan</div>
+  <div class="nav-item" data-view="diario" onclick="nav('diario')"><span class="ico">📔</span>Diario</div>
+  <div class="nav-item" data-view="coach" onclick="nav('coach')"><span class="ico">🤖</span>Coach</div>
+  <div class="nav-item" data-view="progresos" onclick="nav('progresos')"><span class="ico">📈</span>Progreso</div>
+</nav>
+
+<script>
+/* ---- DATA ---- */
+let pesoSeries = [78.4,77.8,77.1,76.5,76.0,75.6,75.2,75.0,74.9];
+let pesoDates = ['15 may','19 may','23 may','27 may','31 may','3 jun','6 jun','8 jun','10 jun'];
+
+const plan = {
+ 'Lun':{meals:[
+   {m:'Desayuno',i:'🥑',d:'Tostadas integrales con aguacate y huevo',k:380,p:18,c:32,g:20},
+   {m:'Almuerzo',i:'🥣',d:'Yogur griego con nueces',k:190,p:12,c:9,g:12},
+   {m:'Comida',i:'🐟',d:'Salmón al horno con quinoa y brócoli',k:520,p:38,c:40,g:22},
+   {m:'Merienda',i:'🍎',d:'Manzana y 15g almendras',k:150,p:4,c:20,g:7},
+   {m:'Cena',i:'🥚',d:'Crema de calabacín + tortilla francesa',k:340,p:22,c:14,g:20}]},
+ 'Mar':{meals:[
+   {m:'Desayuno',i:'🥛',d:'Porridge de avena con plátano',k:340,p:12,c:52,g:8},
+   {m:'Almuerzo',i:'🍊',d:'Naranja + puñado de anacardos',k:170,p:5,c:22,g:9},
+   {m:'Comida',i:'🍲',d:'Lentejas estofadas con verduras',k:480,p:24,c:58,g:12},
+   {m:'Merienda',i:'🧀',d:'Requesón con arándanos',k:140,p:14,c:10,g:4},
+   {m:'Cena',i:'🐔',d:'Pollo a la plancha con ensalada',k:400,p:40,c:12,g:18}]},
+ 'Mié':{meals:[
+   {m:'Desayuno',i:'🍞',d:'Tostada con tomate y jamón serrano',k:300,p:16,c:30,g:12},
+   {m:'Almuerzo',i:'🥜',d:'Yogur natural con semillas',k:180,p:10,c:14,g:9},
+   {m:'Comida',i:'🥗',d:'Ensalada de garbanzos y atún',k:460,p:30,c:38,g:18},
+   {m:'Merienda',i:'🍌',d:'Plátano + 2 nueces',k:160,p:3,c:26,g:6},
+   {m:'Cena',i:'🐟',d:'Merluza al vapor con pisto',k:360,p:34,c:20,g:14}]},
+ 'Jue':{meals:[
+   {m:'Desayuno',i:'🥣',d:'Bol de yogur con granola casera',k:360,p:15,c:44,g:12},
+   {m:'Almuerzo',i:'🥕',d:'Bastones de zanahoria con hummus',k:150,p:6,c:16,g:8},
+   {m:'Comida',i:'🍚',d:'Arroz integral con verduras y huevo',k:500,p:20,c:66,g:15},
+   {m:'Merienda',i:'🍐',d:'Pera + queso fresco',k:150,p:8,c:20,g:4},
+   {m:'Cena',i:'🥘',d:'Revuelto de setas y gambas',k:340,p:28,c:8,g:20}]},
+ 'Vie':{meals:[
+   {m:'Desayuno',i:'🍳',d:'Huevos revueltos con espinacas',k:320,p:22,c:8,g:22},
+   {m:'Almuerzo',i:'🍇',d:'Uvas y un puñado de almendras',k:170,p:4,c:22,g:8},
+   {m:'Comida',i:'🍅',d:'Gazpacho + pechuga de pavo',k:440,p:34,c:28,g:16},
+   {m:'Merienda',i:'🥛',d:'Batido de fresa y leche',k:160,p:9,c:24,g:3},
+   {m:'Cena',i:'🐟',d:'Dorada al horno con verduras',k:380,p:36,c:16,g:16}]},
+ 'Sáb':{meals:[
+   {m:'Desayuno',i:'🥞',d:'Tortitas de avena con fruta',k:390,p:16,c:52,g:12},
+   {m:'Almuerzo',i:'🍎',d:'Manzana asada con canela',k:120,p:1,c:28,g:1},
+   {m:'Comida',i:'🍤',d:'Paella de verduras y marisco',k:540,p:28,c:64,g:16},
+   {m:'Merienda',i:'🧀',d:'Yogur griego con miel',k:170,p:10,c:16,g:7},
+   {m:'Cena',i:'🥗',d:'Ensalada templada de quinoa',k:360,p:14,c:44,g:14}]},
+ 'Dom':{meals:[
+   {m:'Desayuno',i:'🥐',d:'Pan integral con aceite y aguacate',k:360,p:10,c:38,g:18},
+   {m:'Almuerzo',i:'🍊',d:'Mandarinas + nueces',k:150,p:3,c:22,g:7},
+   {m:'Comida',i:'🍗',d:'Pollo asado con patata y ensalada',k:560,p:42,c:44,g:20},
+   {m:'Merienda',i:'🍓',d:'Fresas con queso batido',k:130,p:9,c:14,g:3},
+   {m:'Cena',i:'🥘',d:'Crema de verduras + tortilla',k:320,p:20,c:16,g:18}]},
+};
+const OBJ = 1600;
+
+let comidas = [
+  {m:'Desayuno',d:'Tostadas con aguacate',k:380},
+  {m:'Almuerzo',d:'Café con leche + plátano',k:160},
+];
+
+/* ---- NAV ---- */
+function enter(){ document.getElementById('splash').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); document.getElementById('bnav').classList.remove('hidden'); render(); }
+function nav(v){
+  ['dashboard','plan','diario','coach','progresos'].forEach(s=>document.getElementById(s).classList.add('hidden'));
+  document.getElementById(v).classList.remove('hidden');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===v));
+  window.scrollTo(0,0);
+  if(v==='progresos') drawFullChart();
+}
+
+/* ---- DASHBOARD ---- */
+function markRead(){ const b=document.getElementById('nudgeBtn'); b.textContent='✓ Leído'; b.disabled=true; b.style.opacity=.5; }
+function confirmCita(){ const b=document.getElementById('citaBtn'); b.textContent='✓ Cita confirmada'; b.style.background='var(--green)'; b.style.color='#fff'; }
+
+function drawLine(svgId, data, w=400, h=140){
+  const svg=document.getElementById(svgId);
+  const min=Math.min(...data)-0.5, max=Math.max(...data)+0.5;
+  const pad=14;
+  const pts=data.map((v,i)=>{
+    const x=pad+(i*(w-2*pad)/(data.length-1));
+    const y=pad+(h-2*pad)*(1-(v-min)/(max-min));
+    return [x,y];
+  });
+  const path=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const area=path+` L${pts[pts.length-1][0].toFixed(1)} ${h-pad} L${pts[0][0].toFixed(1)} ${h-pad} Z`;
+  let dots=pts.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="#2e9e6b"/>`).join('');
+  svg.innerHTML=`<defs><linearGradient id="g${svgId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2e9e6b" stop-opacity=".3"/><stop offset="1" stop-color="#2e9e6b" stop-opacity="0"/></linearGradient></defs>
+   <path d="${area}" fill="url(#g${svgId})"/><path d="${path}" fill="none" stroke="#2e9e6b" stroke-width="2.5"/>${dots}`;
+}
+
+/* ---- PLAN ---- */
+let curDay='Lun';
+function renderDays(){
+  const wrap=document.getElementById('dayTabs'); wrap.innerHTML='';
+  Object.keys(plan).forEach(d=>{
+    const b=document.createElement('div'); b.className='day-btn'+(d===curDay?' active':'');
+    b.textContent=d; b.onclick=()=>{curDay=d; renderDays(); renderMeals();};
+    wrap.appendChild(b);
+  });
+}
+function renderMeals(){
+  const meals=plan[curDay].meals;
+  const list=document.getElementById('mealsList'); list.innerHTML='';
+  let tk=0,tp=0,tc=0,tg=0;
+  meals.forEach(m=>{
+    tk+=m.k;tp+=m.p;tc+=m.c;tg+=m.g;
+    list.innerHTML+=`<div class="meal"><div class="icon">${m.i}</div>
+     <div class="info"><div class="m">${m.m}</div><div class="dish">${m.d}</div>
+     <div class="macros">P ${m.p} · C ${m.c} · G ${m.g}</div></div>
+     <div class="kcal">${m.k} kcal</div></div>`;
+  });
+  const pct=Math.min(100,Math.round(tk/OBJ*100));
+  document.getElementById('daySummary').innerHTML=`
+   <div class="section-h">Resumen del día</div>
+   <div style="font-size:14px;margin-bottom:4px">Kcal: <b>${tk}</b> / ${OBJ} objetivo</div>
+   <div class="bar"><span style="width:${pct}%;background:var(--green)"></span></div>
+   <div style="font-size:13px;color:var(--muted)">Proteínas ${tp}g</div><div class="bar"><span style="width:${Math.min(100,tp/2)}%;background:#e07b39"></span></div>
+   <div style="font-size:13px;color:var(--muted)">Carbohidratos ${tc}g</div><div class="bar"><span style="width:${Math.min(100,tc/2.5)}%;background:#f0b429"></span></div>
+   <div style="font-size:13px;color:var(--muted)">Grasas ${tg}g</div><div class="bar"><span style="width:${Math.min(100,tg)}%;background:#4a90d9"></span></div>`;
+}
+
+/* ---- DIARIO ---- */
+function switchDiario(t){
+  document.getElementById('diarioComidas').classList.toggle('hidden', t!=='comidas');
+  document.getElementById('diarioPeso').classList.toggle('hidden', t!=='peso');
+  document.getElementById('tabComidas').classList.toggle('active', t==='comidas');
+  document.getElementById('tabPeso').classList.toggle('active', t==='peso');
+}
+function renderComidas(){
+  const l=document.getElementById('comidasList'); l.innerHTML='';
+  comidas.forEach(c=>{
+    l.innerHTML+=`<div class="log-item"><span style="font-size:12px;color:var(--muted);text-transform:uppercase;width:80px">${c.m}</span><span>${c.d}</span><span class="k">${c.k} kcal ✅</span></div>`;
+  });
+}
+function addComida(){
+  const n=document.getElementById('cName').value.trim();
+  const k=parseInt(document.getElementById('cKcal').value);
+  const m=document.getElementById('cMom').value;
+  if(!n||!k){ alert('Introduce nombre y kcal'); return; }
+  comidas.push({m,d:n,k}); renderComidas();
+  document.getElementById('cName').value=''; document.getElementById('cKcal').value='';
+}
+function renderPesoTable(){
+  const t=document.getElementById('pesoTable'); t.innerHTML='';
+  const last10=pesoSeries.slice(-10).map((v,i,arr)=>({v,d:pesoDates.slice(-10)[i],prev:i>0?arr[i-1]:null}));
+  last10.slice().reverse().forEach(r=>{
+    let vari='—';
+    if(r.prev!==null){ const diff=(r.v-r.prev).toFixed(1); vari=diff<=0?`<span class="down">▼ ${Math.abs(diff)} kg</span>`:`<span class="up">▲ ${diff} kg</span>`; }
+    t.innerHTML+=`<tr><td>${r.d}</td><td><b>${r.v.toFixed(1).replace('.',',')} kg</b></td><td>${vari}</td></tr>`;
+  });
+}
+function addPeso(){
+  const v=parseFloat(document.getElementById('pInput').value);
+  if(!v){ alert('Introduce tu peso'); return; }
+  pesoSeries.push(v);
+  const dt=new Date(); pesoDates.push(dt.getDate()+' jun');
+  document.getElementById('pInput').value='';
+  document.getElementById('kpiPeso').innerHTML=v.toFixed(1).replace('.',',')+' <small>kg</small>';
+  renderPesoTable(); drawLine('dashChart', pesoSeries.slice(-12));
+  alert('✅ Peso registrado. ¡Actualizado en tu Dashboard!');
+}
+
+/* ---- COACH ---- */
+const respuestas={
+ 'Sí, ayúdame':'¡Genial! 🙌 Te propongo empezar hoy con un desayuno equilibrado: tostada integral + huevo + fruta. Registra cada comida y yo iré ajustando tu plan.',
+ 'Hoy comí fuera':'¡Sin problema! 🍴 Comer fuera es parte de la vida. Intenta elegir proteína + verdura y controlar el pan. Mañana retomamos el plan con normalidad.',
+ 'Me cuesta la cena':'Te entiendo 🌙 Para cenas ligeras prueba una crema de verduras + tortilla francesa o pescado al vapor. ¿Quieres que te añada 3 ideas rápidas de cena a tu plan?',
+ '¿Puedo cambiar un plato?':'¡Claro que sí! 🔄 Puedes cambiar el salmón por merluza o dorada manteniendo las mismas kcal. Avísame qué plato y te propongo alternativas equivalentes.'
+};
+function renderChips(){
+  const c=document.getElementById('chips'); c.innerHTML='';
+  Object.keys(respuestas).forEach(q=>{
+    const chip=document.createElement('div'); chip.className='chip'; chip.textContent=q;
+    chip.onclick=()=>sendChip(q); c.appendChild(chip);
+  });
+}
+function sendChip(q){
+  const box=document.getElementById('chatBox');
+  box.innerHTML+=`<div class="bubble me">${q}</div>`;
+  setTimeout(()=>{
+    box.innerHTML+=`<div class="bubble ai">${respuestas[q]}</div>`;
+    box.scrollTop=box.scrollHeight;
+    window.scrollTo(0,document.body.scrollHeight);
+  },500);
+}
+
+function drawFullChart(){
+  // build 90-day fake series interpolating
+  const full=[]; const base=[78.4,77.8,77.1,76.5,76.0,75.6,75.2,75.0,74.9];
+  for(let i=0;i<base.length-1;i++){ for(let j=0;j<3;j++) full.push(base[i]+(base[i+1]-base[i])*j/3); }
+  full.push(74.9);
+  drawLine('fullChart', full, 400, 180);
+}
+
+function render(){
+  drawLine('dashChart', pesoSeries.slice(-12));
+  renderDays(); renderMeals(); renderComidas(); renderPesoTable(); renderChips();
+}
+</script>
+</body>
+</html>

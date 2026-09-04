@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StyleConcierge AI — Bottiglieria Boutique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  /* Brand Bottiglieria: bianco, ink, bordeaux; verde WhatsApp solo nella chat */
+  --wine:#681831; --wine-dark:#4a0f21; --sale:#cf2e2e;
+  --green:#25d366; --dark:#075e54; --teal:#681831;
+  --bg:#f6f6f5; --card:#fff; --border:#e5e5e3;
+  --text:#1a1a1a; --muted:#666; --accent:#681831;
+  --yellow:#f0b429; --gray:#a0aec0;
+}
+body { font-family:'Inter','Helvetica Neue',Arial,sans-serif; background:var(--bg); color:var(--text); }
+::selection { background:var(--wine); color:#fff; }
+.app { display:flex; min-height:100vh; }
+
+/* Sidebar */
+.sidebar { width:250px; background:linear-gradient(180deg,#4a0f21,#681831); color:#fff; padding:20px 0; position:fixed; height:100vh; overflow-y:auto; transition:.3s; z-index:100; }
+.brand { padding:0 20px 18px; border-bottom:1px solid rgba(255,255,255,.12); }
+.brand h1 { font-size:15px; font-weight:800; text-transform:uppercase; letter-spacing:.03em; line-height:1.2; }
+.brand .sub { font-size:11px; color:#dcb3c1; margin-top:3px; }
+.brand .badge { display:inline-flex; align-items:center; gap:5px; margin-top:9px; background:rgba(37,211,102,.2); color:#25d366; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; }
+.dot { width:7px; height:7px; background:#25d366; border-radius:50%; box-shadow:0 0 6px #25d366; }
+nav { margin-top:14px; }
+nav a { display:flex; align-items:center; gap:12px; padding:12px 20px; color:#e6ccd5; text-decoration:none; font-size:14px; cursor:pointer; border-left:3px solid transparent; }
+nav a:hover { background:rgba(255,255,255,.06); }
+nav a.active { background:rgba(255,255,255,.1); border-left-color:#fff; color:#fff; font-weight:600; }
+nav a .ic { font-size:18px; }
+
+/* Main */
+.main { flex:1; margin-left:250px; }
+.topbar { background:#fff; padding:14px 26px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+.topbar h2 { font-size:17px; font-weight:800; text-transform:uppercase; letter-spacing:.02em; }
+.demo-tag { background:#ffe8cc; color:#b45309; padding:4px 12px; border-radius:3px; font-size:12px; font-weight:700; letter-spacing:.5px; }
+.hint { font-size:12px; color:var(--muted); }
+.menu-btn { display:none; background:none; border:none; font-size:22px; cursor:pointer; }
+
+.view { display:none; padding:26px; }
+.view.active { display:block; }
+
+/* KPI */
+.kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+.kpi { background:var(--card); border:1px solid var(--border); border-radius:3px; padding:18px; }
+.kpi .lbl { font-size:12px; color:var(--muted); margin-bottom:8px; }
+.kpi .val { font-size:28px; font-weight:700; color:var(--teal); }
+.kpi .trend { font-size:12px; color:#1f9d55; margin-top:5px; }
+
+.panel { background:var(--card); border:1px solid var(--border); border-radius:3px; padding:20px; margin-bottom:20px; }
+.panel h3 { font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; margin-bottom:16px; }
+
+/* Chart */
+.chart { display:flex; align-items:flex-end; gap:14px; height:180px; padding-top:10px; }
+.bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; }
+.bar { width:100%; max-width:44px; background:linear-gradient(180deg,#8a2b47,#681831); border-radius:3px 3px 0 0; transition:.3s; }
+.bar-wrap span { font-size:11px; color:var(--muted); }
+.bar-val { font-size:11px; font-weight:600; color:var(--teal); }
+
+/* Feed */
+.feed-item { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+.feed-item:last-child { border:none; }
+.avatar { width:38px; height:38px; border-radius:50%; background:var(--teal); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:600; flex-shrink:0; }
+.feed-item .txt { font-size:14px; }
+.feed-item .time { font-size:12px; color:var(--muted); margin-left:auto; }
+
+/* Chat layout */
+.chat-layout { display:flex; height:calc(100vh - 130px); background:#fff; border:1px solid var(--border); border-radius:3px; overflow:hidden; }
+.chat-list { width:320px; border-right:1px solid var(--border); overflow-y:auto; }
+.chat-item { padding:14px 16px; border-bottom:1px solid var(--border); cursor:pointer; display:flex; gap:12px; }
+.chat-item:hover { background:#f7f9fa; }
+.chat-item.active { background:#f6ebee; }
+.chat-item .info { flex:1; min-width:0; }
+.chat-item .name { font-weight:600; font-size:14px; display:flex; justify-content:space-between; }
+.chat-item .name small { font-weight:400; color:var(--muted); }
+.chat-item .preview { font-size:13px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:3px; }
+.tick { color:#25d366; }
+.thread { flex:1; display:flex; flex-direction:column; background:#e5ddd5; background-image:linear-gradient(rgba(229,221,213,.9),rgba(229,221,213,.9)); }
+.thread-head { background:var(--dark); color:#fff; padding:12px 18px; display:flex; align-items:center; gap:12px; }
+.thread-head .avatar { background:#25d366; }
+.thread-head .name { font-weight:600; font-size:15px; }
+.thread-head .stat { font-size:12px; color:#a7d5cd; }
+.messages { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:10px; }
+.msg { max-width:70%; padding:8px 12px; border-radius:8px; font-size:14px; line-height:1.4; position:relative; box-shadow:0 1px 1px rgba(0,0,0,.1); }
+.msg.in { background:#fff; align-self:flex-start; border-top-left-radius:0; }
+.msg.out { background:#dcf8c6; align-self:flex-end; border-top-right-radius:0; }
+.msg .t { font-size:10px; color:var(--muted); text-align:right; margin-top:3px; }
+/* product card in chat */
+.prod-card { background:#fff; border-radius:10px; overflow:hidden; max-width:75%; align-self:flex-start; box-shadow:0 1px 3px rgba(0,0,0,.15); margin:2px 0; }
+.prod-card .ph { height:120px; background:linear-gradient(135deg,#f0e2e7,#d6b6c2); display:flex; align-items:center; justify-content:center; font-size:40px; }
+.prod-card .body { padding:10px 12px; }
+.prod-card .pn { font-weight:600; font-size:14px; }
+.prod-card .pp { color:var(--accent); font-weight:700; margin:4px 0; }
+.sizes { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }
+.sz { font-size:11px; padding:2px 7px; border-radius:3px; background:#f3e6ea; color:var(--wine); font-weight:600; }
+.sz.out { background:#eee; color:#aaa; text-decoration:line-through; }
+.btn-book { background:var(--green); color:#fff; border:none; padding:8px 14px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; width:100%; margin-top:4px; }
+.btn-book:hover { background:var(--teal); }
+.chat-input { display:flex; padding:10px 16px; gap:10px; background:#f0f0f0; align-items:center; }
+.chat-input input { flex:1; border:none; padding:11px 14px; border-radius:22px; font-size:14px; font-family:inherit; }
+.chat-input button { background:var(--green); color:#fff; border:none; width:44px; height:44px; border-radius:50%; font-size:18px; cursor:pointer; }
+
+/* Catalog */
+.filters { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; align-items:center; }
+.chip { padding:7px 16px; border-radius:3px; border:1px solid var(--border); background:#fff; cursor:pointer; font-size:13px; }
+.chip.active { background:var(--teal); color:#fff; border-color:var(--teal); }
+.search { flex:1; min-width:180px; padding:9px 14px; border:1px solid var(--border); border-radius:3px; font-size:14px; font-family:inherit; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:18px; }
+.pc { background:#fff; border:1px solid var(--border); border-radius:3px; overflow:hidden; }
+.pc .ph { height:150px; background:linear-gradient(135deg,#f0e2e7,#d6b6c2); display:flex; align-items:center; justify-content:center; font-size:48px; }
+.pc .body { padding:14px; }
+.pc .cat { font-size:11px; color:var(--muted); text-transform:uppercase; }
+.pc .pn { font-weight:600; margin:4px 0; font-size:15px; }
+.pc .pp { color:var(--accent); font-weight:700; font-size:16px; }
+
+/* Calendar */
+.cal { display:grid; grid-template-columns:60px repeat(6,1fr); border:1px solid var(--border); border-radius:3px; overflow:hidden; background:#fff; font-size:12px; }
+.cal .h { background:#f7f9fa; padding:10px 6px; text-align:center; font-weight:600; border-bottom:1px solid var(--border); border-right:1px solid var(--border); }
+.cal .tcell { padding:8px 4px; text-align:right; color:var(--muted); border-right:1px solid var(--border); border-bottom:1px solid var(--border); }
+.cal .slot { border-right:1px solid var(--border); border-bottom:1px solid var(--border); min-height:38px; padding:2px; position:relative; }
+.appt { border-radius:3px; padding:4px 6px; font-size:11px; color:#fff; cursor:pointer; margin:1px 0; line-height:1.2; }
+.appt.conf { background:var(--wine); }
+.appt.att { background:var(--yellow); color:#5a4400; }
+.appt.done { background:var(--gray); }
+.legend { display:flex; gap:16px; margin-bottom:14px; font-size:13px; align-items:center; }
+.legend span { display:inline-flex; align-items:center; gap:6px; }
+.legend i { width:14px; height:14px; border-radius:2px; display:inline-block; }
+.legend i.conf { background:var(--wine); }
+
+/* Upload AI wizard */
+.steps { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+.step { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); padding:7px 14px; border-radius:3px; background:#fff; border:1px solid var(--border); }
+.step.on { background:var(--wine); color:#fff; border-color:var(--wine); font-weight:600; }
+.step.done { background:#f3e6ea; color:var(--wine); border-color:#ddc2cb; }
+.step .n { width:20px; height:20px; border-radius:50%; background:rgba(0,0,0,.08); display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+.step.on .n { background:rgba(255,255,255,.25); }
+.dropzone { border:2px dashed #c9b2ba; border-radius:3px; background:#fff; padding:48px 24px; text-align:center; cursor:pointer; transition:.2s; }
+.dropzone:hover, .dropzone.over { border-color:var(--wine); background:#faf3f5; }
+.dropzone .big { font-size:44px; margin-bottom:10px; }
+.dropzone .t { font-size:15px; font-weight:600; }
+.dropzone .t span { color:var(--teal); text-decoration:underline; }
+.dropzone .s { font-size:12px; color:var(--muted); margin-top:6px; }
+.sample-link { display:inline-block; margin-top:14px; font-size:13px; color:var(--teal); cursor:pointer; text-decoration:underline; }
+.wiz-photo { width:100%; max-width:260px; height:220px; border-radius:3px; background:linear-gradient(135deg,#f0e2e7,#d6b6c2); display:flex; align-items:center; justify-content:center; font-size:72px; overflow:hidden; flex-shrink:0; }
+.wiz-photo img { width:100%; height:100%; object-fit:cover; }
+.wiz-cols { display:flex; gap:24px; flex-wrap:wrap; }
+.wiz-cols .col { flex:1; min-width:260px; }
+.ai-loading { display:flex; align-items:center; gap:12px; font-size:14px; color:var(--teal); font-weight:600; padding:14px 0; }
+.spinner { width:20px; height:20px; border:3px solid #e8d3da; border-top-color:var(--wine); border-radius:50%; animation:spin .8s linear infinite; flex-shrink:0; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.ai-tag { display:inline-flex; align-items:center; gap:6px; background:#f3e6ea; color:var(--wine); padding:4px 12px; border-radius:3px; font-size:12px; font-weight:600; margin-bottom:12px; }
+.sz-pick { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+.sz-pick .chip { padding:6px 14px; }
+.sz-pick .chip.active { background:var(--wine); color:#fff; border-color:var(--wine); }
+.btn-ghost { background:#fff; color:var(--wine); border:1px solid var(--wine); padding:11px 22px; border-radius:3px; font-weight:600; cursor:pointer; margin-top:14px; margin-right:10px; font-family:inherit; }
+.pc.new { outline:2px solid var(--wine); box-shadow:0 0 0 4px rgba(104,24,49,.15); }
+.new-badge { position:absolute; top:10px; left:10px; background:var(--wine); color:#fff; font-size:10px; font-weight:700; padding:3px 8px; border-radius:3px; letter-spacing:.5px; }
+.pc { position:relative; }
+.hidden { display:none !important; }
+
+/* Settings */
+.setting-row { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--border); }
+.setting-row:last-child { border:none; }
+.setting-row .l { font-size:14px; }
+.setting-row .d { font-size:12px; color:var(--muted); margin-top:3px; }
+.toggle { width:46px; height:26px; background:#ccc; border-radius:15px; position:relative; cursor:pointer; flex-shrink:0; transition:.2s; }
+.toggle.on { background:var(--wine); }
+.toggle::after { content:''; position:absolute; width:20px; height:20px; background:#fff; border-radius:50%; top:3px; left:3px; transition:.2s; }
+.toggle.on::after { left:23px; }
+.field { margin:14px 0; }
+.field label { display:block; font-size:13px; font-weight:600; margin-bottom:6px; }
+.field input, .field textarea { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:3px; font-size:14px; font-family:inherit; }
+.tone { display:flex; gap:10px; margin-top:6px; }
+.tone .chip.active { background:var(--accent); border-color:var(--accent); }
+.btn-primary { background:var(--wine); color:#fff; border:none; padding:11px 22px; border-radius:3px; font-weight:600; cursor:pointer; margin-top:14px; font-family:inherit; }
+.btn-primary:hover { background:var(--wine-dark); }
+
+@media(max-width:860px){
+  .sidebar { transform:translateX(-100%); }
+  .sidebar.open { transform:translateX(0); }
+  .main { margin-left:0; }
+  .menu-btn { display:block; }
+  .kpis { grid-template-columns:repeat(2,1fr); }
+  .chat-list { width:100%; position:absolute; z-index:5; height:100%; background:#fff; }
+  .chat-list.hide { display:none; }
+  .cal { font-size:10px; grid-template-columns:44px repeat(6,1fr); }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <h1>👔 Bottiglieria Boutique</h1>
+      <div class="sub">StyleConcierge AI</div>
+      <div class="badge"><span class="dot"></span> StyleConcierge AI · Attivo</div>
+    </div>
+    <nav>
+      <a class="active" data-v="dash"><span class="ic">📊</span> Dashboard</a>
+      <a data-v="chat"><span class="ic">💬</span> Conversazioni</a>
+      <a data-v="catalog"><span class="ic">🛍️</span> Catalogo &amp; Stock</a>
+      <a data-v="upload"><span class="ic">📸</span> Carica con AI</a>
+      <a data-v="cal"><span class="ic">📅</span> Appuntamenti</a>
+      <a data-v="settings"><span class="ic">⚙️</span> Impostazioni Bot</a>
+    </nav>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <h2 id="vtitle">Dashboard</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <span class="hint">Dati di esempio</span>
+        <span class="demo-tag">DEMO</span>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="dash">
+      <div class="kpis">
+        <div class="kpi"><div class="lbl">Conversazioni oggi</div><div class="val">37</div><div class="trend">▲ 12% vs ieri</div></div>
+        <div class="kpi"><div class="lbl">Appuntamenti (settimana)</div><div class="val">12</div><div class="trend">▲ 3 nuovi</div></div>
+        <div class="kpi"><div class="lbl">Outfit consigliati</div><div class="val">184</div><div class="trend">▲ 21% mese</div></div>
+        <div class="kpi"><div class="lbl">Conversione chat→appt.</div><div class="val">28%</div><div class="trend">▲ 4pt</div></div>
+      </div>
+      <div class="panel">
+        <h3>Conversazioni ultimi 7 giorni</h3>
+        <div class="chart" id="chart"></div>
+      </div>
+      <div class="panel">
+        <h3>Ultime attività</h3>
+        <div id="feed"></div>
+      </div>
+    </section>
+
+    <!-- CHAT -->
+    <section class="view" id="chat">
+      <div class="chat-layout">
+        <div class="chat-list" id="chatList"></div>
+        <div class="thread">
+          <div class="thread-head">
+            <button class="menu-btn" style="color:#fff" onclick="document.getElementById('chatList').classList.remove('hide')">‹</button>
+            <div class="avatar" id="thAv">CD</div>
+            <div><div class="name" id="thName">Chiara De Luca</div><div class="stat">online · assistito da 🤖 AI</div></div>
+          </div>
+          <div class="messages" id="messages"></div>
+          <div class="chat-input">
+            <input id="chatInput" value="Sì, confermo l'appuntamento! 😊">
+            <button onclick="sendMsg()">➤</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATALOG -->
+    <section class="view" id="catalog">
+      <div class="filters">
+        <div class="chip active" data-f="all">Tutti</div>
+        <div class="chip" data-f="Uomo">Uomo</div>
+        <div class="chip" data-f="Donna">Donna</div>
+        <div class="chip" data-f="Giacche">Giacche</div>
+        <div class="chip" data-f="Camicie">Camicie</div>
+        <div class="chip" data-f="Accessori">Accessori</div>
+        <input class="search" id="search" placeholder="🔍 Cerca prodotto...">
+      </div>
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <!-- UPLOAD AI -->
+    <section class="view" id="upload">
+      <div class="steps">
+        <div class="step on" id="st1"><span class="n">1</span> Foto</div>
+        <div class="step" id="st2"><span class="n">2</span> Analisi AI</div>
+        <div class="step" id="st3"><span class="n">3</span> Rivedi e pubblica</div>
+      </div>
+
+      <!-- Step 1: foto -->
+      <div class="panel" id="wstep1">
+        <h3>Carica la foto del capo</h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Scatta o trascina una foto: l'AI riconosce il capo, i colori e il tessuto, e prepara la scheda prodotto per te.</p>
+        <div class="dropzone" id="dropzone">
+          <div class="big">📷</div>
+          <div class="t">Trascina qui la foto o <span>sfoglia</span></div>
+          <div class="s">JPG o PNG · una foto chiara del capo su fondo neutro</div>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" style="display:none">
+        <span class="sample-link" onclick="useSample()">Oppure prova con una foto di esempio →</span>
+      </div>
+
+      <!-- Step 2: analisi -->
+      <div class="panel hidden" id="wstep2">
+        <h3>Foto pronta</h3>
+        <div class="wiz-cols" style="margin-top:14px;">
+          <div class="wiz-photo" id="wizPhoto">🧥</div>
+          <div class="col">
+            <p style="font-size:14px;line-height:1.6;">Premi <b>Genera scheda</b>: l'AI riconoscerà il tipo di capo, i colori e il tessuto, suggerirà categoria, prezzo e taglie, e scriverà una descrizione pronta per il catalogo.</p>
+            <button class="btn-primary" id="genBtn" onclick="runAnalysis()">✨ Genera scheda con AI</button>
+            <button class="btn-ghost" onclick="resetWizard()">Cambia foto</button>
+            <div class="ai-loading hidden" id="aiLoading"><span class="spinner"></span><span id="aiStatus">L'AI sta analizzando la foto…</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: bozza -->
+      <div class="panel hidden" id="wstep3" style="max-width:760px;">
+        <div class="ai-tag">🤖 Scheda generata dall'AI · confidenza 94%</div>
+        <div class="wiz-cols">
+          <div class="wiz-photo" id="wizPhoto2" style="max-width:200px;height:180px;font-size:56px;">🧥</div>
+          <div class="col">
+            <div class="field"><label>Nome prodotto</label><input id="dNome"></div>
+            <div class="field" style="display:flex;gap:12px;">
+              <div style="flex:1;"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">Categoria</label><input id="dCat" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:3px;font-size:14px;font-family:inherit;"></div>
+              <div style="flex:1;"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">Prezzo suggerito</label><input id="dPrezzo" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:3px;font-size:14px;font-family:inherit;"></div>
+            </div>
+            <div class="field"><label>Taglie disponibili</label><div class="sz-pick" id="dTaglie"></div></div>
+            <div class="field"><label>Descrizione (scritta dall'AI)</label><textarea id="dDesc" rows="4"></textarea></div>
+            <button class="btn-primary" onclick="publishProduct()">✓ Pubblica nel catalogo</button>
+            <button class="btn-ghost" onclick="resetWizard()">Ricomincia</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CALENDAR -->
+    <section class="view" id="cal">
+      <div class="legend">
+        <span><i class="conf"></i> Confermato</span>
+        <span><i style="background:var(--yellow)"></i> In attesa</span>
+        <span><i style="background:var(--gray)"></i> Completato</span>
+      </div>
+      <div class="cal" id="calendar"></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="view" id="settings">
+      <div class="panel" style="max-width:640px;">
+        <h3>Automazioni</h3>
+        <div class="setting-row">
+          <div><div class="l">Consigli outfit automatici</div><div class="d">Il bot propone look coordinati dallo stock</div></div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="setting-row">
+          <div><div class="l">Verifica stock in tempo reale</div><div class="d">Controlla disponibilità taglie prima di consigliare</div></div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="setting-row">
+          <div><div class="l">Prenotazione appuntamenti</div><div class="d">Consente al bot di fissare slot con le personal shopper</div></div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="setting-row">
+          <div><div class="l">Caricamento prodotti da foto</div><div class="d">L'AI crea la scheda prodotto completa partendo da una semplice foto</div></div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+      <div class="panel" style="max-width:640px;">
+        <h3>Configurazione negozio</h3>
+        <div class="field"><label>Orari negozio</label><input value="Lun–Sab 10:00–19:30 · Dom chiuso"></div>
+        <div class="field"><label>Messaggio di benvenuto</label><textarea rows="3">Ciao! 👋 Sono l'assistente di stile di Bottiglieria Boutique. Dimmi cosa cerchi e ti aiuto a trovare l'outfit perfetto dal nostro stock. ✨</textarea></div>
+        <div class="field"><label>Tono di voce</label>
+          <div class="tone" id="tone">
+            <div class="chip">Formale</div>
+            <div class="chip active">Amichevole</div>
+            <div class="chip">Elegante</div>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="alert('Impostazioni salvate ✓ (demo)')">Salva impostazioni</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+// NAV
+const titles={dash:'Dashboard',chat:'Conversazioni WhatsApp',catalog:'Catalogo & Stock',upload:'Carica con AI',cal:'Appuntamenti',settings:'Impostazioni Bot'};
+document.querySelectorAll('nav a').forEach(a=>a.onclick=()=>{
+  document.querySelectorAll('nav a').forEach(x=>x.classList.remove('active'));
+  a.classList.add('active');
+  const v=a.dataset.v;
+  document.querySelectorAll('.view').forEach(s=>s.classList.remove('active'));
+  document.getElementById(v).classList.add('active');
+  document.getElementById('vtitle').textContent=titles[v];
+  document.getElementById('sidebar').classList.remove('open');
+});
+
+// CHART
+const chartData=[{d:'Lun',v:22},{d:'Mar',v:28},{d:'Mer',v:19},{d:'Gio',v:34},{d:'Ven',v:41},{d:'Sab',v:37},{d:'Dom',v:14}];
+const max=Math.max(...chartData.map(x=>x.v));
+document.getElementById('chart').innerHTML=chartData.map(x=>`<div class="bar-wrap"><span class="bar-val">${x.v}</span><div class="bar" style="height:${x.v/max*140}px"></div><span>${x.d}</span></div>`).join('');
+
+// FEED
+const feed=[
+  {n:'GR',t:'<b>Giulia R.</b> ha prenotato personal shopping',time:'3 min fa'},
+  {n:'MT',t:'<b>Marco T.</b> ha chiesto disponibilità del blazer taglia L',time:'11 min fa'},
+  {n:'🤖',t:'Bot ha consigliato <b>3 outfit</b> a Chiara De Luca',time:'25 min fa'},
+  {n:'AV',t:'<b>Alessandro V.</b> ha completato la prova capi',time:'1 ora fa'},
+  {n:'SB',t:'<b>Sara B.</b> ha richiesto una consulenza colore',time:'2 ore fa'}
+];
+document.getElementById('feed').innerHTML=feed.map(f=>`<div class="feed-item"><div class="avatar">${f.n}</div><div class="txt">${f.t}</div><div class="time">${f.time}</div></div>`).join('');
+
+// PRODUCTS
+const products=[
+  {n:'Blazer sartoriale lana',c:'Giacche',g:'Uomo',p:'€289',ic:'🧥',sz:[['S',1],['M',1],['L',1],['XL',0]]},
+  {n:'Camicia lino bianca',c:'Camicie',g:'Uomo',p:'€95',ic:'👔',sz:[['S',1],['M',1],['L',1],['XL',1]]},
+  {n:'Trench beige cintura',c:'Cappotti',g:'Donna',p:'€245',ic:'🧥',sz:[['S',1],['M',1],['L',0],['XL',0]]},
+  {n:'Chemisier seta blu',c:'Camicie',g:'Donna',p:'€135',ic:'👚',sz:[['XS',1],['S',1],['M',1]]},
+  {n:'Pantalone chino cammello',c:'Pantaloni',g:'Uomo',p:'€89',ic:'👖',sz:[['46',1],['48',1],['50',1],['52',1]]},
+  {n:'Foulard seta stampa geometrica',c:'Accessori',g:'Donna',p:'€65',ic:'🧣',sz:[['Unica',1]]},
+  {n:'Mocassini pelle testa di moro',c:'Scarpe',g:'Uomo',p:'€179',ic:'👞',sz:[['40',1],['41',1],['42',0],['43',1]]},
+  {n:'Cintura cuoio fibbia oro',c:'Accessori',g:'Donna',p:'€75',ic:'👜',sz:[['85',1],['90',1],['95',1]]},
+  {n:'Maglione cashmere grigio',c:'Maglieria',g:'Uomo',p:'€159',ic:'🧶',sz:[['M',1],['L',1],['XL',1]]},
+  {n:'Abito midi plissé verde',c:'Abiti',g:'Donna',p:'€199',ic:'👗',sz:[['XS',1],['S',1],['M',1],['L',1]]}
+];
+function szHtml(sz){return `<div class="sizes">${sz.map(s=>`<span class="sz ${s[1]?'':'out'}">${s[0]}</span>`).join('')}</div>`;}
+function renderGrid(filter='all',q=''){
+  const g=document.getElementById('grid');
+  const list=products.filter(p=>(filter==='all'||p.g===filter||p.c===filter)&&p.n.toLowerCase().includes(q.toLowerCase()));
+  g.innerHTML=list.map(p=>{
+    const ph=p.img?`<div class="ph" style="background:url('${p.img}') center/cover;"></div>`:`<div class="ph">${p.ic}</div>`;
+    return `<div class="pc ${p.isNew?'new':''}">${p.isNew?'<span class="new-badge">NUOVO · AI</span>':''}${ph}<div class="body"><div class="cat">${p.c} · ${p.g}</div><div class="pn">${p.n}</div><div class="pp">${p.p}</div>${szHtml(p.sz)}</div></div>`;
+  }).join('')||'<p style="color:#888">Nessun prodotto trovato.</p>';
+}
+renderGrid();
+document.querySelectorAll('#catalog .chip').forEach(c=>c.onclick=()=>{
+  document.querySelectorAll('#catalog .chip').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active');
+  renderGrid(c.dataset.f,document.getElementById('search').value);
+});
+document.getElementById('search').oninput=e=>{
+  const f=document.querySelector('#catalog .chip.active').dataset.f;
+  renderGrid(f,e.target.value);
+};
+
+// ===== UPLOAD AI (wizard foto → scheda prodotto) =====
+const aiDrafts=[
+  {n:'Giacca doppiopetto lana blu',c:'Giacche',g:'Uomo',p:'€259',ic:'🧥',desc:'Giacca doppiopetto in lana pettinata blu navy, revers a lancia e bottoni tono su tono. Vestibilità sartoriale, perfetta per occasioni formali o per elevare un look smart casual.',sz:['S','M','L','XL']},
+  {n:'Gonna midi plissé bordeaux',c:'Abiti',g:'Donna',p:'€119',ic:'👗',desc:'Gonna midi plissé in tessuto fluido bordeaux, vita alta con fascia elastica. Il movimento delle pieghe la rende ideale sia con sneakers che con décolleté.',sz:['XS','S','M','L']},
+  {n:'Camicia oxford azzurra',c:'Camicie',g:'Uomo',p:'€85',ic:'👔',desc:'Camicia in cotone oxford azzurro, colletto button-down e taglio regular. Un classico versatile che passa dall\'ufficio al weekend senza sforzo.',sz:['S','M','L','XL']}
+];
+let wizImage=null, wizDraft=null, draftIdx=0;
+const dz=document.getElementById('dropzone'), fi=document.getElementById('fileInput');
+dz.onclick=()=>fi.click();
+dz.ondragover=e=>{e.preventDefault();dz.classList.add('over');};
+dz.ondragleave=()=>dz.classList.remove('over');
+dz.ondrop=e=>{e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files[0])readPhoto(e.dataTransfer.files[0]);};
+fi.onchange=()=>{if(fi.files[0])readPhoto(fi.files[0]);};
+function readPhoto(file){
+  const r=new FileReader();
+  r.onload=()=>{wizImage=r.result;showStep2();};
+  r.readAsDataURL(file);
+}
+function useSample(){wizImage=null;showStep2();}
+function setSteps(n){
+  [1,2,3].forEach(i=>{
+    const s=document.getElementById('st'+i);
+    s.classList.toggle('on',i===n);
+    s.classList.toggle('done',i<n);
+  });
+}
+function showStep2(){
+  wizDraft=aiDrafts[draftIdx%aiDrafts.length];
+  const ph=document.getElementById('wizPhoto');
+  ph.innerHTML=wizImage?`<img src="${wizImage}">`:wizDraft.ic;
+  document.getElementById('wstep1').classList.add('hidden');
+  document.getElementById('wstep2').classList.remove('hidden');
+  document.getElementById('wstep3').classList.add('hidden');
+  setSteps(2);
+}
+function runAnalysis(){
+  const btn=document.getElementById('genBtn'), load=document.getElementById('aiLoading'), st=document.getElementById('aiStatus');
+  btn.disabled=true; btn.style.opacity=.5; load.classList.remove('hidden');
+  const phases=['Riconoscimento del capo…','Analisi tessuto e colori…','Suggerimento categoria e prezzo…','Scrittura della descrizione…'];
+  let i=0; st.textContent=phases[0];
+  const iv=setInterval(()=>{
+    i++;
+    if(i<phases.length){st.textContent=phases[i];return;}
+    clearInterval(iv);
+    btn.disabled=false; btn.style.opacity=1; load.classList.add('hidden');
+    fillDraft();
+  },900);
+}
+function fillDraft(){
+  const d=wizDraft;
+  document.getElementById('dNome').value=d.n;
+  document.getElementById('dCat').value=d.c;
+  document.getElementById('dPrezzo').value=d.p;
+  document.getElementById('dDesc').value=d.desc;
+  document.getElementById('wizPhoto2').innerHTML=wizImage?`<img src="${wizImage}">`:d.ic;
+  document.getElementById('dTaglie').innerHTML=d.sz.map(s=>`<div class="chip active" onclick="this.classList.toggle('active')">${s}</div>`).join('');
+  document.getElementById('wstep2').classList.add('hidden');
+  document.getElementById('wstep3').classList.remove('hidden');
+  setSteps(3);
+}
+function publishProduct(){
+  const sizes=[...document.querySelectorAll('#dTaglie .chip')].map(c=>[c.textContent,c.classList.contains('active')?1:0]);
+  products.forEach(p=>p.isNew=false);
+  products.unshift({
+    n:document.getElementById('dNome').value||wizDraft.n,
+    c:document.getElementById('dCat').value||wizDraft.c,
+    g:wizDraft.g,
+    p:document.getElementById('dPrezzo').value||wizDraft.p,
+    ic:wizDraft.ic, img:wizImage, sz:sizes, isNew:true
+  });
+  document.getElementById('feed').insertAdjacentHTML('afterbegin',
+    `<div class="feed-item"><div class="avatar">🤖</div><div class="txt">AI ha creato la scheda <b>${products[0].n}</b> da una foto</div><div class="time">ora</div></div>`);
+  draftIdx++;
+  resetWizard();
+  document.querySelector('nav a[data-v="catalog"]').click();
+  document.querySelector('#catalog .chip[data-f="all"]').click();
+}
+function resetWizard(){
+  wizImage=null; fi.value='';
+  document.getElementById('wstep1').classList.remove('hidden');
+  document.getElementById('wstep2').classList.add('hidden');
+  document.getElementById('wstep3').classList.add('hidden');
+  setSteps(1);
+}
+
+// CHATS
+const chats={
+  chiara:{name:'Chiara De Luca',av:'CD',preview:'Cerco un outfit per un matrimonio',tick:''},
+  giulia:{name:'Giulia Romano',av:'GR',preview:'Perfetto, prenoto sabato alle 16!',tick:'✓✓'},
+  marco:{name:'Marco Testa',av:'MT',preview:'Avete il blazer in taglia L?',tick:'⏱'},
+  alessandro:{name:'Alessandro Verdi',av:'AV',preview:'Grazie mille, a domani!',tick:''},
+  sara:{name:'Sara Bianchi',av:'SB',preview:'Il trench è disponibile in M?',tick:''}
+};
+const threads={
+  chiara:[
+    {s:'in',t:'Ciao! Cerco un look per un matrimonio a maggio, ospite serale',time:'14:02'},
+    {s:'in-bot',t:'Ciao Chiara! 🌿 Per un matrimonio serale ti suggerisco questo look elegante:',time:'14:02'},
+    {s:'card',prod:products[9]},
+    {s:'in-bot',t:'Da abbinare al Foulard seta €65 e una Cintura cuoio €75. Vuoi provarli in negozio?',time:'14:03'},
+    {s:'out',t:'Sì volentieri! Sabato pomeriggio?',time:'14:05'},
+    {s:'in-bot',t:'Perfetto! Ho disponibilità Sabato 17 alle 16:00 con la nostra personal shopper Elena. Confermo?',time:'14:05'},
+    {s:'cardbtn'}
+  ],
+  giulia:[
+    {s:'in',t:'Buongiorno, vorrei una consulenza per rinnovare il guardaroba primaverile',time:'10:12'},
+    {s:'in-bot',t:'Buongiorno Giulia! Sarei felice di aiutarti. Preferisci una sessione di personal shopping con Elena?',time:'10:12'},
+    {s:'out',t:'Sì, quando avete posto?',time:'10:15'},
+    {s:'in-bot',t:'Venerdì alle 17:30 è libero. Confermo con Elena Conti?',time:'10:15'},
+    {s:'out',t:'Perfetto, prenoto sabato alle 16!',time:'10:16'},
+    {s:'in-bot',t:'Prenotazione confermata ✓ Ti aspettiamo! 🌸',time:'10:16'}
+  ],
+  marco:[
+    {s:'in',t:'Avete il blazer in taglia L?',time:'11:40'},
+    {s:'in-bot',t:'Ciao Marco! Sì, il Blazer sartoriale lana €289 è disponibile in taglia L. 🧥',time:'11:40'},
+    {s:'card',prod:products[0]},
+    {s:'in-bot',t:'Vuoi che ti prenoti una prova in negozio?',time:'11:41'}
+  ],
+  alessandro:[
+    {s:'in-bot',t:'Ciao Alessandro, la tua prova capi è confermata per mercoledì alle 11:00.',time:'09:00'},
+    {s:'out',t:'Grazie mille, a domani!',time:'09:02'},
+    {s:'in-bot',t:'A presto! 👋',time:'09:02'}
+  ],
+  sara:[
+    {s:'in',t:'Il trench è disponibile in M?',time:'16:20'},
+    {s:'in-bot',t:'Ciao Sara! Sì, il Trench beige cintura €245 è disponibile in taglia M. 🧥',time:'16:20'},
+    {s:'card',prod:products[2]},
+    {s:'in-bot',t:'Posso fissarti una consulenza colore con Davide martedì alle 15:00?',time:'16:21'}
+  ]
+};
+function renderChatList(active='chiara'){
+  document.getElementById('chatList').innerHTML=Object.keys(chats).map(k=>{
+    const c=chats[k];
+    return `<div class="chat-item ${k===active?'active':''}" data-c="${k}"><div class="avatar">${c.av}</div><div class="info"><div class="name">${c.name}<small>${['14:05','10:16','11:41','09:02','16:21'][Object.keys(chats).indexOf(k)]||''}</small></div><div class="preview"><span class="tick">${c.tick}</span> ${c.preview}</div></div></div>`;
+  }).join('');
+  document.querySelectorAll('.chat-item').forEach(i=>i.onclick=()=>{loadThread(i.dataset.c);});
+}
+function loadThread(k){
+  renderChatList(k);
+  document.getElementById('chatList').classList.add('hide');
+  const c=chats[k];
+  document.getElementById('thName').textContent=c.name;
+  document.getElementById('thAv').textContent=c.av;
+  const m=document.getElementById('messages');
+  m.innerHTML=threads[k].map(x=>{
+    if(x.s==='in'||x.s==='in-bot') return `<div class="msg in">${x.t}<div class="t">${x.time}</div></div>`;
+    if(x.s==='out') return `<div class="msg out">${x.t}<div class="t">${x.time} ✓✓</div></div>`;
+    if(x.s==='card'){const p=x.prod;return `<div class="prod-card"><div class="ph">${p.ic}</div><div class="body"><div class="pn">${p.n}</div><div class="pp">${p.p}</div>${szHtml(p.sz)}</div></div>`;}
+    if(x.s==='cardbtn') return `<div class="prod-card"><div class="body"><div class="pn">📅 Sabato 17 · 16:00</div><div style="font-size:13px;color:#666;margin:4px 0">Personal shopper: Elena Conti</div><button class="btn-book" onclick="bookConfirm()">Prenota prova in negozio</button></div></div>`;
+  }).join('');
+  m.scrollTop=m.scrollHeight;
+}
+function bookConfirm(){
+  const m=document.getElementById('messages');
+  m.insertAdjacentHTML('beforeend',`<div class="msg out">Sì, confermo! 😊<div class="t">ora ✓✓</div></div><div class="msg in">Appuntamento confermato ✓ Ti aspettiamo Sabato alle 16:00! 🌿<div class="t">ora</div></div>`);
+  m.scrollTop=m.scrollHeight;
+}
+function sendMsg(){
+  const inp=document.getElementById('chatInput');
+  if(!inp.value.trim())return;
+  const m=document.getElementById('messages');
+  m.insertAdjacentHTML('beforeend',`<div class="msg out">${inp.value}<div class="t">ora ✓✓</div></div>`);
+  const txt=inp.value; inp.value='';
+  m.scrollTop=m.scrollHeight;
+  setTimeout(()=>{
+    m.insertAdjacentHTML('beforeend',`<div class="msg in">Perfetto! 🌟 Il tuo assistente di stile ha registrato la richiesta. C'è altro con cui posso aiutarti?<div class="t">ora</div></div>`);
+    m.scrollTop=m.scrollHeight;
+  },700);
+}
+renderChatList();
+loadThread('chiara');
+
+// CALENDAR
+const days=['Lun','Mar','Mer','Gio','Ven','Sab'];
+const hours=[];
+for(let h=10;h<=19;h++){hours.push(h+':00');hours.push(h+':30');}
+const appts=[
+  {d:0,h:'10:30',n:'Marco Testa',t:'Prova capi',st:'conf'},
+  {d:1,h:'15:00',n:'Sara Bianchi',t:'Consulenza colore',st:'att'},
+  {d:2,h:'11:00',n:'Alessandro Verdi',t:'Personal shopping',st:'conf'},
+  {d:4,h:'17:30',n:'Giulia Romano',t:'Personal shopping',st:'conf'},
+  {d:5,h:'16:00',n:'Chiara De Luca',t:'Personal shopping',st:'att'}
+];
+function buildCal(){
+  let html='<div class="h"></div>'+days.map(d=>`<div class="h">${d}</div>`).join('');
+  hours.forEach(h=>{
+    html+=`<div class="tcell">${h}</div>`;
+    for(let d=0;d<6;d++){
+      const a=appts.find(x=>x.d===d&&x.h===h);
+      html+=`<div class="slot">${a?`<div class="appt ${a.st}" onclick="apptInfo('${a.n}','${a.t}','${a.st}')">${a.n.split(' ')[0]}<br>${a.t}</div>`:''}</div>`;
+    }
+  });
+  document.getElementById('calendar').innerHTML=html;
+}
+const stLabel={conf:'Confermato',att:'In attesa',done:'Completato'};
+function apptInfo(n,t,st){alert(`📅 Appuntamento\n\nCliente: ${n}\nTipo: ${t}\nStato: ${stLabel[st]}\nPersonal shopper: ${st==='att'?'Davide Marchetti':'Elena Conti'}`);}
+buildCal();
+
+// TONE selector
+document.querySelectorAll('#tone .chip').forEach(c=>c.onclick=()=>{
+  document.querySelectorAll('#tone .chip').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active');
+});
+</script>
+</body>
+</html>

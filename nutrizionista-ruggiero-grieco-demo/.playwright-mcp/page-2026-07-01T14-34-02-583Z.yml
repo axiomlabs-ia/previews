@@ -1,0 +1,55 @@
+- generic [ref=f1e2]:
+  - complementary [ref=f1e3]:
+    - generic [ref=f1e4]:
+      - text: 🥗 Diaita
+      - generic [ref=f1e5]: Med
+    - navigation [ref=f1e6]:
+      - generic [ref=f1e7] [cursor=pointer]: 📊 Dashboard
+      - generic [ref=f1e8] [cursor=pointer]: 👥 Pazienti
+      - generic [ref=f1e9] [cursor=pointer]: 📋 Scheda Paziente
+      - generic [ref=f1e10] [cursor=pointer]: 🍽️ Piani alimentari
+      - generic [ref=f1e11] [cursor=pointer]: 📅 Calendario visite
+    - generic [ref=f1e12]:
+      - text: DiaitaMed • Roma
+      - text: Dott. Ruggiero Grieco
+  - generic [ref=f1e13]:
+    - generic [ref=f1e14]:
+      - generic [ref=f1e15]:
+        - heading "Dashboard" [level=1] [ref=f1e16]
+        - generic [ref=f1e17]: DEMO
+      - generic [ref=f1e18]:
+        - generic [ref=f1e19]: Dati di esempio
+        - generic [ref=f1e20]:
+          - button "👩‍⚕️ Nutrizionista" [ref=f1e21] [cursor=pointer]
+          - button "📱 Paziente" [ref=f1e22] [cursor=pointer]
+    - generic [ref=f1e24]:
+      - heading "Buongiorno, Dott. Grieco 👋" [level=2] [ref=f1e25]
+      - paragraph [ref=f1e26]: Ecco il riepilogo dei tuoi pazienti oggi.
+      - generic [ref=f1e27]:
+        - generic [ref=f1e28]:
+          - generic [ref=f1e29]: 👥
+          - generic [ref=f1e30]: Pazienti attivi
+          - generic [ref=f1e31]: "24"
+        - generic [ref=f1e32]:
+          - generic [ref=f1e33]: ✅
+          - generic [ref=f1e34]: Aderenza media settimana
+          - generic [ref=f1e35]: 78%
+        - generic [ref=f1e36]:
+          - generic [ref=f1e37]: 📖
+          - generic [ref=f1e38]: Diari da rivedere
+          - generic [ref=f1e39]: "7"
+        - generic [ref=f1e40]:
+          - generic [ref=f1e41]: 📅
+          - generic [ref=f1e42]: Visite oggi
+          - generic [ref=f1e43]: "3"
+      - generic [ref=f1e44]:
+        - heading "Aderenza pazienti — ultimi 7 giorni" [level=2] [ref=f1e46]
+        - generic [ref=f1e48]:
+          - heading "Da rivedere" [level=2] [ref=f1e49]
+          - table [ref=f1e50]:
+            - rowgroup [ref=f1e51]:
+              - row "Paziente Pasto Ora" [ref=f1e52]:
+                - columnheader "Paziente" [ref=f1e53]
+                - columnheader "Pasto" [ref=f1e54]
+                - columnheader "Ora" [ref=f1e55]
+            - rowgroup

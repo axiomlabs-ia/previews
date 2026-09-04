@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GUIDEinTOUR Booking Engine</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --primary:#1a5f7a; --primary-dark:#134b61; --accent:#f4a259;
+  --green:#2e9e5b; --orange:#e08a2b; --red:#d64545;
+  --bg:#f4f6f8; --card:#fff; --text:#233; --muted:#7a8a94; --border:#e2e8ec;
+}
+body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); }
+.app { display:flex; min-height:100vh; }
+/* Sidebar */
+.sidebar { width:230px; background:var(--primary-dark); color:#dbe8ee; display:flex; flex-direction:column; position:fixed; height:100vh; z-index:100; transition:transform .3s; }
+.logo { padding:20px 18px; font-weight:700; font-size:1.15rem; display:flex; align-items:center; gap:8px; border-bottom:1px solid rgba(255,255,255,.1); }
+.logo small { display:block; font-weight:400; font-size:.62rem; color:#8fb4c4; letter-spacing:.5px; }
+.nav { padding:12px 8px; flex:1; }
+.nav a { display:flex; align-items:center; gap:10px; padding:11px 14px; color:#c3d6de; text-decoration:none; border-radius:8px; margin-bottom:3px; font-size:.92rem; cursor:pointer; }
+.nav a:hover { background:rgba(255,255,255,.08); }
+.nav a.active { background:var(--primary); color:#fff; }
+.sidebar-foot { padding:14px 18px; font-size:.72rem; color:#7fa2b2; border-top:1px solid rgba(255,255,255,.1); }
+/* Main */
+.main { flex:1; margin-left:230px; }
+.topbar { background:var(--card); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:50; }
+.topbar h1 { font-size:1.2rem; }
+.demo-badge { background:var(--accent); color:#5a3200; font-weight:700; font-size:.68rem; padding:3px 8px; border-radius:5px; letter-spacing:.5px; }
+.period-sel { display:flex; gap:4px; }
+.period-sel button { border:1px solid var(--border); background:#fff; padding:6px 14px; border-radius:6px; cursor:pointer; font-size:.82rem; color:var(--muted); }
+.period-sel button.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.content { padding:24px; }
+.note { font-size:.72rem; color:var(--muted); font-style:italic; margin-bottom:16px; }
+.menu-toggle { display:none; background:none; border:none; font-size:1.4rem; cursor:pointer; }
+/* KPI */
+.kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:22px; }
+.kpi { background:var(--card); border-radius:12px; padding:18px; box-shadow:0 1px 4px rgba(0,0,0,.05); }
+.kpi .ic { font-size:1.5rem; }
+.kpi .val { font-size:1.7rem; font-weight:700; margin:6px 0 2px; }
+.kpi .lbl { font-size:.78rem; color:var(--muted); }
+/* Widgets */
+.grid2 { display:grid; grid-template-columns:1.4fr 1fr; gap:16px; }
+.panel { background:var(--card); border-radius:12px; padding:18px; box-shadow:0 1px 4px rgba(0,0,0,.05); margin-bottom:16px; }
+.panel h3 { font-size:.98rem; margin-bottom:14px; }
+.chart { display:flex; align-items:flex-end; gap:12px; height:160px; padding-top:10px; }
+.bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; }
+.bar { width:100%; background:linear-gradient(var(--primary),var(--accent)); border-radius:5px 5px 0 0; transition:height .5s; }
+.bar-wrap span { font-size:.7rem; color:var(--muted); }
+.bar-wrap .num { font-weight:700; font-size:.78rem; color:var(--text); }
+/* Departure list */
+.dep { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); }
+.dep:last-child { border:none; }
+.dep .time { font-weight:700; font-size:.85rem; min-width:48px; }
+.dep .info { flex:1; }
+.dep .info b { font-size:.85rem; display:block; }
+.dep .info small { color:var(--muted); font-size:.72rem; }
+.pill { font-size:.7rem; padding:3px 9px; border-radius:20px; font-weight:600; }
+.pill.g { background:#e0f5e8; color:var(--green); }
+.pill.o { background:#fdf0dd; color:var(--orange); }
+.pill.r { background:#fbe2e2; color:var(--red); }
+.feed li { list-style:none; padding:10px 0; border-bottom:1px solid var(--border); font-size:.85rem; display:flex; gap:10px; }
+.feed li:last-child { border:none; }
+.feed .dot { width:8px; height:8px; border-radius:50%; margin-top:6px; flex-shrink:0; }
+.feed small { color:var(--muted); font-size:.72rem; }
+/* Table */
+.toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:center; }
+.toolbar input { padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:.85rem; flex:1; min-width:180px; }
+.chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+.chip { padding:6px 13px; border:1px solid var(--border); border-radius:20px; background:#fff; cursor:pointer; font-size:.78rem; color:var(--muted); }
+.chip.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+table { width:100%; border-collapse:collapse; background:var(--card); border-radius:12px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.05); }
+th,td { padding:12px 14px; text-align:left; font-size:.83rem; border-bottom:1px solid var(--border); }
+th { background:#f0f4f6; color:var(--muted); font-weight:600; font-size:.74rem; text-transform:uppercase; letter-spacing:.4px; }
+tbody tr { cursor:pointer; }
+tbody tr:hover { background:#f7fafb; }
+.st { font-size:.72rem; padding:3px 9px; border-radius:20px; font-weight:600; }
+.st.conf { background:#e0f5e8; color:var(--green); }
+.st.att { background:#fdf0dd; color:var(--orange); }
+.st.canc { background:#fbe2e2; color:var(--red); }
+.code { font-family:monospace; font-weight:600; color:var(--primary); }
+/* Drawer */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:200; opacity:0; visibility:hidden; transition:.25s; }
+.overlay.show { opacity:1; visibility:visible; }
+.drawer { position:fixed; top:0; right:0; width:380px; max-width:90vw; height:100vh; background:#fff; z-index:210; transform:translateX(100%); transition:.3s; padding:22px; overflow-y:auto; }
+.drawer.show { transform:translateX(0); }
+.drawer .close { float:right; font-size:1.3rem; cursor:pointer; border:none; background:none; }
+.dr-row { display:flex; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--border); font-size:.87rem; }
+.dr-row span:first-child { color:var(--muted); }
+.btn { padding:9px 16px; border-radius:8px; border:none; cursor:pointer; font-weight:600; font-size:.85rem; }
+.btn.primary { background:var(--primary); color:#fff; }
+.btn.green { background:var(--green); color:#fff; }
+.btn.red { background:var(--red); color:#fff; }
+.btn.ghost { background:#eef2f4; color:var(--text); }
+.btn:hover { opacity:.9; }
+/* Calendar */
+.cal { display:grid; grid-template-columns:60px repeat(7,1fr); background:var(--card); border-radius:12px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.05); font-size:.75rem; }
+.cal .hd { background:#f0f4f6; padding:10px 6px; text-align:center; font-weight:600; color:var(--muted); border-bottom:1px solid var(--border); }
+.cal .tcell { padding:8px 6px; color:var(--muted); border-right:1px solid var(--border); border-bottom:1px solid var(--border); text-align:center; }
+.cal .cell { border-right:1px solid var(--border); border-bottom:1px solid var(--border); min-height:56px; padding:4px; }
+.ev { border-radius:6px; padding:4px 6px; margin-bottom:3px; font-size:.68rem; cursor:pointer; color:#fff; line-height:1.25; }
+.ev.g { background:var(--green); } .ev.o { background:var(--orange); } .ev.r { background:var(--red); }
+/* Tour cards */
+.tour-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:18px; }
+.tcard { background:var(--card); border-radius:12px; overflow:hidden; box-shadow:0 1px 5px rgba(0,0,0,.06); cursor:pointer; }
+.tcard .img { height:120px; background:linear-gradient(135deg,var(--primary),var(--accent)); display:flex; align-items:center; justify-content:center; font-size:2.6rem; }
+.tcard .body { padding:14px; }
+.tcard h4 { font-size:.92rem; margin-bottom:6px; }
+.tcard .meta { font-size:.76rem; color:var(--muted); display:flex; justify-content:space-between; margin-bottom:8px; }
+.tcard .price { font-weight:700; color:var(--primary); font-size:1.1rem; }
+.toggle-wrap { display:flex; align-items:center; gap:8px; margin-top:10px; font-size:.78rem; }
+.switch { width:38px; height:20px; background:#ccc; border-radius:20px; position:relative; cursor:pointer; transition:.2s; }
+.switch.on { background:var(--green); }
+.switch::after { content:''; position:absolute; width:16px; height:16px; background:#fff; border-radius:50%; top:2px; left:2px; transition:.2s; }
+.switch.on::after { left:20px; }
+/* Modal */
+.modal { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:300; display:none; align-items:center; justify-content:center; padding:20px; }
+.modal.show { display:flex; }
+.modal .box { background:#fff; border-radius:14px; max-width:480px; width:100%; padding:26px; max-height:90vh; overflow-y:auto; }
+/* Widget booking */
+.wiz { background:var(--card); border-radius:14px; max-width:480px; margin:0 auto; padding:26px; box-shadow:0 2px 12px rgba(0,0,0,.08); }
+.wiz label { display:block; font-size:.8rem; font-weight:600; margin:14px 0 5px; }
+.wiz select,.wiz input { width:100%; padding:10px; border:1px solid var(--border); border-radius:8px; font-size:.9rem; }
+.summ { background:#f0f6f8; border-radius:10px; padding:16px; margin:18px 0; }
+.summ .l { display:flex; justify-content:space-between; padding:5px 0; font-size:.87rem; }
+.summ .tot { font-weight:700; font-size:1.15rem; border-top:1px solid var(--border); padding-top:10px; margin-top:6px; }
+.nocomm { color:var(--green); font-weight:700; }
+.ok-msg { text-align:center; padding:30px 10px; }
+.ok-msg .big { font-size:3rem; }
+.hidden { display:none; }
+@media(max-width:850px){
+  .sidebar { transform:translateX(-100%); }
+  .sidebar.open { transform:translateX(0); }
+  .main { margin-left:0; }
+  .menu-toggle { display:block; }
+  .kpi-grid { grid-template-columns:repeat(2,1fr); }
+  .grid2 { grid-template-columns:1fr; }
+  .cal { font-size:.62rem; grid-template-columns:40px repeat(7,1fr); }
+  table { display:block; overflow-x:auto; white-space:nowrap; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">🗺️ GUIDEinTOUR<small>BOOKING ENGINE · BERLINO</small></div>
+    <nav class="nav">
+      <a class="active" data-view="dashboard">📊 Dashboard</a>
+      <a data-view="prenotazioni">📋 Prenotazioni</a>
+      <a data-view="calendario">📅 Calendario partenze</a>
+      <a data-view="catalogo">🎫 Catalogo Tour</a>
+      <a data-view="widget">🌐 Widget prenotazione</a>
+    </nav>
+    <div class="sidebar-foot">Commissioni marketplace: <b>€0</b><br>Versione demo v1.0</div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <h1 id="pageTitle">Dashboard</h1>
+        <span class="demo-badge">DEMO</span>
+      </div>
+      <div class="period-sel" id="periodSel">
+        <button>Oggi</button><button class="active">Settimana</button><button>Mese</button>
+      </div>
+    </div>
+    <div class="content">
+      <p class="note">⚠️ Dati di esempio — ambiente dimostrativo, nessuna prenotazione reale.</p>
+
+      <!-- DASHBOARD -->
+      <section id="dashboard">
+        <div class="kpi-grid">
+          <div class="kpi"><div class="ic">📆</div><div class="val">7</div><div class="lbl">Prenotazioni oggi</div></div>
+          <div class="kpi"><div class="ic">👥</div><div class="val">34</div><div class="lbl">Partecipanti confermati</div></div>
+          <div class="kpi"><div class="ic">💶</div><div class="val">€2.480</div><div class="lbl">Incasso settimana</div></div>
+          <div class="kpi"><div class="ic">📈</div><div class="val">72%</div><div class="lbl">Tasso occupazione</div></div>
+        </div>
+        <div class="grid2">
+          <div class="panel">
+            <h3>Prenotazioni ultimi 7 giorni</h3>
+            <div class="chart" id="chart"></div>
+          </div>
+          <div>
+            <div class="panel">
+              <h3>Prossime partenze</h3>
+              <div id="depList"></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Attività recente</h3>
+          <ul class="feed">
+            <li><span class="dot" style="background:var(--green)"></span><div><b>Nuova prenotazione</b> — Marco Rossi (2 pers)<br><small>2 min fa</small></div></li>
+            <li><span class="dot" style="background:var(--primary)"></span><div><b>Pagamento ricevuto</b> — €135<br><small>18 min fa</small></div></li>
+            <li><span class="dot" style="background:var(--red)"></span><div><b>Cancellazione</b> — Luca Ricci<br><small>1 h fa</small></div></li>
+            <li><span class="dot" style="background:var(--green)"></span><div><b>Nuova prenotazione</b> — Sara Greco (5 pers)<br><small>2 h fa</small></div></li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- PRENOTAZIONI -->
+      <section id="prenotazioni" class="hidden">
+        <div class="toolbar">
+          <input type="text" id="search" placeholder="🔍 Cerca cliente, codice o tour...">
+        </div>
+        <div class="chips" id="chips">
+          <div class="chip active" data-f="all">Tutte</div>
+          <div class="chip" data-f="Confermata">Confermate</div>
+          <div class="chip" data-f="In attesa">In attesa</div>
+          <div class="chip" data-f="Cancellata">Cancellate</div>
+        </div>
+        <table>
+          <thead><tr><th>Codice</th><th>Cliente</th><th>Tour</th><th>Data/Ora</th><th>Pers.</th><th>Importo</th><th>Stato</th><th>Canale</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </section>
+
+      <!-- CALENDARIO -->
+      <section id="calendario" class="hidden">
+        <div class="panel">
+          <h3>Settimana 10 – 16 Giugno 2024</h3>
+          <div class="cal" id="cal"></div>
+          <div style="margin-top:12px;display:flex;gap:16px;font-size:.75rem;">
+            <span><span class="pill g">●</span> Posti liberi</span>
+            <span><span class="pill o">●</span> Quasi pieno</span>
+            <span><span class="pill r">●</span> Sold out</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- CATALOGO -->
+      <section id="catalogo" class="hidden">
+        <div class="tour-grid" id="tourGrid"></div>
+      </section>
+
+      <!-- WIDGET -->
+      <section id="widget" class="hidden">
+        <p class="note" style="text-align:center;">Anteprima di ciò che vede il turista sul tuo sito 🌐</p>
+        <div class="wiz" id="wiz">
+          <h3 style="margin-bottom:6px;">Prenota il tuo tour a Berlino 🇮🇹</h3>
+          <label>Tour</label>
+          <select id="wTour"></select>
+          <label>Data</label>
+          <input type="date" id="wDate" value="2024-06-12">
+          <label>Numero persone</label>
+          <select id="wPers">
+            <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+          </select>
+          <div class="summ">
+            <div class="l"><span>Prezzo per persona</span><span id="wUnit">€29</span></div>
+            <div class="l"><span>Persone</span><span id="wNp">1</span></div>
+            <div class="l"><span>Commissione marketplace</span><span class="nocomm">€0 ✓</span></div>
+            <div class="l tot"><span>Totale</span><span id="wTot">€29</span></div>
+          </div>
+          <label>Nome e cognome</label>
+          <input type="text" id="wName" placeholder="Es. Anna Verdi">
+          <label>Email</label>
+          <input type="email" id="wEmail" placeholder="anna.verdi@email.it">
+          <button class="btn primary" style="width:100%;margin-top:18px;" onclick="confirmBooking()">Conferma prenotazione</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- Drawer prenotazione -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <button class="close" onclick="closeDrawer()">✕</button>
+  <div id="drawerContent"></div>
+</div>
+
+<!-- Modal tour -->
+<div class="modal" id="modal">
+  <div class="box" id="modalBox"></div>
+</div>
+
+<script>
+const tours = [
+  {n:"Berlino Classica: Porta di Brandeburgo e Reichstag",d:"3h",p:29,r:"Pariser Platz",rt:4.9,cap:12,em:"🏛️",orari:["10:00","14:00"],desc:"Passeggiata nel cuore storico di Berlino: Porta di Brandeburgo, Reichstag, Unter den Linden."},
+  {n:"Muro di Berlino e Guerra Fredda",d:"2.5h",p:25,r:"Checkpoint Charlie",rt:4.8,cap:14,em:"🧱",orari:["09:30","14:30"],desc:"La storia della città divisa: Checkpoint Charlie, resti del Muro e East Side Gallery."},
+  {n:"Terzo Reich e Berlino Nazista",d:"3h",p:32,r:"Brandenburger Tor",rt:4.9,cap:12,em:"⚔️",orari:["09:00","15:00"],desc:"Un percorso di memoria tra i luoghi del regime nazista e la resistenza."},
+  {n:"Berlino Alternativa: Kreuzberg e Street Art",d:"2h",p:22,r:"Kottbusser Tor",rt:4.7,cap:10,em:"🎨",orari:["11:00","16:00"],desc:"Murales, quartieri creativi e la Berlino underground di Kreuzberg."},
+  {n:"Museumsinsel: Isola dei Musei",d:"2h",p:35,r:"Lustgarten",rt:4.8,cap:12,em:"🏺",orari:["11:00"],desc:"Visita guidata al patrimonio UNESCO dell'Isola dei Musei."},
+  {n:"Tour serale: Berlino by Night",d:"2h",p:27,r:"Alexanderplatz",rt:4.6,cap:15,em:"🌃",orari:["20:00"],desc:"Le luci di Berlino di notte: Alexanderplatz, TV Tower e vita notturna."}
+];
+
+const bookings = [
+  {c:"GIT-2401",cl:"Marco Rossi",t:"Berlino Classica",d:"12/06 10:00",p:2,i:58,s:"Confermata",ch:"Sito"},
+  {c:"GIT-2402",cl:"Giulia Ferrari",t:"Muro di Berlino",d:"12/06 14:30",p:4,i:100,s:"Confermata",ch:"Sito"},
+  {c:"GIT-2403",cl:"Alessandro Bianchi",t:"Terzo Reich",d:"13/06 09:00",p:2,i:64,s:"In attesa",ch:"WhatsApp"},
+  {c:"GIT-2404",cl:"Chiara Colombo",t:"Kreuzberg Street Art",d:"13/06 16:00",p:3,i:66,s:"Confermata",ch:"Sito"},
+  {c:"GIT-2405",cl:"Luca Ricci",t:"Museumsinsel",d:"14/06 11:00",p:2,i:70,s:"Cancellata",ch:"Telefono"},
+  {c:"GIT-2406",cl:"Sara Greco",t:"Berlino by Night",d:"14/06 20:00",p:5,i:135,s:"Confermata",ch:"Sito"},
+  {c:"GIT-2407",cl:"Davide Marino",t:"Berlino Classica",d:"15/06 10:00",p:1,i:29,s:"Confermata",ch:"Sito"},
+  {c:"GIT-2408",cl:"Francesca Conti",t:"Muro di Berlino",d:"15/06 14:30",p:6,i:150,s:"In attesa",ch:"WhatsApp"},
+  {c:"GIT-2409",cl:"Matteo Esposito",t:"Terzo Reich",d:"16/06 15:00",p:2,i:64,s:"Confermata",ch:"Sito"},
+  {c:"GIT-2410",cl:"Valentina Romano",t:"Museumsinsel",d:"16/06 11:00",p:4,i:140,s:"Confermata",ch:"Sito"},
+  {c:"GIT-2411",cl:"Andrea Gallo",t:"Berlino by Night",d:"17/06 20:00",p:2,i:54,s:"In attesa",ch:"Telefono"},
+  {c:"GIT-2412",cl:"Elena Fontana",t:"Kreuzberg Street Art",d:"17/06 16:00",p:3,i:66,s:"Confermata",ch:"WhatsApp"},
+  {c:"GIT-2413",cl:"Paolo De Luca",t:"Berlino Classica",d:"18/06 14:00",p:5,i:145,s:"Confermata",ch:"Sito"}
+];
+
+// NAV
+document.querySelectorAll('.nav a').forEach(a=>{
+  a.onclick=()=>{
+    document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+    a.classList.add('active');
+    document.querySelectorAll('.content section').forEach(s=>s.classList.add('hidden'));
+    const v=a.dataset.view;
+    document.getElementById(v).classList.remove('hidden');
+    document.getElementById('pageTitle').textContent=a.textContent.replace(/^[^\s]+\s/,'');
+    document.getElementById('sidebar').classList.remove('open');
+    window.scrollTo(0,0);
+  };
+});
+// period selector
+document.querySelectorAll('#periodSel button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#periodSel button').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+});
+
+// CHART
+const data=[5,8,6,11,9,12,7], days=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'], max=Math.max(...data);
+document.getElementById('chart').innerHTML=data.map((v,i)=>
+  `<div class="bar-wrap"><span class="num">${v}</span><div class="bar" style="height:${v/max*120}px"></div><span>${days[i]}</span></div>`).join('');
+
+// DEPARTURES
+const deps=[
+  {tm:"09:00",t:"Terzo Reich",b:"8/12",c:"o",m:"☀️"},
+  {tm:"10:00",t:"Berlino Classica",b:"6/12",c:"g",m:"⛅"},
+  {tm:"14:30",t:"Muro di Berlino",b:"14/14",c:"r",m:"☀️"},
+  {tm:"16:00",t:"Kreuzberg Street Art",b:"3/10",c:"g",m:"🌧️"},
+  {tm:"20:00",t:"Berlino by Night",b:"12/15",c:"o",m:"🌙"}
+];
+document.getElementById('depList').innerHTML=deps.map(d=>
+  `<div class="dep"><div class="time">${d.tm}</div><div class="info"><b>${d.t}</b><small>${d.m} Meteo</small></div><span class="pill ${d.c}">${d.b}</span></div>`).join('');
+
+// TABLE
+function stClass(s){return s==='Confermata'?'conf':s==='In attesa'?'att':'canc';}
+let curFilter='all', curSearch='';
+function renderTable(){
+  const tb=document.getElementById('tbody');
+  const rows=bookings.filter(b=>
+    (curFilter==='all'||b.s===curFilter)&&
+    (curSearch===''||(b.cl+b.c+b.t).toLowerCase().includes(curSearch)));
+  tb.innerHTML=rows.map(b=>
+    `<tr onclick='openDrawer("${b.c}")'><td class="code">${b.c}</td><td>${b.cl}</td><td>${b.t}</td><td>${b.d}</td><td>${b.p}</td><td>€${b.i}</td><td><span class="st ${stClass(b.s)}">${b.s}</span></td><td>${b.ch}</td></tr>`).join('')
+    ||`<tr><td colspan="8" style="text-align:center;color:var(--muted)">Nessun risultato</td></tr>`;
+}
+renderTable();
+document.getElementById('search').oninput=e=>{curSearch=e.target.value.toLowerCase();renderTable();};
+document.querySelectorAll('#chips .chip').forEach(c=>c.onclick=()=>{
+  document.querySelectorAll('#chips .chip').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active');curFilter=c.dataset.f;renderTable();
+});
+
+// DRAWER
+function openDrawer(code){
+  const b=bookings.find(x=>x.c===code);
+  document.getElementById('drawerContent').innerHTML=`
+    <span class="demo-badge">${b.c}</span>
+    <h2 style="margin:14px 0 4px;">${b.cl}</h2>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:14px;">${b.t}</p>
+    <div class="dr-row"><span>Data / Ora</span><b>${b.d}</b></div>
+    <div class="dr-row"><span>Persone</span><b>${b.p}</b></div>
+    <div class="dr-row"><span>Importo</span><b>€${b.i}</b></div>
+    <div class="dr-row"><span>Canale</span><b>${b.ch}</b></div>
+    <div class="dr-row"><span>Commissione</span><b class="nocomm">€0 ✓</b></div>
+    <div class="dr-row"><span>Stato attuale</span><span class="st ${stClass(b.s)}" id="drSt">${b.s}</span></div>
+    <div style="display:flex;gap:8px;margin-top:20px;">
+      <button class="btn green" onclick="changeStatus('${b.c}','Confermata')">Conferma</button>
+      <button class="btn red" onclick="changeStatus('${b.c}','Cancellata')">Cancella</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="btn ghost" style="flex:1" onclick="changeStatus('${b.c}','In attesa')">In attesa</button>
+    </div>`;
+  document.getElementById('drawer').classList.add('show');
+  document.getElementById('overlay').classList.add('show');
+}
+function closeDrawer(){document.getElementById('drawer').classList.remove('show');document.getElementById('overlay').classList.remove('show');}
+function changeStatus(code,st){
+  const b=bookings.find(x=>x.c===code);b.s=st;
+  const el=document.getElementById('drSt');el.textContent=st;el.className='st '+stClass(st);
+  renderTable();
+}
+
+// CALENDAR
+const calSlots=['09:00','11:00','14:00','16:00','20:00'];
+const calDays=['Lun 10','Mar 11','Mer 12','Gio 13','Ven 14','Sab 15','Dom 16'];
+const calEvents={ // slot|day index
+  '11:00|2':{t:'Classica',o:6,c:12,cl:'g'},
+  '09:00|3':{t:'Terzo Reich',o:8,c:12,cl:'o'},
+  '14:00|3':{t:'Muro',o:14,c:14,cl:'r'},
+  '16:00|3':{t:'Kreuzberg',o:3,c:10,cl:'g'},
+  '11:00|4':{t:'Museumsinsel',o:5,c:12,cl:'g'},
+  '20:00|4':{t:'by Night',o:12,c:15,cl:'o'},
+  '11:00|5':{t:'Classica',o:11,c:12,cl:'o'},
+  '14:00|5':{t:'Muro',o:6,c:14,cl:'g'}
+};
+function renderCal(){
+  let h='<div class="hd"></div>'+calDays.map(d=>`<div class="hd">${d}</div>`).join('');
+  calSlots.forEach(s=>{
+    h+=`<div class="tcell">${s}</div>`;
+    for(let d=0;d<7;d++){
+      const ev=calEvents[s+'|'+d];
+      h+=`<div class="cell">${ev?`<div class="ev ${ev.cl}" onclick="calEv('${ev.t}',${ev.o},${ev.c})">${ev.t}<br>${ev.o}/${ev.c}</div>`:''}</div>`;
+    }
+  });
+  document.getElementById('cal').innerHTML=h;
+}
+renderCal();
+function calEv(t,o,c){alert(`Tour: ${t}\nPosti: ${o}/${c}\n\n(Demo) Apri "Vedi prenotazioni" per il dettaglio.`);}
+
+// CATALOG
+function renderCatalog(){
+  document.getElementById('tourGrid').innerHTML=tours.map((t,i)=>`
+    <div class="tcard">
+      <div class="img" onclick="openModal(${i})">${t.em}</div>
+      <div class="body">
+        <h4 onclick="openModal(${i})">${t.n}</h4>
+        <div class="meta"><span>⏱ ${t.d} · 🇮🇹</span><span>⭐ ${t.rt}</span></div>
+        <div class="meta"><span>📍 ${t.r}</span></div>
+        <div class="price">€${t.p}</div>
+        <div class="toggle-wrap">
+          <div class="switch ${t.paused?'':'on'}" onclick="toggleTour(${i},this)"></div>
+          <span id="tst${i}">${t.paused?'In pausa':'Attivo'}</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+renderCatalog();
+function toggleTour(i,el){
+  tours[i].paused=!tours[i].paused;
+  el.classList.toggle('on');
+  document.getElementById('tst'+i).textContent=tours[i].paused?'In pausa':'Attivo';
+}
+function openModal(i){
+  const t=tours[i];
+  document.getElementById('modalBox').innerHTML=`
+    <button class="close" style="float:right;font-size:1.3rem;border:none;background:none;cursor:pointer" onclick="closeModal()">✕</button>
+    <div style="font-size:3rem">${t.em}</div>
+    <h2 style="margin:8px 0;">${t.n}</h2>
+    <p style="color:var(--muted);font-size:.9rem;margin-bottom:14px;">${t.desc}</p>
+    <div class="dr-row"><span>Durata</span><b>${t.d}</b></div>
+    <div class="dr-row"><span>Prezzo</span><b>€${t.p} / pers.</b></div>
+    <div class="dr-row"><span>Punto di ritrovo</span><b>${t.r}</b></div>
+    <div class="dr-row"><span>Capienza max</span><b>${t.cap} persone</b></div>
+    <div class="dr-row"><span>Lingua</span><b>Italiano 🇮🇹</b></div>
+    <div class="dr-row"><span>Rating</span><b>⭐ ${t.rt}</b></div>
+    <p style="margin:14px 0 6px;font-weight:600;font-size:.85rem;">Orari disponibili:</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">${t.orari.map(o=>`<span class="chip active">${o}</span>`).join('')}</div>`;
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+document.getElementById('modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
+
+// WIDGET
+const wSel=document.getElementById('wTour');
+wSel.innerHTML=tours.map((t,i)=>`<option value="${i}">${t.n} — €${t.p}</option>`).join('');
+function updWiz(){
+  const t=tours[+wSel.value], np=+document.getElementById('wPers').value;
+  document.getElementById('wUnit').textContent='€'+t.p;
+  document.getElementById('wNp').textContent=np;
+  document.getElementById('wTot').textContent='€'+(t.p*np);
+}
+wSel.onchange=updWiz;
+document.getElementById('wPers').onchange=updWiz;
+updWiz();
+function confirmBooking(){
+  const name=document.getElementById('wName').value.trim();
+  if(!name){alert('Inserisci nome e cognome per continuare.');return;}
+  const t=tours[+wSel.value], np=+document.getElementById('wPers').value;
+  document.getElementById('wiz').innerHTML=`
+    <div class="ok-msg">
+      <div class="big">✅</div>
+      <h2 style="margin:10px 0;">Prenotazione confermata!</h2>
+      <p style="color:var(--muted);font-size:.9rem;">Grazie <b>${name}</b>, hai prenotato <b>${t.n}</b> per <b>${np}</b> persona/e.</p>
+      <div class="summ" style="text-align:left;">
+        <div class="l"><span>Totale pagato</span><b>€${t.p*np}</b></div>
+        <div class="l"><span>Commissione marketplace</span><span class="nocomm">€0 ✓</span></div>
+      </div>
+      <p style="font-size:.78rem;color:var(--muted)">Riceverai conferma via email · Codice GIT-2414</p>
+      <button class="btn primary" style="margin-top:14px" onclick="location.reload()">Nuova prenotazione</button>
+    </div>`;
+}
+</script>
+</body>
+</html>

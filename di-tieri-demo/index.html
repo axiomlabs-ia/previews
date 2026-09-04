@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PraticaHub — Studio Di Tieri Consulting</title>
+<style>
+:root{
+  --primary:#1e5b9c;--primary-dark:#16467a;--accent:#2bb673;--bg:#f4f6fa;
+  --card:#fff;--text:#1f2a37;--muted:#6b7280;--border:#e4e8ef;
+  --yellow:#f5b400;--red:#e05656;--blue:#3b82f6;--purple:#8b5cf6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.45}
+button{font-family:inherit;cursor:pointer}
+a{color:inherit;text-decoration:none}
+.hidden{display:none!important}
+
+/* ===== LOGIN ===== */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#1e5b9c,#2bb673);padding:20px}
+.login-box{background:#fff;border-radius:16px;padding:40px;max-width:400px;width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.logo{font-size:26px;font-weight:800;color:var(--primary);display:flex;align-items:center;gap:8px}
+.logo .badge-demo{margin-left:auto}
+.claim{color:var(--muted);font-size:13px;margin:4px 0 24px}
+.login-box label{display:block;font-size:13px;font-weight:600;margin:14px 0 5px}
+.login-box input{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px}
+.btn{background:var(--primary);color:#fff;border:none;padding:12px;border-radius:8px;font-weight:600;font-size:15px;width:100%;margin-top:22px}
+.btn:hover{background:var(--primary-dark)}
+.toggle-link{text-align:center;margin-top:18px;font-size:13px;color:var(--primary);cursor:pointer}
+.badge-demo{background:#ff6b35;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:1px}
+
+/* ===== APP LAYOUT ===== */
+#app{display:flex;min-height:100vh}
+.sidebar{width:240px;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;height:100vh;z-index:50;transition:.3s}
+.sidebar .logo{padding:20px 18px;font-size:20px;border-bottom:1px solid var(--border)}
+.nav-item{display:flex;align-items:center;gap:11px;padding:13px 18px;color:var(--muted);font-weight:500;cursor:pointer;border-left:3px solid transparent}
+.nav-item:hover{background:#f4f6fa}
+.nav-item.active{color:var(--primary);background:#eef4fb;border-left-color:var(--primary);font-weight:600}
+.nav-item .ic{font-size:18px}
+.side-foot{margin-top:auto;padding:16px 18px;font-size:11px;color:var(--muted);border-top:1px solid var(--border)}
+
+.main{flex:1;margin-left:240px}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:13px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:40}
+.hamburger{display:none;font-size:22px;background:none;border:none}
+.topbar .user{margin-left:auto;display:flex;align-items:center;gap:14px}
+.bell{position:relative;font-size:20px;cursor:pointer;background:none;border:none}
+.bell .cnt{position:absolute;top:-6px;right:-6px;background:var(--red);color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 5px}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.content{padding:24px;max-width:1200px;margin:0 auto}
+h1.page-title{font-size:22px;margin-bottom:4px}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:22px}
+
+/* notifications dropdown */
+.notif-dd{position:absolute;top:54px;right:80px;width:320px;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.15);z-index:60;overflow:hidden}
+.notif-dd h4{padding:13px 16px;border-bottom:1px solid var(--border);font-size:14px}
+.notif-item{padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px}
+.notif-item small{color:var(--muted);font-size:11px}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.kpi{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px}
+.kpi .v{font-size:30px;font-weight:800;color:var(--primary)}
+.kpi .l{font-size:12px;color:var(--muted);margin-top:3px}
+.kpi.warn .v{color:var(--yellow)}.kpi.ok .v{color:var(--accent)}.kpi.red .v{color:var(--red)}
+
+.banner{background:#fff8e1;border:1px solid #f5d479;border-left:4px solid var(--yellow);border-radius:8px;padding:13px 16px;margin-bottom:22px;font-size:14px;display:flex;align-items:center;gap:10px}
+
+.cols{display:grid;grid-template-columns:1fr 320px;gap:20px}
+@media(max-width:900px){.cols{grid-template-columns:1fr}}
+
+.section-h{font-size:16px;font-weight:700;margin-bottom:13px}
+.pratica-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:14px}
+.pratica-card:hover{border-color:var(--primary);box-shadow:0 4px 16px rgba(30,91,156,.1)}
+.pratica-card .pic{width:44px;height:44px;border-radius:10px;background:#eef4fb;display:flex;align-items:center;justify-content:center;font-size:22px}
+.pratica-card .info{flex:1}
+.pratica-card .info .t{font-weight:600;font-size:14px}
+.pratica-card .info .m{font-size:12px;color:var(--muted);margin-top:2px}
+.badge{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap}
+.b-lav{background:#e0edfb;color:#1e5b9c}
+.b-att{background:#fff1d6;color:#a86a00}
+.b-manc{background:#fde4e4;color:#c0392b}
+.b-comp{background:#dcf5e7;color:#1e8a54}
+
+.side-box{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px}
+.scad-item{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--border)}
+.scad-item:last-child{border:none}
+.scad-dot{width:10px;height:10px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.d-fisc{background:var(--red)}.d-doc{background:var(--blue)}.d-contr{background:var(--purple)}
+.scad-item .st{font-size:13px;font-weight:600}
+.scad-item .sd{font-size:11px;color:var(--muted)}
+
+/* breadcrumb */
+.bc{font-size:13px;color:var(--muted);margin-bottom:16px}
+.bc span{cursor:pointer}.bc span:hover{color:var(--primary)}
+
+.detail-head{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
+.detail-head h2{font-size:19px;margin-bottom:8px}
+.dh-meta{display:flex;flex-wrap:wrap;gap:24px;margin-top:14px;font-size:13px;color:var(--muted)}
+.dh-meta b{color:var(--text)}
+
+/* tabs */
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--border);margin-bottom:18px}
+.tab{padding:11px 18px;font-weight:600;font-size:14px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+
+/* timeline */
+.timeline{position:relative;padding-left:34px}
+.timeline::before{content:'';position:absolute;left:11px;top:6px;bottom:6px;width:2px;background:var(--border)}
+.tl-step{position:relative;padding-bottom:22px}
+.tl-step .dot{position:absolute;left:-30px;top:0;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff}
+.dot.done{background:var(--accent)}.dot.curr{background:var(--primary)}.dot.todo{background:#cdd4df}
+.tl-step .ts-t{font-weight:600;font-size:14px}
+.tl-step .ts-d{font-size:12px;color:var(--muted)}
+
+/* table */
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+th,td{text-align:left;padding:12px 14px;font-size:13px;border-bottom:1px solid var(--border)}
+th{background:#f9fafc;font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+tr:last-child td{border-bottom:none}
+.lnk{color:var(--primary);font-weight:600;cursor:pointer}
+.lnk:hover{text-decoration:underline}
+.btn-sm{background:var(--primary);color:#fff;border:none;padding:7px 14px;border-radius:7px;font-weight:600;font-size:13px}
+.btn-sm:hover{background:var(--primary-dark)}
+.btn-out{background:#fff;color:var(--primary);border:1px solid var(--primary)}
+
+/* messages */
+.msg{padding:13px 16px;border-radius:12px;margin-bottom:12px;max-width:75%}
+.msg.studio{background:#eef4fb}
+.msg.cliente{background:#dcf5e7;margin-left:auto}
+.msg .mh{font-size:12px;font-weight:700;margin-bottom:4px}
+.msg .mh span{font-weight:400;color:var(--muted);margin-left:6px}
+.msg-input{display:flex;gap:10px;margin-top:14px}
+.msg-input input{flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:8px}
+
+/* dropzone */
+.dropzone{border:2px dashed #b8c4d6;border-radius:12px;padding:40px;text-align:center;color:var(--muted);background:#fbfcfe;margin-bottom:22px;cursor:pointer;transition:.15s}
+.dropzone:hover{border-color:var(--primary);background:#f1f6fc}
+.filters{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.filters input,.filters select{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px}
+.filters input{flex:1;min-width:180px}
+
+/* calendar */
+.cal-head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-dow{font-size:11px;font-weight:700;color:var(--muted);text-align:center;padding:4px}
+.cal-cell{background:#fff;border:1px solid var(--border);border-radius:8px;min-height:74px;padding:5px;font-size:12px}
+.cal-cell.empty{background:transparent;border:none}
+.cal-cell .num{font-weight:600;color:var(--muted)}
+.cal-ev{font-size:10px;color:#fff;border-radius:4px;padding:2px 4px;margin-top:3px;line-height:1.2;overflow:hidden}
+.ev-fisc{background:var(--red)}.ev-doc{background:var(--blue)}.ev-contr{background:var(--purple)}
+.legend{display:flex;gap:18px;margin:18px 0;font-size:13px;flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend .lg{width:13px;height:13px;border-radius:3px}
+
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+.modal{background:#fff;border-radius:14px;padding:26px;max-width:440px;width:100%}
+.modal h3{margin-bottom:16px}
+.progress{height:10px;background:#eef1f6;border-radius:6px;overflow:hidden;margin:18px 0}
+.progress .bar{height:100%;width:0;background:var(--accent);transition:width .1s linear}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}.sidebar.open{transform:none}
+  .main{margin-left:0}.hamburger{display:block}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .notif-dd{right:10px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="login">
+  <div class="login-box">
+    <div class="logo">📁 PraticaHub <span class="badge-demo">DEMO</span></div>
+    <div class="claim">Studio Di Tieri Consulting — Area Riservata Clienti</div>
+    <label>Email</label>
+    <input type="email" value="mario.rossi@bianchisrl.it">
+    <label>Password</label>
+    <input type="password" value="password">
+    <button class="btn" onclick="enterApp()">Accedi</button>
+    <div class="toggle-link">Sei un consulente? Accedi all'area studio →</div>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app" class="hidden">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">📁 PraticaHub <span class="badge-demo">DEMO</span></div>
+    <div class="nav-item active" data-v="dashboard" onclick="nav('dashboard')"><span class="ic">🏠</span> Dashboard</div>
+    <div class="nav-item" data-v="documenti" onclick="nav('documenti')"><span class="ic">📄</span> Documenti</div>
+    <div class="nav-item" data-v="scadenze" onclick="nav('scadenze')"><span class="ic">📅</span> Scadenze</div>
+    <div class="side-foot">
+      Consulente assegnato:<br><b>Dott.ssa Elena Di Tieri</b><br><br>
+      <span style="color:#ff6b35;font-weight:700">⚠ Dati di esempio</span>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <button class="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+      <strong>Bianchi S.r.l.</strong>
+      <div class="user">
+        <button class="bell" onclick="toggleNotif()">🔔<span class="cnt">3</span></button>
+        <div class="avatar">MR</div>
+      </div>
+    </div>
+
+    <div class="notif-dd hidden" id="notifDD">
+      <h4>Notifiche</h4>
+      <div class="notif-item">Manca la <b>Liquidazione IVA Q2</b> — caricala entro il 28/05<br><small>2h fa</small></div>
+      <div class="notif-item">Il documento <b>Registro acquisti</b> è in verifica<br><small>ieri</small></div>
+      <div class="notif-item">Scadenza <b>F24</b> tra 3 giorni<br><small>ieri</small></div>
+    </div>
+
+    <div class="content">
+
+      <!-- ===== S2 DASHBOARD ===== -->
+      <div id="view-dashboard">
+        <h1 class="page-title">Benvenuto, Bianchi S.r.l. 👋</h1>
+        <div class="subtitle">P.IVA 01987650689 — referente Mario Rossi</div>
+
+        <div class="kpi-grid">
+          <div class="kpi"><div class="v">4</div><div class="l">Pratiche aperte</div></div>
+          <div class="kpi warn"><div class="v" id="kpiDoc">2</div><div class="l">Documenti da caricare</div></div>
+          <div class="kpi red"><div class="v">1</div><div class="l">Scadenze entro 7gg</div></div>
+          <div class="kpi ok"><div class="v">12</div><div class="l">Pratiche completate</div></div>
+        </div>
+
+        <div class="banner">⚠️ <b>Documento mancante</b> per la pratica Modello F24 2024 — Acconto.</div>
+
+        <div class="cols">
+          <div>
+            <div class="section-h">Le tue pratiche</div>
+            <div id="praticheList"></div>
+          </div>
+          <div>
+            <div class="section-h">Prossime scadenze</div>
+            <div class="side-box">
+              <div class="scad-item"><div class="scad-dot d-fisc"></div><div><div class="st">Versamento F24 acconto</div><div class="sd">16/06/2024 · tra 3 giorni</div></div></div>
+              <div class="scad-item"><div class="scad-dot d-fisc"></div><div><div class="st">Invio dichiarazione IVA Q2</div><div class="sd">31/05/2024</div></div></div>
+              <div class="scad-item"><div class="scad-dot d-doc"></div><div><div class="st">Deposito Bilancio 2023</div><div class="sd">30/06/2024</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== S3 DETTAGLIO ===== -->
+      <div id="view-dettaglio" class="hidden">
+        <div class="bc"><span onclick="nav('dashboard')">Dashboard</span> › <span onclick="nav('dashboard')">Pratiche</span> › <b id="bcTitle"></b></div>
+        <div class="detail-head">
+          <h2 id="dTitle"></h2>
+          <span class="badge" id="dBadge"></span>
+          <div class="dh-meta">
+            <div>Referente studio:<br><b id="dRef"></b></div>
+            <div>Data apertura:<br><b id="dOpen"></b></div>
+            <div>Scadenza:<br><b id="dDue"></b></div>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <div class="tab active" id="tabT-time" onclick="detTab('time')">Avanzamento</div>
+          <div class="tab" id="tabT-doc" onclick="detTab('doc')">Documenti</div>
+          <div class="tab" id="tabT-msg" onclick="detTab('msg')">Messaggi</div>
+        </div>
+
+        <div id="detTab-time">
+          <div class="timeline">
+            <div class="tl-step"><div class="dot done">✓</div><div class="ts-t">Pratica aperta</div><div class="ts-d">02/04/2024 — ricezione mandato</div></div>
+            <div class="tl-step"><div class="dot done">✓</div><div class="ts-t">Raccolta documenti contabili</div><div class="ts-d">12/05/2024 — registri caricati</div></div>
+            <div class="tl-step"><div class="dot curr">●</div><div class="ts-t">Verifica e liquidazione IVA</div><div class="ts-d">In corso — in attesa liquidazione IVA</div></div>
+            <div class="tl-step"><div class="dot todo"></div><div class="ts-t">Invio telematico dichiarazione</div><div class="ts-d">Da fare — entro 31/05/2024</div></div>
+            <div class="tl-step"><div class="dot todo"></div><div class="ts-t">Chiusura pratica</div><div class="ts-d">Da fare</div></div>
+          </div>
+        </div>
+
+        <div id="detTab-doc" class="hidden">
+          <div style="margin-bottom:14px"><button class="btn-sm" onclick="openUpload()">＋ Carica documento</button></div>
+          <table>
+            <thead><tr><th>Documento</th><th>Tipo</th><th>Data</th><th>Stato</th><th>Azioni</th></tr></thead>
+            <tbody id="docTbody"></tbody>
+          </table>
+        </div>
+
+        <div id="detTab-msg" class="hidden">
+          <div class="msg studio"><div class="mh">Elena Di Tieri <span>10/05/2024</span></div>Buongiorno, ci manca la liquidazione IVA per procedere. Può caricarla?</div>
+          <div class="msg cliente"><div class="mh">Mario Rossi <span>11/05/2024</span></div>La inoltro entro domani, grazie.</div>
+          <div class="msg-input"><input placeholder="Scrivi un messaggio..." id="msgIn"><button class="btn-sm" onclick="sendMsg()">Invia</button></div>
+        </div>
+      </div>
+
+      <!-- ===== S4 DOCUMENTI ===== -->
+      <div id="view-documenti" class="hidden">
+        <h1 class="page-title">Documenti</h1>
+        <div class="subtitle">Tutti i documenti collegati alle tue pratiche</div>
+        <div class="dropzone" onclick="openUpload()">⬆️ Trascina qui i file o <b>clicca per caricare</b><br><small>PDF, JPG, PNG — max 10MB</small></div>
+        <div class="filters">
+          <input id="docSearch" placeholder="🔍 Cerca documento..." oninput="filterDocs()">
+          <select id="docFilter" onchange="filterDocs()">
+            <option value="">Tutti gli stati</option>
+            <option>Caricato</option><option>In verifica</option><option>Mancante</option>
+          </select>
+        </div>
+        <table>
+          <thead><tr><th>Documento</th><th>Pratica collegata</th><th>Caricato il</th><th>Stato</th><th>Azioni</th></tr></thead>
+          <tbody id="globalDocs"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== S5 SCADENZE ===== -->
+      <div id="view-scadenze" class="hidden">
+        <h1 class="page-title">Scadenze</h1>
+        <div class="subtitle">Giugno 2024</div>
+        <div class="cal-grid" style="margin-bottom:6px">
+          <div class="cal-dow">Lun</div><div class="cal-dow">Mar</div><div class="cal-dow">Mer</div><div class="cal-dow">Gio</div><div class="cal-dow">Ven</div><div class="cal-dow">Sab</div><div class="cal-dow">Dom</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="legend">
+          <span><span class="lg ev-fisc"></span> Fiscale</span>
+          <span><span class="lg ev-doc"></span> Documentale</span>
+          <span><span class="lg ev-contr"></span> Contrattuale</span>
+        </div>
+        <div class="section-h">Lista cronologica</div>
+        <div class="side-box">
+          <div class="scad-item"><div class="scad-dot d-fisc"></div><div><div class="st">Versamento F24 acconto</div><div class="sd">16/06/2024 · Fiscale · tra 3 giorni</div></div></div>
+          <div class="scad-item"><div class="scad-dot d-doc"></div><div><div class="st">Deposito Bilancio 2023</div><div class="sd">30/06/2024 · Documentale · tra 17 giorni</div></div></div>
+          <div class="scad-item"><div class="scad-dot d-fisc"></div><div><div class="st">Invio dichiarazione IVA Q2</div><div class="sd">31/05/2024 · Fiscale · scaduta</div></div></div>
+          <div class="scad-item"><div class="scad-dot d-contr"></div><div><div class="st">Rinnovo contratto consulenza</div><div class="sd">20/07/2024 · Contrattuale · tra 37 giorni</div></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL UPLOAD ===== -->
+<div class="overlay hidden" id="uploadModal">
+  <div class="modal">
+    <h3>📤 Carica documento</h3>
+    <p style="font-size:14px;color:var(--muted)">Documento: <b>Liquidazione_IVA_Q2.pdf</b></p>
+    <div class="progress"><div class="bar" id="upBar"></div></div>
+    <div id="upStatus" style="font-size:13px;color:var(--muted)">In attesa...</div>
+    <div class="modal-actions">
+      <button class="btn-sm btn-out" onclick="closeUpload()">Annulla</button>
+      <button class="btn-sm" id="upBtn" onclick="startUpload()">Avvia caricamento</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const pratiche = {
+  iva:{titolo:'Dichiarazione IVA Trimestrale Q2 2024',stato:'In lavorazione',cls:'b-lav',ref:'Elena Di Tieri',open:'02/04/2024',due:'31/05/2024',ic:'🧾'},
+  bilancio:{titolo:"Bilancio d'esercizio 2023",stato:'In attesa documenti',cls:'b-att',ref:'Marco Pellegrini',open:'15/01/2024',due:'30/06/2024',ic:'📊'},
+  f24:{titolo:'Modello F24 2024 — Acconto',stato:'Documento mancante',cls:'b-manc',ref:'Elena Di Tieri',open:'10/05/2024',due:'16/06/2024',ic:'💰'},
+  assunzione:{titolo:'Pratica assunzione dipendente',stato:'Completata',cls:'b-comp',ref:'Giulia Esposito',open:'03/03/2024',due:'20/03/2024',ic:'👤'}
+};
+
+let docs = [
+  {nome:'Registro_fatture_emesse_Q2.pdf',tipo:'PDF',data:'12/05/2024',stato:'Caricato'},
+  {nome:'Registro_acquisti_Q2.pdf',tipo:'PDF',data:'14/05/2024',stato:'In verifica'},
+  {nome:'Liquidazione_IVA_Q2.pdf',tipo:'PDF',data:'—',stato:'Mancante'},
+  {nome:'Estratto_conto_banca_Q2.pdf',tipo:'PDF',data:'13/05/2024',stato:'Caricato'}
+];
+
+function enterApp(){document.getElementById('login').classList.add('hidden');document.getElementById('app').classList.remove('hidden');renderPratiche();renderDocs();renderGlobalDocs();renderCalendar();}
+
+function nav(v){
+  ['dashboard','documenti','scadenze','dettaglio'].forEach(x=>document.getElementById('view-'+x).classList.add('hidden'));
+  document.getElementById('view-'+v).classList.remove('hidden');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.v===v));
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('notifDD').classList.add('hidden');
+  window.scrollTo(0,0);
+}
+
+function toggleNotif(){document.getElementById('notifDD').classList.toggle('hidden');}
+
+function renderPratiche(){
+  const el=document.getElementById('praticheList');el.innerHTML='';
+  Object.keys(pratiche).forEach(k=>{
+    const p=pratiche[k];
+    el.innerHTML+=`<div class="pratica-card" onclick="openPratica('${k}')">
+      <div class="pic">${p.ic}</div>
+      <div class="info"><div class="t">${p.titolo}</div><div class="m">Scadenza ${p.due} · ${p.ref}</div></div>
+      <span class="badge ${p.cls}">${p.stato}</span></div>`;
+  });
+}
+
+function openPratica(k){
+  const p=pratiche[k];
+  document.getElementById('bcTitle').textContent=p.titolo;
+  document.getElementById('dTitle').textContent=p.titolo;
+  const b=document.getElementById('dBadge');b.textContent=p.stato;b.className='badge '+p.cls;
+  document.getElementById('dRef').textContent=p.ref;
+  document.getElementById('dOpen').textContent=p.open;
+  document.getElementById('dDue').textContent=p.due;
+  nav('dettaglio');detTab('time');
+}
+
+function detTab(t){
+  ['time','doc','msg'].forEach(x=>{
+    document.getElementById('detTab-'+x).classList.toggle('hidden',x!==t);
+    document.getElementById('tabT-'+x).classList.toggle('active',x===t);
+  });
+}
+
+function statoBadge(s){
+  const m={'Caricato':'b-comp','In verifica':'b-att','Mancante':'b-manc'};
+  return `<span class="badge ${m[s]}">${s}</span>`;
+}
+
+function renderDocs(){
+  const tb=document.getElementById('docTbody');tb.innerHTML='';
+  docs.forEach(d=>{
+    const act=d.stato==='Mancante'?`<span class="lnk" onclick="openUpload()">Carica</span>`:`<span class="lnk">Visualizza</span> · <span class="lnk">Scarica</span>`;
+    tb.innerHTML+=`<tr><td>📄 ${d.nome}</td><td>${d.tipo}</td><td>${d.data}</td><td>${statoBadge(d.stato)}</td><td>${act}</td></tr>`;
+  });
+}
+
+function renderGlobalDocs(){
+  const tb=document.getElementById('globalDocs');tb.innerHTML='';
+  const search=(document.getElementById('docSearch')?.value||'').toLowerCase();
+  const filt=document.getElementById('docFilter')?.value||'';
+  docs.forEach(d=>{
+    if(search && !d.nome.toLowerCase().includes(search))return;
+    if(filt && d.stato!==filt)return;
+    const act=d.stato==='Mancante'?`<span class="lnk" onclick="openUpload()">Carica</span>`:`<span class="lnk">Visualizza</span> · <span class="lnk">Scarica</span>`;
+    tb.innerHTML+=`<tr><td>📄 ${d.nome}</td><td>IVA Q2 2024</td><td>${d.data}</td><td>${statoBadge(d.stato)}</td><td>${act}</td></tr>`;
+  });
+  if(!tb.innerHTML)tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted)">Nessun documento trovato.</td></tr>';
+}
+function filterDocs(){renderGlobalDocs();}
+
+function sendMsg(){
+  const i=document.getElementById('msgIn');
+  if(!i.value.trim())return;
+  const c=document.getElementById('detTab-msg');
+  const m=document.createElement('div');m.className='msg cliente';
+  m.innerHTML=`<div class="mh">Mario Rossi <span>oggi</span></div>${i.value}`;
+  c.insertBefore(m,c.querySelector('.msg-input'));i.value='';
+  c.querySelector('.msg-input').scrollIntoView({behavior:'smooth'});
+}
+
+/* upload */
+function openUpload(){document.getElementById('uploadModal').classList.remove('hidden');document.getElementById('upBar').style.width='0';document.getElementById('upStatus').textContent='In attesa...';document.getElementById('upBtn').disabled=false;document.getElementById('upBtn').textContent='Avvia caricamento';}
+function closeUpload(){document.getElementById('uploadModal').classList.add('hidden');}
+function startUpload(){
+  const bar=document.getElementById('upBar'),st=document.getElementById('upStatus'),btn=document.getElementById('upBtn');
+  btn.disabled=true;btn.textContent='Caricamento...';let p=0;
+  const iv=setInterval(()=>{
+    p+=4;bar.style.width=p+'%';st.textContent='Caricamento... '+p+'%';
+    if(p>=100){
+      clearInterval(iv);st.textContent='✅ Documento caricato con successo!';
+      const d=docs.find(x=>x.nome==='Liquidazione_IVA_Q2.pdf');
+      if(d&&d.stato==='Mancante'){d.stato='Caricato';d.data='oggi';
+        let k=parseInt(document.getElementById('kpiDoc').textContent);if(k>0)document.getElementById('kpiDoc').textContent=k-1;}
+      renderDocs();renderGlobalDocs();
+      setTimeout(closeUpload,900);
+    }
+  },80);
+}
+
+/* calendar Giugno 2024: 1 giugno = sabato */
+function renderCalendar(){
+  const g=document.getElementById('calGrid');
+  const ev={16:[{t:'F24 acconto',c:'ev-fisc'}],30:[{t:'Bilancio 2023',c:'ev-doc'}]};
+  const startDow=5; // Lun=0 ... 1 giu = sab -> idx 5
+  let html='';
+  for(let i=0;i<startDow;i++)html+='<div class="cal-cell empty"></div>';
+  for(let d=1;d<=30;d++){
+    let e=(ev[d]||[]).map(x=>`<div class="cal-ev ${x.c}">${x.t}</div>`).join('');
+    html+=`<div class="cal-cell"><div class="num">${d}</div>${e}</div>`;
+  }
+  g.innerHTML=html;
+}
+
+document.addEventListener('click',e=>{
+  const dd=document.getElementById('notifDD');
+  if(dd&&!dd.classList.contains('hidden')&&!e.target.closest('.bell')&&!e.target.closest('.notif-dd'))dd.classList.add('hidden');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+# Nessuna pagina di questo dominio va indicizzata: sono demo e anteprime
+# commerciali, non contenuti pubblici destinati alla ricerca.
+User-agent: *
+Disallow: /

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FondiFlow — Gestione corsi finanziati</title>
+<style>
+:root{
+--blu:#1e3a8a;--blu2:#2563eb;--azz:#eff6ff;--verde:#16a34a;--ambra:#d97706;
+--rosso:#dc2626;--gri:#64748b;--bg:#f1f5f9;--card:#fff;--bord:#e2e8f0;--testo:#0f172a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--testo);font-size:14px}
+.app{display:flex;min-height:100vh}
+/* SIDEBAR */
+.sidebar{width:240px;background:linear-gradient(180deg,#1e293b,#0f172a);color:#cbd5e1;flex-shrink:0;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:40;transition:left .3s}
+.logo{padding:20px 18px;font-size:20px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px;border-bottom:1px solid #334155}
+.logo .dot{color:var(--blu2)}
+.nav{padding:12px 0;flex:1}
+.nav a{display:flex;align-items:center;gap:12px;padding:12px 20px;color:#cbd5e1;text-decoration:none;cursor:pointer;font-weight:500;border-left:3px solid transparent}
+.nav a:hover{background:#1e293b;color:#fff}
+.nav a.active{background:#1e293b;color:#fff;border-left-color:var(--blu2)}
+.nav .ico{font-size:18px;width:22px;text-align:center}
+.sidefoot{padding:16px 20px;font-size:11px;color:#64748b;border-top:1px solid #334155}
+/* MAIN */
+.main{flex:1;margin-left:240px;display:flex;flex-direction:column;min-width:0}
+.topbar{background:#fff;border-bottom:1px solid var(--bord);padding:14px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:30}
+.burger{display:none;background:none;border:none;font-size:22px;cursor:pointer}
+.topbar h1{font-size:18px;font-weight:700;flex:1}
+.badge-demo{background:var(--ambra);color:#fff;font-weight:700;font-size:11px;padding:4px 10px;border-radius:6px;letter-spacing:1px}
+.user{display:flex;align-items:center;gap:10px}
+.user .av{width:36px;height:36px;border-radius:50%;background:var(--blu);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.user .info{font-size:12px;line-height:1.3}
+.user .info b{display:block;font-size:13px}
+.fondo-tag{background:var(--azz);color:var(--blu);font-size:11px;font-weight:600;padding:3px 8px;border-radius:5px}
+.content{padding:24px;flex:1}
+.section{display:none}
+.section.show{display:block;animation:fade .3s}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+.note{font-size:12px;color:var(--gri);margin-bottom:18px}
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+.kpi{background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:18px;position:relative;overflow:hidden}
+.kpi .ico{position:absolute;right:14px;top:14px;font-size:26px;opacity:.25}
+.kpi .lab{font-size:12px;color:var(--gri);font-weight:600}
+.kpi .val{font-size:30px;font-weight:800;margin-top:6px}
+.kpi .sub{font-size:11px;color:var(--verde);margin-top:4px}
+/* GRID dashboard */
+.dash-grid{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+.card{background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:18px}
+.card h3{font-size:15px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--gri);padding:8px 10px;border-bottom:2px solid var(--bord)}
+td{padding:10px;border-bottom:1px solid var(--bord);font-size:13px}
+tr.clk{cursor:pointer}
+tr.clk:hover{background:var(--azz)}
+.prog{height:7px;background:#e2e8f0;border-radius:4px;overflow:hidden;min-width:70px}
+.prog span{display:block;height:100%;background:var(--blu2);border-radius:4px}
+.stato{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.st-corso{background:#dbeafe;color:#1d4ed8}
+.st-rend{background:#fef3c7;color:#b45309}
+.st-inv{background:#dcfce7;color:#15803d}
+.st-bozza{background:#f1f5f9;color:#64748b}
+.st-pronto{background:#dcfce7;color:#15803d}
+.st-comp{background:#e0e7ff;color:#4338ca}
+/* alert box */
+.alert{display:flex;gap:12px;padding:12px;border-radius:10px;margin-bottom:10px;border:1px solid var(--bord)}
+.alert .cnt{flex-shrink:0;width:46px;height:46px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:16px;line-height:1}
+.alert .cnt small{font-size:9px;font-weight:600}
+.alert.urg .cnt{background:var(--rosso)}
+.alert.med .cnt{background:var(--ambra)}
+.alert.low .cnt{background:var(--blu2)}
+.alert .txt b{display:block;font-size:13px}
+.alert .txt span{font-size:11px;color:var(--gri)}
+/* toolbar */
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.toolbar input,.toolbar select{padding:9px 12px;border:1px solid var(--bord);border-radius:8px;font-size:13px;background:#fff}
+.toolbar input{flex:1;min-width:180px}
+.btn{padding:9px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:var(--blu2);color:#fff}
+.btn:hover{background:var(--blu)}
+.btn.sec{background:#fff;color:var(--blu2);border:1px solid var(--blu2)}
+.btn.gris{background:#e2e8f0;color:var(--gri)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+/* drawer */
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:50;display:none}
+.overlay.show{display:block}
+.drawer{position:fixed;top:0;right:-460px;width:440px;max-width:90vw;height:100vh;background:#fff;z-index:60;box-shadow:-4px 0 20px rgba(0,0,0,.15);transition:right .3s;overflow-y:auto}
+.drawer.show{right:0}
+.drawer-head{padding:18px;background:var(--blu);color:#fff;display:flex;justify-content:space-between;align-items:flex-start}
+.drawer-head h2{font-size:17px}
+.drawer-head .x{background:none;border:none;color:#fff;font-size:24px;cursor:pointer;line-height:1}
+.drawer-body{padding:18px}
+.dfield{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bord);font-size:13px}
+.dfield span{color:var(--gri)}
+.dfield b{font-weight:700}
+.subhead{font-size:13px;font-weight:700;margin:18px 0 8px;color:var(--blu)}
+.gg{display:inline-block;background:var(--azz);color:var(--blu);padding:4px 9px;border-radius:6px;font-size:12px;margin:0 6px 6px 0;font-weight:600}
+.doc-pill{display:flex;align-items:center;gap:8px;padding:7px 0;font-size:13px;border-bottom:1px solid var(--bord)}
+.av-mini{width:28px;height:28px;border-radius:50%;background:var(--blu2);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700}
+/* docenti grid */
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.doc-card{background:#fff;border:1px solid var(--bord);border-radius:12px;padding:18px;text-align:center;cursor:pointer;transition:.2s}
+.doc-card:hover{box-shadow:0 6px 16px rgba(0,0,0,.1);transform:translateY(-3px)}
+.doc-av{width:64px;height:64px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff}
+.doc-card h4{font-size:15px}
+.doc-card .spec{font-size:12px;color:var(--gri);margin:4px 0 12px}
+.doc-stat{display:flex;justify-content:space-around;font-size:12px;border-top:1px solid var(--bord);padding-top:10px;margin-top:8px}
+.doc-stat b{display:block;font-size:15px}
+.cv{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;margin-top:10px;display:inline-block}
+.cv-ok{background:#dcfce7;color:#15803d}
+.cv-no{background:#fef3c7;color:#b45309}
+/* modale */
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:70;display:none;align-items:center;justify-content:center;padding:20px}
+.modal.show{display:flex}
+.modal-box{background:#fff;border-radius:14px;width:460px;max-width:100%;max-height:90vh;overflow-y:auto;animation:fade .25s}
+.modal-head{padding:20px;display:flex;gap:16px;align-items:center;border-bottom:1px solid var(--bord)}
+.modal-body{padding:20px}
+/* toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--verde);color:#fff;padding:14px 24px;border-radius:10px;font-weight:600;z-index:90;opacity:0;transition:.4s;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+/* checklist */
+.check-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bord);font-size:13px}
+.check-item .mk{width:22px;height:22px;border-radius:50%;border:2px solid var(--bord);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px}
+.check-item.done .mk{background:var(--verde);border-color:var(--verde)}
+.gen-bar{height:10px;background:#e2e8f0;border-radius:6px;overflow:hidden;margin:14px 0 8px}
+.gen-bar span{display:block;height:100%;width:0;background:var(--blu2);transition:width .4s}
+.cb{width:18px;height:18px;cursor:pointer}
+.txt-i{width:75px;padding:5px;border:1px solid var(--bord);border-radius:6px;font-size:12px}
+.footer-reg{display:flex;gap:24px;flex-wrap:wrap;align-items:center;margin-top:16px;padding-top:16px;border-top:2px solid var(--bord)}
+.footer-reg .stat{font-size:13px}
+.footer-reg .stat b{font-size:20px;display:block}
+@media(max-width:880px){
+.sidebar{left:-240px}.sidebar.open{left:0}.main{margin-left:0}.burger{display:block}
+.kpis{grid-template-columns:repeat(2,1fr)}.dash-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">💸 Fondi<span class="dot">Flow</span></div>
+    <nav class="nav">
+      <a data-sec="s1" class="active" onclick="nav(this)"><span class="ico">📊</span>Dashboard</a>
+      <a data-sec="s2" onclick="nav(this)"><span class="ico">📚</span>Edizioni Corsi</a>
+      <a data-sec="s3" onclick="nav(this)"><span class="ico">✍️</span>Registro Presenze</a>
+      <a data-sec="s4" onclick="nav(this)"><span class="ico">👨‍🏫</span>Docenti</a>
+      <a data-sec="s5" onclick="nav(this)"><span class="ico">📁</span>Rendicontazione</a>
+    </nav>
+    <div class="sidefoot">FondiFlow v2.4 · Demo<br>© Formamentis Srl</div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="burger" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+      <h1 id="pageTitle">Dashboard</h1>
+      <span class="badge-demo">DEMO</span>
+      <div class="user">
+        <span class="fondo-tag">🟢 Fondimpresa</span>
+        <div class="av">FS</div>
+        <div class="info"><b>Formamentis Srl</b>Amministratore</div>
+      </div>
+    </header>
+
+    <div class="content">
+      <p class="note">⚠️ Dati di esempio — ambiente dimostrativo, nessun dato reale.</p>
+
+      <!-- S1 DASHBOARD -->
+      <section class="section show" id="s1">
+        <div class="kpis">
+          <div class="kpi"><div class="ico">📗</div><div class="lab">Corsi attivi</div><div class="val">3</div><div class="sub">+1 vs mese scorso</div></div>
+          <div class="kpi"><div class="ico">⏱️</div><div class="lab">Ore erogate (mese)</div><div class="val">142</div><div class="sub">+18% rispetto a marzo</div></div>
+          <div class="kpi"><div class="ico">👥</div><div class="lab">Allievi iscritti</div><div class="val">68</div><div class="sub">5 nuove iscrizioni</div></div>
+          <div class="kpi"><div class="ico" style="opacity:.35;color:var(--rosso)">⏳</div><div class="lab">Dossier in scadenza</div><div class="val" style="color:var(--rosso)">2</div><div class="sub" style="color:var(--rosso)">Azione richiesta</div></div>
+        </div>
+        <div class="dash-grid">
+          <div class="card">
+            <h3>📚 Edizioni in corso</h3>
+            <table>
+              <thead><tr><th>Codice</th><th>Titolo</th><th>Avanzamento</th><th>Stato</th></tr></thead>
+              <tbody>
+                <tr><td>ED-2024-017</td><td>Digital Transformation per PMI</td><td><div class="prog"><span style="width:75%"></span></div></td><td><span class="stato st-corso">In corso</span></td></tr>
+                <tr><td>ED-2024-021</td><td>Sicurezza sul Lavoro – Aggiorn.</td><td><div class="prog"><span style="width:100%"></span></div></td><td><span class="stato st-rend">Da rendicontare</span></td></tr>
+                <tr><td>ED-2024-024</td><td>Lean Management Avanzato</td><td><div class="prog"><span style="width:50%"></span></div></td><td><span class="stato st-corso">In corso</span></td></tr>
+                <tr><td>ED-2024-009</td><td>GDPR e Privacy aziendale</td><td><div class="prog"><span style="width:100%"></span></div></td><td><span class="stato st-inv">Inviato</span></td></tr>
+                <tr><td>ED-2024-028</td><td>Marketing & Funnel B2B</td><td><div class="prog"><span style="width:20%"></span></div></td><td><span class="stato st-corso">In corso</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <h3>⏰ Scadenze rendicontazione</h3>
+            <div class="alert urg"><div class="cnt">4<small>giorni</small></div><div class="txt"><b>ED-2024-021</b><span>Dossier in scadenza — invio fondo FonCoop</span></div></div>
+            <div class="alert med"><div class="cnt">11<small>giorni</small></div><div class="txt"><b>ED-2024-009</b><span>Saldo da incassare entro la data</span></div></div>
+            <div class="alert low"><div class="cnt">19<small>giorni</small></div><div class="txt"><b>Audit Fondimpresa</b><span>Verifica documentale programmata</span></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- S2 EDIZIONI -->
+      <section class="section" id="s2">
+        <div class="toolbar">
+          <input id="srcEd" type="text" placeholder="🔍 Cerca per codice o titolo..." oninput="filtraEd()">
+          <select id="fFondo" onchange="filtraEd()"><option value="">Tutti i fondi</option><option>Fondimpresa</option><option>Fondirigenti</option><option>FonCoop</option></select>
+          <select id="fStato" onchange="filtraEd()"><option value="">Tutti gli stati</option><option>In corso</option><option>Da rendicontare</option><option>Inviato</option></select>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Codice</th><th>Titolo</th><th>Fondo</th><th>Mod.</th><th>Ore</th><th>Allievi</th><th>Avanz.</th><th>Stato</th></tr></thead>
+            <tbody id="edBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- S3 REGISTRO -->
+      <section class="section" id="s3">
+        <div class="toolbar">
+          <select id="regEd"><option>ED-2024-017 · Digital Transformation per PMI</option><option>ED-2024-024 · Lean Management Avanzato</option><option>ED-2024-028 · Marketing & Funnel B2B</option></select>
+          <select id="regGG"><option>Giornata 6 · 18/04/2024 · 09:00-13:00</option><option>Giornata 5 · 16/04/2024</option><option>Giornata 4 · 11/04/2024</option></select>
+        </div>
+        <div class="card">
+          <h3>✍️ Registro presenze digitale <span id="regBadge"></span></h3>
+          <table>
+            <thead><tr><th>Allievo</th><th>Azienda</th><th>Presenza</th><th>Ingresso</th><th>Uscita</th></tr></thead>
+            <tbody id="regBody"></tbody>
+          </table>
+          <div class="footer-reg">
+            <div class="stat"><b id="cntPres" style="color:var(--verde)">0</b>Presenti</div>
+            <div class="stat"><b id="cntAss" style="color:var(--rosso)">0</b>Assenti</div>
+            <div class="stat"><b id="cntOre" style="color:var(--blu)">0</b>Ore validate</div>
+            <div style="margin-left:auto"><button class="btn" id="btnReg" onclick="chiudiReg()">🔒 Chiudi registro giornata</button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- S4 DOCENTI -->
+      <section class="section" id="s4">
+        <div class="doc-grid" id="docGrid"></div>
+      </section>
+
+      <!-- S5 RENDICONTAZIONE -->
+      <section class="section" id="s5">
+        <div class="card">
+          <h3>📁 Dossier di rendicontazione</h3>
+          <table>
+            <thead><tr><th>Edizione</th><th>Fondo</th><th>Stato</th><th>Azione</th></tr></thead>
+            <tbody id="dosBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER edizione -->
+<div class="overlay" id="ov" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head"><div><h2 id="dwTitle"></h2><div id="dwCode" style="opacity:.8;font-size:13px;margin-top:4px"></div></div><button class="x" onclick="closeDrawer()">×</button></div>
+  <div class="drawer-body" id="dwBody"></div>
+</div>
+
+<!-- MODALE docente -->
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="modal-head"><div class="doc-av" id="mdAv" style="margin:0"></div><div><h3 id="mdName"></h3><div style="color:var(--gri);font-size:13px" id="mdSpec"></div></div><button class="x" style="margin-left:auto;background:none;border:none;font-size:26px;cursor:pointer;color:var(--gri)" onclick="closeModal()">×</button></div>
+    <div class="modal-body" id="mdBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== DATI ===== */
+const edizioni=[
+ {c:"ED-2024-017",t:"Digital Transformation per PMI",f:"Fondimpresa",m:"Aula",o:40,a:12,av:75,s:"In corso",doc:["Marco De Luca"],pres:91},
+ {c:"ED-2024-021",t:"Sicurezza sul Lavoro – Aggiornamento",f:"FonCoop",m:"Online",o:16,a:18,av:100,s:"Da rendicontare",doc:["Giulia Ferrara"],pres:96},
+ {c:"ED-2024-024",t:"Lean Management Avanzato",f:"Fondirigenti",m:"Blended",o:32,a:9,av:50,s:"In corso",doc:["Antonio Esposito"],pres:88},
+ {c:"ED-2024-009",t:"GDPR e Privacy aziendale",f:"Fondimpresa",m:"Aula",o:24,a:15,av:100,s:"Inviato",doc:["Sara Romano"],pres:93},
+ {c:"ED-2024-028",t:"Marketing & Funnel B2B",f:"Fondimpresa",m:"Online",o:30,a:14,av:20,s:"In corso",doc:["Luca Bianchi"],pres:79},
+];
+const docenti=[
+ {n:"Marco De Luca",sp:"Trasformazione digitale",h:120,cost:80,cv:1,col:"#2563eb",ed:["ED-2024-017"]},
+ {n:"Giulia Ferrara",sp:"HSE / Sicurezza",h:64,cost:60,cv:1,col:"#16a34a",ed:["ED-2024-021"]},
+ {n:"Antonio Esposito",sp:"Lean & Operations",h:96,cost:90,cv:0,col:"#d97706",ed:["ED-2024-024"]},
+ {n:"Sara Romano",sp:"Compliance & GDPR",h:48,cost:75,cv:1,col:"#9333ea",ed:["ED-2024-009"]},
+ {n:"Luca Bianchi",sp:"Marketing B2B",h:30,cost:70,cv:0,col:"#dc2626",ed:["ED-2024-028"]},
+];
+const allievi=[
+ {n:"Rossella Greco",az:"Alfa Consulting Srl",p:1},
+ {n:"Davide Marino",az:"Beta Solutions",p:1},
+ {n:"Chiara Russo",az:"Gamma Servizi",p:0},
+ {n:"Fabio Conte",az:"Delta Group",p:1},
+ {n:"Elena Sorrentino",az:"Epsilon Spa",p:1},
+];
+const giornate=["08/04 · 09-13","09/04 · 09-13","11/04 · 14-18","16/04 · 09-13","17/04 · 09-13","18/04 · 09-13"];
+const titoli={s1:"Dashboard",s2:"Edizioni Corsi",s3:"Registro Presenze",s4:"Docenti",s5:"Rendicontazione"};
+
+/* ===== NAV ===== */
+function nav(el){
+ document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
+ el.classList.add('active');
+ const sec=el.dataset.sec;
+ document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
+ document.getElementById(sec).classList.add('show');
+ document.getElementById('pageTitle').textContent=titoli[sec];
+ document.getElementById('sidebar').classList.remove('open');
+}
+function ini(){return s=>s.split(' ').map(w=>w[0]).join('').substr(0,2).toUpperCase();}
+const cls={"In corso":"st-corso","Da rendicontare":"st-rend","Inviato":"st-inv"};
+
+/* ===== S2 ===== */
+function renderEd(list){
+ document.getElementById('edBody').innerHTML=list.map((e,i)=>`
+ <tr class="clk" onclick="openDrawer(${edizioni.indexOf(e)})">
+  <td><b>${e.c}</b></td><td>${e.t}</td><td>${e.f}</td><td>${e.m}</td><td>${e.o}h</td><td>${e.a}</td>
+  <td><div style="display:flex;align-items:center;gap:6px"><div class="prog"><span style="width:${e.av}%"></span></div><small>${e.av}%</small></div></td>
+  <td><span class="stato ${cls[e.s]}">${e.s}</span></td></tr>`).join('');
+}
+function filtraEd(){
+ const q=document.getElementById('srcEd').value.toLowerCase();
+ const f=document.getElementById('fFondo').value, s=document.getElementById('fStato').value;
+ renderEd(edizioni.filter(e=>(e.c.toLowerCase().includes(q)||e.t.toLowerCase().includes(q))&&(!f||e.f===f)&&(!s||e.s===s)));
+}
+function openDrawer(i){
+ const e=edizioni[i];
+ document.getElementById('dwTitle').textContent=e.t;
+ document.getElementById('dwCode').textContent=e.c+" · "+e.f;
+ document.getElementById('dwBody').innerHTML=`
+ <div class="dfield"><span>Modalità</span><b>${e.m}</b></div>
+ <div class="dfield"><span>Ore totali</span><b>${e.o}h</b></div>
+ <div class="dfield"><span>Allievi iscritti</span><b>${e.a}</b></div>
+ <div class="dfield"><span>Avanzamento</span><b>${e.av}%</b></div>
+ <div class="dfield"><span>Stato</span><b><span class="stato ${cls[e.s]}">${e.s}</span></b></div>
+ <div class="dfield"><span>Presenze medie</span><b style="color:${e.pres>=90?'#16a34a':'#d97706'}">${e.pres}%</b></div>
+ <div class="subhead">📅 Calendario giornate</div>
+ ${giornate.slice(0,Math.ceil(e.o/8)).map(g=>`<span class="gg">${g}</span>`).join('')}
+ <div class="subhead">👨‍🏫 Docenti assegnati</div>
+ ${e.doc.map(d=>`<div class="doc-pill"><span class="av-mini">${ini()(d)}</span>${d}</div>`).join('')}
+ <div class="subhead">📊 Presenze medie</div>
+ <div class="prog" style="height:12px"><span style="width:${e.pres}%"></span></div>`;
+ document.getElementById('drawer').classList.add('show');
+ document.getElementById('ov').classList.add('show');
+}
+function closeDrawer(){document.getElementById('drawer').classList.remove('show');document.getElementById('ov').classList.remove('show');}
+
+/* ===== S3 ===== */
+let regChiuso=false;
+function renderReg(){
+ document.getElementById('regBody').innerHTML=allievi.map((a,i)=>`
+ <tr><td><b>${a.n}</b></td><td>${a.az}</td>
+ <td><label><input type="checkbox" class="cb regCb" data-i="${i}" ${a.p?'checked':''} onchange="updReg()"> Presente</label></td>
+ <td><input class="txt-i" value="${a.p?'09:00':'-'}"></td>
+ <td><input class="txt-i" value="${a.p?'13:00':'-'}"></td></tr>`).join('');
+ updReg();
+}
+function updReg(){
+ const cbs=document.querySelectorAll('.regCb');
+ let p=0;cbs.forEach(c=>{if(c.checked)p++;});
+ document.getElementById('cntPres').textContent=p;
+ document.getElementById('cntAss').textContent=cbs.length-p;
+ document.getElementById('cntOre').textContent=p*4;
+}
+function chiudiReg(){
+ if(regChiuso)return;
+ regChiuso=true;
+ document.querySelectorAll('.regCb,.txt-i').forEach(c=>c.disabled=true);
+ document.getElementById('btnReg').disabled=true;
+ document.getElementById('regBadge').innerHTML='<span class="stato st-inv">✓ Firmato e validato</span>';
+ toast('✓ Registro giornata chiuso e validato');
+}
+
+/* ===== S4 ===== */
+function renderDoc(){
+ document.getElementById('docGrid').innerHTML=docenti.map((d,i)=>`
+ <div class="doc-card" onclick="openModal(${i})">
+  <div class="doc-av" style="background:${d.col}">${ini()(d.n)}</div>
+  <h4>${d.n}</h4><div class="spec">${d.sp}</div>
+  <div class="doc-stat"><div><b>${d.h}h</b>Erogate</div><div><b>€${d.cost}</b>/ora</div></div>
+  <span class="cv ${d.cv?'cv-ok':'cv-no'}">${d.cv?'✓ CV validato':'⏳ Da validare'}</span>
+ </div>`).join('');
+}
+function openModal(i){
+ const d=docenti[i];
+ document.getElementById('mdAv').style.background=d.col;
+ document.getElementById('mdAv').textContent=ini()(d.n);
+ document.getElementById('mdName').textContent=d.n;
+ document.getElementById('mdSpec').textContent=d.sp;
+ document.getElementById('mdBody').innerHTML=`
+ <div class="dfield"><span>Costo orario</span><b>€${d.cost}/h</b></div>
+ <div class="dfield"><span>Ore erogate (anno)</span><b>${d.h}h</b></div>
+ <div class="dfield"><span>Stato CV</span><b><span class="cv ${d.cv?'cv-ok':'cv-no'}">${d.cv?'✓ Validato':'⏳ Da validare'}</span></b></div>
+ <div class="subhead">📚 Edizioni assegnate</div>
+ ${d.ed.map(c=>{const e=edizioni.find(x=>x.c===c);return `<div class="doc-pill">📗 <b>${c}</b> — ${e.t}</div>`}).join('')}
+ <div class="subhead">📎 Documenti</div>
+ <div class="doc-pill">📄 Curriculum Vitae ${d.cv?'<span class="cv cv-ok" style="margin-left:auto">OK</span>':'<span class="cv cv-no" style="margin-left:auto">Manca firma</span>'}</div>
+ <div class="doc-pill">📄 Contratto incarico <span class="cv cv-ok" style="margin-left:auto">OK</span></div>
+ <div class="doc-pill">📄 Lettera di incarico <span class="cv cv-ok" style="margin-left:auto">OK</span></div>`;
+ document.getElementById('modal').classList.add('show');
+}
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeDrawer();}});
+
+/* ===== S5 ===== */
+const dossier=[
+ {c:"ED-2024-021",f:"FonCoop",s:"In compilazione"},
+ {c:"ED-2024-009",f:"Fondimpresa",s:"Inviato"},
+ {c:"ED-2024-017",f:"Fondimpresa",s:"Bozza"},
+ {c:"ED-2024-024",f:"Fondirigenti",s:"Bozza"},
+];
+const dcls={"Bozza":"st-bozza","In compilazione":"st-comp","Pronto":"st-pronto","Inviato":"st-inv"};
+function renderDos(){
+ document.getElementById('dosBody').innerHTML=dossier.map((d,i)=>{
+  const e=edizioni.find(x=>x.c===d.c);
+  let act=d.s==="Inviato"?'<span style="color:var(--gri)">Archiviato</span>':
+   d.s==="Pronto"?`<button class="btn" onclick="alert('📄 Download dossier_${d.c}.pdf avviato (demo)')">⬇️ Scarica PDF</button>`:
+   `<button class="btn sec" onclick="genera(${i})">⚙️ Genera dossier</button>`;
+  return `<tr><td><b>${d.c}</b><br><small style="color:var(--gri)">${e.t}</small></td><td>${d.f}</td>
+   <td id="dosS${i}"><span class="stato ${dcls[d.s]}">${d.s}</span></td><td id="dosA${i}">${act}</td>
+   <td colspan="4" id="dosG${i}" style="display:none;padding:0"></td></tr>`;
+ }).join('');
+}
+function genera(i){
+ const fasi=["Raccolta timesheet docenti","Validazione presenze allievi","Calcolo costi docenti","Quadratura economica","Generazione PDF dossier"];
+ const aCell=document.getElementById('dosA'+i);
+ aCell.innerHTML=`<div style="min-width:200px"><div style="font-size:12px" id="fLab${i}">Avvio...</div>
+  <div class="gen-bar"><span id="fBar${i}"></span></div>
+  <div id="fChk${i}"></div></div>`;
+ document.getElementById('dosS'+i).innerHTML='<span class="stato st-comp">In compilazione</span>';
+ let step=0;
+ const chkBox=document.getElementById('fChk'+i);
+ chkBox.innerHTML=fasi.map((f,k)=>`<div class="check-item" id="ci${i}_${k}"><div class="mk">✓</div>${f}</div>`).join('');
+ const tot=fasi.length;
+ const t=setInterval(()=>{
+  document.getElementById('fLab'+i).textContent=fasi[step];
+  document.getElementById('fBar'+i).style.width=((step+1)/tot*100)+"%";
+  document.getElementById('ci'+i+'_'+step).classList.add('done');
+  step++;
+  if(step>=tot){
+   clearInterval(t);
+   setTimeout(()=>{
+    dossier[i].s="Pronto";
+    document.getElementById('dosS'+i).innerHTML='<span class="stato st-pronto">Pronto</span>';
+    document.getElementById('fLab'+i).innerHTML='<b style="color:var(--verde)">✓ Dossier completato</b>';
+    aCell.innerHTML+=`<button class="btn" style="margin-top:8px" onclick="alert('📄 Download dossier_${dossier[i].c}.pdf avviato (demo)')">⬇️ Scarica PDF</button>`;
+    toast('✓ Dossier '+dossier[i].c+' generato con successo');
+   },500);
+  }
+ },800);
+}
+
+/* ===== toast ===== */
+let tt;
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2800);}
+
+/* init */
+renderEd(edizioni);renderReg();renderDoc();renderDos();
+</script>
+</body>
+</html>

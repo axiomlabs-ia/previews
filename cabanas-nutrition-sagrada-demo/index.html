@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriDiario · Portal del paciente</title>
+<style>
+:root{
+  --green:#2e9e6b;--green-d:#217a51;--green-l:#e8f5ee;
+  --bg:#f5f7f6;--card:#fff;--txt:#1f2a26;--muted:#6b7a74;--border:#e3e9e6;
+  --warn:#e8a33d;--warn-bg:#fdf3e2;--blue:#3d7de8;
+  --shadow:0 2px 12px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt);font-size:15px}
+a{color:inherit}
+.app{display:flex;min-height:100vh}
+/* Sidebar */
+.sidebar{width:250px;background:#fff;border-right:1px solid var(--border);position:fixed;top:0;bottom:0;left:0;display:flex;flex-direction:column;z-index:100}
+.brand{padding:20px 20px 12px;display:flex;align-items:center;gap:10px}
+.logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--green),var(--green-d));display:flex;align-items:center;justify-content:center;font-size:20px}
+.brand h1{font-size:18px;font-weight:700}
+.brand small{color:var(--muted);font-size:11px}
+.demo-badge{background:#ffd54f;color:#5a4300;font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;letter-spacing:.5px}
+.nav{padding:10px;flex:1}
+.nav a{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;text-decoration:none;color:var(--muted);font-weight:600;margin-bottom:3px;cursor:pointer;position:relative}
+.nav a .ic{font-size:18px}
+.nav a:hover{background:var(--bg)}
+.nav a.active{background:var(--green-l);color:var(--green-d)}
+.nav .count{margin-left:auto;background:var(--warn);color:#fff;font-size:11px;padding:1px 7px;border-radius:20px;font-weight:700}
+.sidebar-foot{padding:14px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
+.patient{display:flex;align-items:center;gap:10px;padding:14px 20px;border-top:1px solid var(--border)}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--green-l);color:var(--green-d);display:flex;align-items:center;justify-content:center;font-weight:800}
+.patient b{font-size:13px}.patient span{font-size:11px;color:var(--muted)}
+/* Main */
+.main{margin-left:250px;flex:1;padding:28px 34px;max-width:1100px}
+.view{display:none}.view.active{display:block;animation:fade .3s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.topnote{background:var(--warn-bg);color:#8a6520;font-size:12px;padding:7px 14px;border-radius:8px;margin-bottom:20px;display:inline-block}
+h2.vt{font-size:24px;margin-bottom:4px}
+.sub{color:var(--muted);margin-bottom:22px;font-size:14px}
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:22px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+.kpi .lbl{color:var(--muted);font-size:13px;margin-bottom:8px}
+.kpi .val{font-size:28px;font-weight:800}
+.kpi .val small{font-size:14px;color:var(--muted);font-weight:600}
+.kpi .ic{float:right;font-size:22px}
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow);margin-bottom:18px}
+.card h3{font-size:16px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.ai-card{background:linear-gradient(135deg,var(--green-l),#fff);border-color:#cfe8db}
+.ai-card p{color:var(--txt);line-height:1.5;font-size:14px}
+.ai-tag{display:inline-block;background:var(--green);color:#fff;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;margin-bottom:10px}
+/* progress bar */
+.pbar{height:12px;background:var(--bg);border-radius:20px;overflow:hidden;margin:10px 0 6px}
+.pbar>i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),#6aa5f5);border-radius:20px}
+/* buttons */
+.btn{background:var(--green);color:#fff;border:none;padding:11px 18px;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px}
+.btn:hover{background:var(--green-d)}
+.btn.ghost{background:#fff;color:var(--green-d);border:1px solid var(--green)}
+.btn.sm{padding:8px 14px;font-size:13px}
+/* diario */
+.datebar{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.datebar button{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:#fff;font-size:18px;cursor:pointer}
+.datebar .d{font-weight:700;font-size:16px}
+.meal-group{margin-bottom:16px}
+.meal-title{font-weight:700;color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.meal{display:flex;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:9px;box-shadow:var(--shadow)}
+.thumb{width:60px;height:60px;border-radius:10px;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+.meal .mi{flex:1}
+.meal .mi b{display:block;font-size:14px}
+.meal .mi .macros{font-size:12px;color:var(--muted);margin-top:3px}
+.tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;display:inline-block;margin-top:6px}
+.tag.ok{background:var(--green-l);color:var(--green-d)}
+.tag.warn{background:var(--warn-bg);color:#8a6520}
+.kcal{font-weight:800;text-align:right;white-space:nowrap}
+.kcal small{color:var(--muted);font-weight:600;font-size:11px}
+/* ring summary */
+.summary{display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.ring{width:110px;height:110px}
+.mac-legend div{font-size:13px;margin:4px 0}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
+/* toggle */
+.toggle{display:inline-flex;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:18px}
+.toggle button{border:none;background:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:600;color:var(--muted)}
+.toggle button.on{background:#fff;color:var(--green-d);box-shadow:var(--shadow)}
+/* table */
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:11px 10px;font-size:14px;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+/* gallery */
+.gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.gitem{aspect-ratio:1;background:var(--green-l);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:32px;color:var(--green-d)}
+.gitem span{font-size:11px;margin-top:6px;color:var(--muted);font-weight:600}
+/* feedback */
+.fb{display:flex;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:11px;box-shadow:var(--shadow);cursor:pointer}
+.fb.unread{border-left:4px solid var(--warn)}
+.fb .fic{width:42px;height:42px;border-radius:10px;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.fb .cat{font-size:11px;font-weight:800;color:var(--green-d);text-transform:uppercase;letter-spacing:.5px}
+.fb .date{font-size:11px;color:var(--muted)}
+.fb p{font-size:14px;margin-top:4px;line-height:1.4}
+.status{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;align-self:flex-start}
+.status.read{background:var(--green-l);color:var(--green-d)}
+.status.unread{background:var(--warn-bg);color:#8a6520}
+/* visits */
+.vtimeline{position:relative;padding-left:24px;margin-top:8px}
+.vtimeline::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:var(--border)}
+.vitem{position:relative;margin-bottom:18px}
+.vitem::before{content:"";position:absolute;left:-24px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--green);border:3px solid #fff}
+.vitem b{font-size:14px}.vitem p{font-size:13px;color:var(--muted);margin-top:3px}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--green-l);color:var(--green-d)}
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(20,30,25,.5);display:none;align-items:center;justify-content:center;z-index:200;padding:16px}
+.overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;padding:26px;width:100%;max-width:440px;animation:fade .25s}
+.modal h3{margin-bottom:16px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+.field select,.field input[type=text]{width:100%;padding:11px;border:1px solid var(--border);border-radius:10px;font-size:14px}
+.field input[type=range]{width:100%}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+/* toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);background:#1f2a26;color:#fff;padding:13px 22px;border-radius:12px;font-weight:600;font-size:14px;z-index:300;transition:transform .35s;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* mobile */
+.hamb{display:none}
+@media(max-width:860px){
+  .sidebar{transform:translateX(-100%);transition:transform .3s;box-shadow:var(--shadow)}
+  .sidebar.open{transform:none}
+  .main{margin-left:0;padding:18px}
+  .kpis,.grid2,.gallery{grid-template-columns:1fr}
+  .gallery{grid-template-columns:1fr 1fr}
+  .hamb{display:flex;position:fixed;top:14px;right:14px;z-index:150;width:44px;height:44px;border-radius:12px;background:#fff;border:1px solid var(--border);align-items:center;justify-content:center;font-size:20px;cursor:pointer;box-shadow:var(--shadow)}
+}
+</style>
+</head>
+<body>
+<div class="hamb" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</div>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">🥗</div>
+      <div>
+        <h1>NutriDiario <span class="demo-badge">DEMO</span></h1>
+        <small>Cabanas Nutrition</small>
+      </div>
+    </div>
+    <nav class="nav">
+      <a class="active" data-view="dashboard"><span class="ic">🏠</span> Inicio</a>
+      <a data-view="diario"><span class="ic">📔</span> Diario alimentario</a>
+      <a data-view="progresos"><span class="ic">📈</span> Progresos</a>
+      <a data-view="feedback"><span class="ic">🤖</span> Feedback IA <span class="count" id="fbCount">1</span></a>
+      <a data-view="visitas"><span class="ic">📅</span> Visitas &amp; Plan</a>
+    </nav>
+    <div class="patient">
+      <div class="avatar">MS</div>
+      <div><b>Marta Soler</b><br><span>34 años · Recomposición</span></div>
+    </div>
+    <div class="sidebar-foot">Portal del paciente · v1.0<br>Datos de ejemplo</div>
+  </aside>
+
+  <main class="main">
+    <div class="topnote">⚠️ Prototipo de demostración · Datos de ejemplo, no reales.</div>
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="dashboard">
+      <h2 class="vt">Hola, Marta 👋</h2>
+      <p class="sub">Este es tu resumen de la semana. ¡Buen trabajo!</p>
+      <div class="kpis">
+        <div class="kpi"><span class="ic">🎯</span><div class="lbl">Adhesión al plan</div><div class="val">82<small>%</small></div></div>
+        <div class="kpi"><span class="ic">🍽️</span><div class="lbl">Comidas registradas</div><div class="val">18<small>/21 esta semana</small></div></div>
+        <div class="kpi"><span class="ic">📅</span><div class="lbl">Próxima visita</div><div class="val" style="font-size:20px">12 mar<br><small>17:30 · Dr. Cabanas</small></div></div>
+      </div>
+      <div class="grid2">
+        <div class="card ai-card">
+          <h3>🤖 Feedback IA del día</h3>
+          <span class="ai-tag">Generado por IA</span>
+          <p>«Buen equilibrio hoy, Marta. Has alcanzado tu objetivo de proteína y las porciones han sido adecuadas. Recuerda añadir una ración de verdura en la merienda y beber 600 ml más para llegar a los 2 L. 💧»</p>
+        </div>
+        <div class="card">
+          <h3>💧 Objetivo de hidratación</h3>
+          <div class="pbar"><i style="width:70%"></i></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted)"><span><b style="color:var(--txt)">1,4 L</b> registrados</span><span>Objetivo 2 L</span></div>
+          <button class="btn sm" style="margin-top:14px" onclick="toast('💧 +250 ml registrados')">+ Añadir vaso de agua</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>⚖️ Peso · últimas 8 semanas</h3>
+        <div id="weightChart"></div>
+      </div>
+    </section>
+
+    <!-- DIARIO -->
+    <section class="view" id="diario">
+      <h2 class="vt">Diario alimentario</h2>
+      <p class="sub">Registra tus comidas y la IA las analizará automáticamente.</p>
+      <div class="datebar">
+        <button onclick="changeDay(-1)">‹</button>
+        <div class="d" id="dayLabel">Hoy · Mar, 12 mar 2025</div>
+        <button onclick="changeDay(1)">›</button>
+        <button class="btn" style="width:auto;margin-left:auto" onclick="openModal()">+ Registrar comida</button>
+      </div>
+      <div id="mealsWrap"></div>
+      <div class="card">
+        <h3>📊 Resumen del día</h3>
+        <div class="summary">
+          <svg class="ring" viewBox="0 0 42 42">
+            <circle cx="21" cy="21" r="15.9" fill="none" stroke="#e3e9e6" stroke-width="5"></circle>
+            <circle id="ringKcal" cx="21" cy="21" r="15.9" fill="none" stroke="#2e9e6b" stroke-width="5" stroke-dasharray="93 100" stroke-linecap="round" transform="rotate(-90 21 21)"></circle>
+            <text x="21" y="20" text-anchor="middle" font-size="7" font-weight="800" fill="#1f2a26" id="ringKcalTxt">1640</text>
+            <text x="21" y="27" text-anchor="middle" font-size="4" fill="#6b7a74">/1750 kcal</text>
+          </svg>
+          <div class="mac-legend">
+            <div><span class="dot" style="background:#2e9e6b"></span> Proteínas · <b id="mP">104 g</b></div>
+            <div><span class="dot" style="background:#e8a33d"></span> Carbohidratos · <b id="mC">128 g</b></div>
+            <div><span class="dot" style="background:#3d7de8"></span> Grasas · <b id="mG">72 g</b></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROGRESOS -->
+    <section class="view" id="progresos">
+      <h2 class="vt">Progresos</h2>
+      <p class="sub">Sigue tu evolución hacia el objetivo.</p>
+      <div class="toggle" id="metricToggle">
+        <button class="on" data-m="peso">Peso</button>
+        <button data-m="cintura">Circunferencia cintura</button>
+        <button data-m="grasa">Masa grasa</button>
+      </div>
+      <div class="card">
+        <h3 id="metricTitle">📉 Peso corporal</h3>
+        <div id="metricChart"></div>
+      </div>
+      <div class="card">
+        <h3>📋 Mediciones históricas</h3>
+        <table><thead><tr><th>Fecha</th><th id="thMetric">Peso</th><th>Variación</th></tr></thead><tbody id="metricTable"></tbody></table>
+      </div>
+      <div class="card">
+        <h3>📸 Fotos de progreso</h3>
+        <div class="gallery">
+          <div class="gitem">📷<span>20 ene</span></div>
+          <div class="gitem">📷<span>14 feb</span></div>
+          <div class="gitem">📷<span>28 feb</span></div>
+          <div class="gitem">📷<span>12 mar</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEEDBACK -->
+    <section class="view" id="feedback">
+      <h2 class="vt">Feedback IA</h2>
+      <p class="sub">Consejos automáticos generados a partir de tu diario. <b id="unreadTxt">1 sin leer</b>.</p>
+      <div id="fbList"></div>
+    </section>
+
+    <!-- VISITAS -->
+    <section class="view" id="visitas">
+      <h2 class="vt">Visitas &amp; Plan</h2>
+      <p class="sub">Gestiona tus citas con el nutricionista.</p>
+      <div class="card" style="border-color:#cfe8db;background:linear-gradient(135deg,var(--green-l),#fff)">
+        <h3>📅 Próxima visita</h3>
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;align-items:center">
+          <div>
+            <b style="font-size:20px">Miércoles, 12 mar 2025 · 17:30</b><br>
+            <span class="pill" style="margin-top:8px">💻 Online (videollamada)</span>
+            <span class="pill">Dr. Cabanas</span>
+          </div>
+          <button class="btn" id="confBtn" onclick="confirmVisit()">Confirmar asistencia</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>🕓 Visitas anteriores</h3>
+        <div class="vtimeline">
+          <div class="vitem"><b>14 feb 2025 · Online</b><p>«Buen progreso, ajustamos hidratos en la cena. Mantén la hidratación.»</p></div>
+          <div class="vitem"><b>20 ene 2025 · Presencial</b><p>«Primera visita, establecemos plan base de 1750 kcal. Objetivo: recomposición corporal.»</p></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>📄 Mi plan nutricional</h3>
+        <p class="sub" style="margin-bottom:14px">Plan base 1750 kcal · Recomposición corporal · Actualizado 14 feb 2025.</p>
+        <button class="btn ghost" onclick="toast('📄 Descargando plan_nutricional_marta.pdf...')">⬇ Descargar PDF</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3>🍽️ Registrar comida</h3>
+    <div class="field">
+      <label>Tipo de comida</label>
+      <select id="mMeal"><option>Desayuno</option><option>Almuerzo</option><option selected>Comida</option><option>Merienda</option><option>Cena</option></select>
+    </div>
+    <div class="field">
+      <label>Nombre del plato</label>
+      <input type="text" id="mName" placeholder="Ej. Ensalada de garbanzos" list="dishes">
+      <datalist id="dishes">
+        <option>Tortilla de espinacas</option><option>Pollo a la plancha con arroz</option>
+        <option>Ensalada de garbanzos</option><option>Fruta con yogur</option><option>Tostada de aguacate</option>
+      </datalist>
+    </div>
+    <div class="field">
+      <label>Porción: <b id="portVal">Normal</b></label>
+      <input type="range" id="mPort" min="1" max="3" value="2" oninput="portLabel(this.value)">
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn" onclick="saveMeal()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- Navigation ---------- */
+document.querySelectorAll('.nav a').forEach(a=>{
+  a.onclick=()=>{
+    document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+    a.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById(a.dataset.view).classList.add('active');
+    document.querySelector('.sidebar').classList.remove('open');
+    window.scrollTo(0,0);
+  };
+});
+
+/* ---------- Toast ---------- */
+let toastT;
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+/* ---------- Diario days data ---------- */
+const dishDB={
+  'tortilla de espinacas':{k:280,p:20,c:6,g:19},'pollo a la plancha con arroz':{k:480,p:40,c:45,g:12},
+  'ensalada de garbanzos':{k:360,p:16,c:38,g:15},'fruta con yogur':{k:180,p:8,c:26,g:4},
+  'tostada de aguacate':{k:320,p:9,c:30,g:18}
+};
+const mealTypes=['Desayuno','Almuerzo','Comida','Merienda','Cena'];
+const days=[
+  {label:'Lun, 11 mar 2025',meals:[
+    {t:'Desayuno',n:'Avena con plátano y canela',k:310,p:11,c:52,g:7,tag:'ok',txt:'✅ Buen desayuno'},
+    {t:'Comida',n:'Lentejas con verduras',k:450,p:22,c:55,g:12,tag:'ok',txt:'✅ Rica en fibra'},
+    {t:'Cena',n:'Pizza congelada',k:620,p:24,c:60,g:28,tag:'warn',txt:'⚠️ Cena pesada'}
+  ]},
+  {label:'Hoy · Mar, 12 mar 2025',meals:[
+    {t:'Desayuno',n:'Tostada integral, aguacate y huevo',k:340,p:18,c:28,g:16,tag:'ok',txt:'✅ Equilibrado',ph:'🥑'},
+    {t:'Almuerzo',n:'Yogur natural con nueces',k:190,p:9,c:12,g:11,tag:'warn',txt:'⚠️ Añade fruta',ph:'🥛'},
+    {t:'Comida',n:'Salmón, quinoa y brócoli',k:520,p:38,c:40,g:20,tag:'ok',txt:'✅ Buena proteína',ph:'🐟'},
+    {t:'Merienda',n:'Café con leche y galletas',k:210,p:5,c:30,g:7,tag:'warn',txt:'⚠️ Azúcar alto',ph:'☕'},
+    {t:'Cena',n:'Ensalada de pollo y tomate',k:380,p:34,c:18,g:18,tag:'ok',txt:'✅ Ligera',ph:'🥗'}
+  ]},
+  {label:'Mié, 13 mar 2025 (planificado)',meals:[
+    {t:'Desayuno',n:'Batido de frutas y avena',k:290,p:10,c:48,g:6,tag:'ok',txt:'✅ Energético'}
+  ]}
+];
+let dayIdx=1;
+const phEmoji={'Desayuno':'🍳','Almuerzo':'🥜','Comida':'🍲','Merienda':'🍎','Cena':'🍽️'};
+
+function renderMeals(){
+  const d=days[dayIdx];
+  document.getElementById('dayLabel').textContent=d.label;
+  const wrap=document.getElementById('mealsWrap');wrap.innerHTML='';
+  mealTypes.forEach(mt=>{
+    const items=d.meals.filter(m=>m.t===mt);
+    if(!items.length)return;
+    let html='<div class="meal-group"><div class="meal-title">'+mt+'</div>';
+    items.forEach(m=>{
+      html+=`<div class="meal">
+        <div class="thumb">${m.ph||phEmoji[m.t]}</div>
+        <div class="mi"><b>${m.n}</b>
+          <div class="macros">P ${m.p}g · C ${m.c}g · G ${m.g}g</div>
+          <span class="tag ${m.tag}">${m.txt}</span></div>
+        <div class="kcal">${m.k}<br><small>kcal</small></div>
+      </div>`;
+    });
+    html+='</div>';wrap.innerHTML+=html;
+  });
+  updateSummary();
+}
+function updateSummary(){
+  const d=days[dayIdx];
+  let k=0,p=0,c=0,g=0;
+  d.meals.forEach(m=>{k+=m.k;p+=m.p;c+=m.c;g+=m.g;});
+  document.getElementById('ringKcalTxt').textContent=k;
+  const pct=Math.min(100,Math.round(k/1750*100));
+  document.getElementById('ringKcal').setAttribute('stroke-dasharray',pct+' 100');
+  document.getElementById('mP').textContent=p+' g';
+  document.getElementById('mC').textContent=c+' g';
+  document.getElementById('mG').textContent=g+' g';
+}
+function changeDay(dir){
+  dayIdx=Math.max(0,Math.min(days.length-1,dayIdx+dir));
+  renderMeals();
+}
+renderMeals();
+
+/* ---------- Modal ---------- */
+function openModal(){document.getElementById('overlay').classList.add('show');}
+function closeModal(){document.getElementById('overlay').classList.remove('show');}
+function portLabel(v){document.getElementById('portVal').textContent=['','Pequeña','Normal','Grande'][v];}
+function saveMeal(){
+  const type=document.getElementById('mMeal').value;
+  const name=document.getElementById('mName').value.trim()||'Comida sin nombre';
+  const port=+document.getElementById('mPort').value;
+  const base=dishDB[name.toLowerCase()]||{k:350,p:18,c:35,g:14};
+  const mult=[0,0.7,1,1.4][port];
+  const k=Math.round(base.k*mult),p=Math.round(base.p*mult),c=Math.round(base.c*mult),g=Math.round(base.g*mult);
+  const good=(p*4)/(k||1)>0.28;
+  days[dayIdx].meals.push({t:type,n:name,k,p,c,g,tag:good?'ok':'warn',txt:good?'✅ Buena proteína':'⚠️ Revisa balance'});
+  closeModal();renderMeals();
+  document.getElementById('mName').value='';
+  toast('✅ Comida registrada · La IA la analizará');
+}
+
+/* ---------- Feedback ---------- */
+const feedbacks=[
+  {d:'12 mar',cat:'Hidratación',ic:'💧',txt:'Esta semana bebiste una media de 1,5 L/día. Intenta llegar a los 2 L, sobre todo por la mañana.',read:false},
+  {d:'10 mar',cat:'Verduras',ic:'🥦',txt:'Solo 3 de 7 comidas incluyeron verdura. Añade una ración en las cenas para mejorar la saciedad.',read:true},
+  {d:'8 mar',cat:'Azúcar',ic:'🍬',txt:'Detectamos snacks azucarados 4 días. Prueba con fruta fresca o yogur natural como alternativa.',read:true}
+];
+function renderFb(){
+  const list=document.getElementById('fbList');list.innerHTML='';
+  feedbacks.forEach((f,i)=>{
+    const div=document.createElement('div');
+    div.className='fb'+(f.read?'':' unread');
+    div.innerHTML=`<div class="fic">${f.ic}</div>
+      <div style="flex:1"><div class="cat">${f.cat} <span class="date">· ${f.d}</span></div><p>${f.txt}</p></div>
+      <span class="status ${f.read?'read':'unread'}">${f.read?'✓ Leído':'Sin leer'}</span>`;
+    if(!f.read)div.onclick=()=>{feedbacks[i].read=true;renderFb();toast('✓ Marcado como leído');};
+    list.appendChild(div);
+  });
+  const unread=feedbacks.filter(f=>!f.read).length;
+  document.getElementById('fbCount').textContent=unread;
+  document.getElementById('fbCount').style.display=unread?'':'none';
+  document.getElementById('unreadTxt').textContent=unread===0?'Todo leído':unread+' sin leer';
+}
+renderFb();
+
+/* ---------- Charts ---------- */
+function lineChart(data,{label,goal,unit,color='#2e9e6b',fmt=v=>v}={}){
+  const w=560,h=180,pad=34;
+  const min=Math.min(...data,goal||Infinity)-1,max=Math.max(...data,goal||-Infinity)+1;
+  const x=i=>pad+i*(w-pad*2)/(data.length-1);
+  const y=v=>h-pad-((v-min)/(max-min))*(h-pad*2);
+  let pts=data.map((v,i)=>x(i)+','+y(v)).join(' ');
+  let dots=data.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="3.5" fill="${color}"/><text x="${x(i)}" y="${y(v)-9}" font-size="9" text-anchor="middle" fill="#6b7a74">${fmt(v)}</text>`).join('');
+  let goalLine=goal!=null?`<line x1="${pad}" y1="${y(goal)}" x2="${w-pad}" y2="${y(goal)}" stroke="#e8a33d" stroke-width="1.5" stroke-dasharray="5 4"/><text x="${w-pad}" y="${y(goal)-4}" font-size="9" text-anchor="end" fill="#e8a33d">objetivo ${goal}</text>`:'';
+  let lbls=label.map((l,i)=>`<text x="${x(i)}" y="${h-10}" font-size="9" text-anchor="middle" fill="#6b7a74">${l}</text>`).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto">
+    ${goalLine}
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round"/>
+    ${dots}${lbls}</svg>`;
+}
+const wLabels=['s1','s2','s3','s4','s5','s6','s7','s8'];
+document.getElementById('weightChart').innerHTML=lineChart(
+  [68.4,68.1,67.8,67.9,67.2,66.8,66.5,66.1],{label:wLabels,goal:65,fmt:v=>v.toFixed(1)});
+
+/* ---------- Progresos metrics ---------- */
+const metrics={
+  peso:{title:'📉 Peso corporal',th:'Peso',unit:'kg',goal:65,
+    data:[68.4,67.9,67.2,66.5,66.1],lbl:['12 feb','20 feb','28 feb','6 mar','12 mar'],fmt:v=>v.toFixed(1)},
+  cintura:{title:'📏 Circunferencia de cintura',th:'Cintura',unit:'cm',goal:72,
+    data:[78,77,76,75.5,75],lbl:['12 feb','20 feb','28 feb','6 mar','12 mar'],fmt:v=>v.toFixed(1)},
+  grasa:{title:'💪 Masa grasa',th:'Masa grasa',unit:'%',goal:22,
+    data:[26,25.5,25.1,24.7,24.3],lbl:['12 feb','20 feb','28 feb','6 mar','12 mar'],fmt:v=>v.toFixed(1)}
+};
+function renderMetric(m){
+  const d=metrics[m];
+  document.getElementById('metricTitle').textContent=d.title;
+  document.getElementById('thMetric').textContent=d.th+' ('+d.unit+')';
+  document.getElementById('metricChart').innerHTML=lineChart(d.data,{label:d.lbl,goal:d.goal,fmt:d.fmt});
+  const tb=document.getElementById('metricTable');tb.innerHTML='';
+  d.data.forEach((v,i)=>{
+    const prev=i>0?d.data[i-1]:null;
+    let diff=prev!=null?(v-prev):0;
+    let sign=diff<0?'▼ '+Math.abs(diff).toFixed(1):diff>0?'▲ '+diff.toFixed(1):'—';
+    let col=diff<0?'#2e9e6b':diff>0?'#e8a33d':'#6b7a74';
+    tb.innerHTML+=`<tr><td>${d.lbl[i]}</td><td><b>${v}${d.unit}</b></td><td style="color:${col};font-weight:700">${sign}</td></tr>`;
+  });
+}
+document.querySelectorAll('#metricToggle button').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('#metricToggle button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');renderMetric(b.dataset.m);
+  };
+});
+renderMetric('peso');
+
+/* ---------- Visit ---------- */
+function confirmVisit(){
+  const b=document.getElementById('confBtn');
+  b.textContent='✅ Asistencia confirmada';b.disabled=true;b.style.background='#217a51';b.style.cursor='default';
+  toast('✅ Has confirmado tu asistencia');
+}
+</script>
+</body>
+</html>

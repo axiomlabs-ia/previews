@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dacomat AI Studio</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--brand:#5b54e8;--bg:#f4f5fa;--card:#fff;--ink:#1c1f2e;--mut:#7a7f96;--line:#e7e9f2;--ok:#16a34a;--warn:#f59e0b;--err:#dc2626}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+.app{display:flex;min-height:100vh}
+.sidebar{width:240px;background:#161826;color:#cfd2e2;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:30;transition:.25s}
+.brand{padding:20px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #262a3d}
+.logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#6d63ff,#9d4edd);display:flex;align-items:center;justify-content:center;font-size:18px}
+.brand b{color:#fff;font-size:15px;line-height:1.1}
+.brand small{color:#7a7f96;font-size:10px}
+nav{padding:12px 10px;flex:1}
+.nav-item{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:9px;cursor:pointer;margin-bottom:3px;color:#aeb2c7;font-weight:500;transition:.15s}
+.nav-item:hover{background:#23263a;color:#fff}
+.nav-item.active{background:var(--brand);color:#fff}
+.nav-item .ic{font-size:17px}
+.sidefoot{padding:14px;border-top:1px solid #262a3d;font-size:11px;color:#6a6f86}
+.main{flex:1;margin-left:240px;display:flex;flex-direction:column}
+.topbar{background:#fff;border-bottom:1px solid var(--line);padding:14px 26px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:20}
+.topbar h1{font-size:18px;flex:1}
+.demo-badge{background:#fde68a;color:#92400e;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.5px}
+.pwr{background:#ede9fe;color:#5b21b6;padding:5px 11px;border-radius:8px;font-size:11px;font-weight:600}
+.content{padding:26px;flex:1}
+.hamb{display:none;font-size:22px;cursor:pointer;background:none;border:none}
+.note{font-size:11px;color:var(--mut);margin-bottom:18px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.kpi .lab{color:var(--mut);font-size:12px;font-weight:600}
+.kpi .val{font-size:26px;font-weight:800;margin-top:6px}
+.kpi .delta{font-size:11px;color:var(--ok);margin-top:4px}
+.kpi .ic{float:right;font-size:22px;opacity:.7}
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:18px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:18px}
+.panel h2{font-size:15px;margin-bottom:14px}
+.chart{display:flex;align-items:flex-end;gap:14px;height:200px;padding-top:10px}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+.bar{width:100%;background:linear-gradient(180deg,#7d74ff,#5b54e8);border-radius:7px 7px 0 0;transition:.3s;min-height:6px}
+.bar-wrap small{color:var(--mut);font-size:11px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;color:var(--mut);text-transform:uppercase;padding:9px 10px;border-bottom:1px solid var(--line);letter-spacing:.4px}
+td{padding:11px 10px;border-bottom:1px solid var(--line);font-size:13px}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:#f8f9fd}
+.badge{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;display:inline-block}
+.b-ok{background:#dcfce7;color:#15803d}
+.b-on{background:#dbeafe;color:#1d4ed8}
+.b-warn{background:#fef3c7;color:#b45309}
+.b-err{background:#fee2e2;color:#b91c1c}
+.b-mut{background:#eef0f6;color:#555}
+.sysitem{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px #dcfce7}
+.btn{background:var(--brand);color:#fff;border:none;padding:9px 16px;border-radius:9px;font-weight:600;cursor:pointer;font-size:13px}
+.btn:hover{opacity:.9}
+.btn-sec{background:#eef0f6;color:#444}
+.head-row{display:flex;align-items:center;margin-bottom:16px;gap:12px}
+.head-row h2{flex:1;font-size:17px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.chip{padding:7px 14px;border-radius:20px;background:#fff;border:1px solid var(--line);cursor:pointer;font-size:12px;font-weight:600;color:#555}
+.chip.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.solcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.solcard .sic{font-size:26px}
+.solcard h3{font-size:15px;margin:10px 0 4px}
+.solcard p{color:var(--mut);font-size:12px;min-height:32px}
+.tag{font-size:10px;background:#ede9fe;color:#5b21b6;padding:3px 8px;border-radius:6px;font-weight:600}
+.solfoot{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
+.switch{position:relative;width:42px;height:23px;display:inline-block}
+.switch input{display:none}
+.slider{position:absolute;inset:0;background:#ccc;border-radius:20px;transition:.2s;cursor:pointer}
+.slider:before{content:'';position:absolute;width:17px;height:17px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked+.slider{background:var(--ok)}
+.switch input:checked+.slider:before{transform:translateX(19px)}
+.hidden{display:none}
+.drawer{position:fixed;top:0;right:0;width:420px;max-width:90vw;height:100vh;background:#fff;box-shadow:-8px 0 30px rgba(0,0,0,.15);z-index:50;padding:24px;overflow-y:auto;transform:translateX(100%);transition:.3s}
+.drawer.open{transform:translateX(0)}
+.overlay{position:fixed;inset:0;background:rgba(20,20,40,.4);z-index:40;display:none}
+.overlay.open{display:block}
+.close-x{float:right;font-size:24px;background:none;border:none;cursor:pointer;color:#999}
+.dl{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.dl span:first-child{color:var(--mut)}
+.modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:16px;padding:26px;width:420px;max-width:92vw;z-index:60;box-shadow:0 20px 60px rgba(0,0,0,.3);display:none}
+.modal.open{display:block}
+.modal h2{margin-bottom:16px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:#555}
+.field input,.field select{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;font-size:13px}
+.logbox{background:#161826;color:#cfd2e2;border-radius:10px;padding:14px;font-family:monospace;font-size:12px;line-height:1.9;margin-top:8px}
+.brand-wrap{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.preview{border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.pv-top{padding:16px;color:#fff;display:flex;align-items:center;gap:10px}
+.pv-logo{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center}
+.pv-body{padding:20px;background:#fafbff}
+.pv-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.pv-btn{color:#fff;border:none;padding:9px 14px;border-radius:8px;font-weight:600;font-size:13px}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2,.brand-wrap{grid-template-columns:1fr}.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.hamb{display:block}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo">🤖</div>
+      <div><b>Dacomat AI Studio</b><br><small>White-label Platform</small></div>
+    </div>
+    <nav>
+      <div class="nav-item active" data-view="dashboard"><span class="ic">📊</span> Dashboard</div>
+      <div class="nav-item" data-view="clienti"><span class="ic">👥</span> Clienti</div>
+      <div class="nav-item" data-view="soluzioni"><span class="ic">✨</span> Soluzioni AI</div>
+      <div class="nav-item" data-view="automazioni"><span class="ic">⚙️</span> Automazioni</div>
+      <div class="nav-item" data-view="branding"><span class="ic">🎨</span> Branding</div>
+    </nav>
+    <div class="sidefoot">Powered by your infrastructure<br>v2.4.1 · Roma</div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <button class="hamb" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+      <h1 id="pageTitle">Dashboard</h1>
+      <span class="pwr">Powered by your infrastructure</span>
+      <span class="demo-badge">DEMO</span>
+    </div>
+    <div class="content">
+      <p class="note">⚠️ Dati di esempio — ambiente dimostrativo. Nessuna operazione è reale.</p>
+
+      <!-- DASHBOARD -->
+      <section id="dashboard">
+        <div class="kpis">
+          <div class="kpi"><span class="ic">👥</span><div class="lab">Clienti attivi</div><div class="val">24</div><div class="delta">▲ +3 questo mese</div></div>
+          <div class="kpi"><span class="ic">⚙️</span><div class="lab">Automazioni live</div><div class="val">87</div><div class="delta">▲ +12 questo mese</div></div>
+          <div class="kpi"><span class="ic">📦</span><div class="lab">Task elaborati / mese</div><div class="val">142.380</div><div class="delta">▲ +18% vs precedente</div></div>
+          <div class="kpi"><span class="ic">⏱️</span><div class="lab">Ore risparmiate</div><div class="val">3.210</div><div class="delta">▲ stima cumulativa</div></div>
+        </div>
+        <div class="grid2">
+          <div>
+            <div class="panel">
+              <h2>Task elaborati — ultimi 6 mesi</h2>
+              <div class="chart" id="chart"></div>
+            </div>
+            <div class="panel">
+              <h2>Ultime attività</h2>
+              <table>
+                <thead><tr><th>Cliente</th><th>Automazione</th><th>Esito</th><th>Quando</th></tr></thead>
+                <tbody>
+                  <tr><td>Studio Legale Marchetti</td><td>Smistamento ticket</td><td><span class="badge b-ok">Completato</span></td><td>12:41</td></tr>
+                  <tr><td>Logistica Capitale</td><td>Tracking spedizioni</td><td><span class="badge b-ok">Completato</span></td><td>12:38</td></tr>
+                  <tr><td>Centro Medico Aurelia</td><td>Promemoria appuntamenti</td><td><span class="badge b-ok">Completato</span></td><td>12:30</td></tr>
+                  <tr><td>Boutique Hotel Trastevere</td><td>Risposta recensioni</td><td><span class="badge b-err">Errore</span></td><td>12:15</td></tr>
+                  <tr><td>Edilroma Costruzioni</td><td>Estrazione fatture</td><td><span class="badge b-ok">Completato</span></td><td>11:58</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <h2>Stato sistema</h2>
+            <div class="sysitem"><span class="dot"></span> Motore AI · Operativo</div>
+            <div class="sysitem"><span class="dot"></span> API Gateway · Operativo</div>
+            <div class="sysitem"><span class="dot"></span> Workflow Engine · Operativo</div>
+            <div class="sysitem"><span class="dot"></span> Database · Operativo</div>
+            <div class="sysitem"><span class="dot"></span> Servizio Notifiche · Operativo</div>
+            <div class="sysitem"><span class="dot"></span> Storage Documenti · Operativo</div>
+            <p style="margin-top:14px;font-size:12px;color:var(--mut)">Uptime ultimi 30gg: <b style="color:var(--ok)">99,98%</b></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CLIENTI -->
+      <section id="clienti" class="hidden">
+        <div class="head-row">
+          <h2>Clienti rivenduti</h2>
+          <button class="btn" onclick="openModal()">+ Nuovo cliente</button>
+        </div>
+        <div class="panel" style="padding:6px 18px 18px">
+          <table>
+            <thead><tr><th>Nome</th><th>Settore</th><th>Soluzioni</th><th>MRR</th><th>Stato</th><th>Ultimo accesso</th></tr></thead>
+            <tbody id="clientiBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SOLUZIONI -->
+      <section id="soluzioni" class="hidden">
+        <h2 style="margin-bottom:14px">Catalogo Soluzioni AI</h2>
+        <div class="chips" id="catChips"></div>
+        <div class="cardgrid" id="solGrid"></div>
+      </section>
+
+      <!-- AUTOMAZIONI -->
+      <section id="automazioni" class="hidden">
+        <h2 style="margin-bottom:14px">Automazioni / Workflow</h2>
+        <div class="panel" style="padding:6px 18px 18px">
+          <table>
+            <thead><tr><th>Automazione</th><th>Cliente</th><th>Trigger</th><th>Stato</th><th>Oggi</th><th></th></tr></thead>
+            <tbody id="autoBody"></tbody>
+          </table>
+        </div>
+        <div class="panel hidden" id="logPanel">
+          <div class="head-row"><h2 id="logTitle">Log esecuzione</h2><button class="btn btn-sec" onclick="document.getElementById('logPanel').classList.add('hidden')">Chiudi</button></div>
+          <div class="logbox">
+            12:41:08&nbsp; ✓ Ticket #4821 classificato come "Urgente" → assegnato a Team A<br>
+            12:38:52&nbsp; ✓ Ticket #4820 classificato come "Fatturazione"<br>
+            12:35:10&nbsp; ✓ Ticket #4819 risposta automatica inviata<br>
+            12:30:44&nbsp; ⚠ Confidenza bassa (62%) → escalation a operatore<br>
+            12:24:01&nbsp; ✓ Ticket #4818 chiuso automaticamente
+          </div>
+        </div>
+      </section>
+
+      <!-- BRANDING -->
+      <section id="branding" class="hidden">
+        <h2 style="margin-bottom:14px">Branding white-label</h2>
+        <div class="brand-wrap">
+          <div class="panel">
+            <h2>Configurazione</h2>
+            <div class="field"><label>Nome brand (visibile al cliente)</label><input id="bName" value="Marchetti AI Assistant" oninput="upd()"></div>
+            <div class="field"><label>Colore primario</label><input type="color" id="bColor" value="#1d4ed8" oninput="upd()"></div>
+            <div class="field"><label>Logo</label><button class="btn btn-sec" onclick="alert('Upload simulato — funzione disponibile nella versione completa')">📁 Carica logo…</button></div>
+            <div class="field"><label>Dominio personalizzato</label><input id="bDom" value="ai.studiomarchetti.it" oninput="upd()"></div>
+            <button class="btn" onclick="alert('Branding salvato e applicato al cliente (demo)')">💾 Salva e applica</button>
+          </div>
+          <div class="panel">
+            <h2>Anteprima cliente finale</h2>
+            <div class="preview">
+              <div class="pv-top" id="pvTop">
+                <div class="pv-logo">🏛️</div>
+                <b id="pvName">Marchetti AI Assistant</b>
+              </div>
+              <div class="pv-body">
+                <div class="pv-card"><b>Buongiorno 👋</b><br><span style="color:var(--mut);font-size:12px">Come posso aiutarti oggi?</span></div>
+                <div class="pv-card">📄 Documenti elaborati: <b>1.284</b></div>
+                <button class="pv-btn" id="pvBtn">Nuova richiesta</button>
+                <p style="margin-top:12px;font-size:11px;color:var(--mut)" id="pvDom">ai.studiomarchetti.it</p>
+              </div>
+            </div>
+            <p style="margin-top:10px;font-size:11px;color:var(--mut)">Il cliente non vede mai il marchio Dacomat o l'infrastruttura sottostante.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER CLIENTE -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <button class="close-x" onclick="closeDrawer()">×</button>
+  <h2 id="dTitle"></h2>
+  <p id="dSub" style="color:var(--mut);font-size:13px;margin-bottom:18px"></p>
+  <div id="dDetails"></div>
+  <h3 style="margin:20px 0 8px;font-size:14px">Soluzioni attive</h3>
+  <div id="dSols"></div>
+  <h3 style="margin:20px 0 8px;font-size:14px">Consumo mensile</h3>
+  <div class="panel" style="margin:0"><div class="chart" id="dChart" style="height:120px"></div></div>
+</div>
+
+<!-- MODALE -->
+<div class="overlay" id="overlay2" onclick="closeModal()"></div>
+<div class="modal" id="modal">
+  <button class="close-x" onclick="closeModal()">×</button>
+  <h2>Nuovo cliente</h2>
+  <div class="field"><label>Ragione sociale</label><input placeholder="Es. Nuovo Cliente Srl"></div>
+  <div class="field"><label>Settore</label><select><option>Legal</option><option>Healthcare</option><option>Construction</option><option>Logistics</option><option>Hospitality</option><option>Retail</option></select></div>
+  <div class="field"><label>MRR previsto</label><input placeholder="€"></div>
+  <button class="btn" onclick="alert('Cliente creato (demo) — sarà in stato Onboarding');closeModal()">Crea cliente</button>
+</div>
+
+<script>
+// chart dashboard
+const months=['Set','Ott','Nov','Dic','Gen','Feb'];
+const vals=[98000,112000,121000,118000,135000,142380];
+const mx=Math.max(...vals);
+document.getElementById('chart').innerHTML=months.map((m,i)=>`<div class="bar-wrap"><div class="bar" style="height:${vals[i]/mx*160}px"></div><small>${m}</small></div>`).join('');
+
+// CLIENTI
+const clienti=[
+ {n:'Studio Legale Marchetti & Associati',s:'Legal',sol:3,mrr:'€890',st:'Attivo',sb:'b-ok',la:'Oggi, 09:42',solist:['AI Customer Care','Document Intelligence','Compliance Checker'],brand:'Marchetti AI Assistant',cons:[210,260,240,290]},
+ {n:'Farmacia Tiburtina Srl',s:'Healthcare/Retail',sol:2,mrr:'€450',st:'Attivo',sb:'b-ok',la:'Ieri, 18:15',solist:['Appointment Bot','Email Auto-Reply'],brand:'FarmaBot',cons:[80,95,110,120]},
+ {n:'Edilroma Costruzioni SpA',s:'Construction',sol:4,mrr:'€1.200',st:'Attivo',sb:'b-ok',la:'2 giorni fa',solist:['Document Intelligence','Report Generator','Lead Qualifier','Email Auto-Reply'],brand:'Edilroma Smart',cons:[300,340,380,410]},
+ {n:'Centro Medico Aurelia',s:'Healthcare',sol:1,mrr:'€320',st:'In onboarding',sb:'b-on',la:'Oggi, 11:08',solist:['Appointment Bot'],brand:'Aurelia Care AI',cons:[40,90,140,180]},
+ {n:'Logistica Capitale Srl',s:'Logistics',sol:5,mrr:'€1.650',st:'Attivo',sb:'b-ok',la:'Oggi, 08:30',solist:['Document Intelligence','Lead Qualifier','Report Generator','Voice Assistant','AI Customer Care'],brand:'Capitale Logix AI',cons:[520,560,610,680]},
+ {n:'Boutique Hotel Trastevere',s:'Hospitality',sol:2,mrr:'€580',st:'Sospeso',sb:'b-mut',la:'15 giorni fa',solist:['Voice Assistant','Email Auto-Reply'],brand:'Trastevere Concierge',cons:[150,120,90,40]},
+];
+document.getElementById('clientiBody').innerHTML=clienti.map((c,i)=>`<tr onclick="openDrawer(${i})"><td><b>${c.n}</b></td><td>${c.s}</td><td>${c.sol}</td><td>${c.mrr}</td><td><span class="badge ${c.sb}">${c.st}</span></td><td>${c.la}</td></tr>`).join('');
+
+function openDrawer(i){
+  const c=clienti[i];
+  document.getElementById('dTitle').textContent=c.n;
+  document.getElementById('dSub').textContent=c.s+' · MRR '+c.mrr;
+  document.getElementById('dDetails').innerHTML=`<div class="dl"><span>Stato</span><span class="badge ${c.sb}">${c.st}</span></div><div class="dl"><span>Ultimo accesso</span><b>${c.la}</b></div><div class="dl"><span>Branding applicato</span><b>${c.brand}</b></div><div class="dl"><span>Soluzioni attive</span><b>${c.sol}</b></div>`;
+  document.getElementById('dSols').innerHTML=c.solist.map(s=>`<div class="dl"><span>${s}</span><span class="badge b-ok">live</span></div>`).join('');
+  const mx2=Math.max(...c.cons);
+  document.getElementById('dChart').innerHTML=c.cons.map((v,k)=>`<div class="bar-wrap"><div class="bar" style="height:${v/mx2*90}px"></div><small>M${k+1}</small></div>`).join('');
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('overlay').classList.remove('open');}
+function openModal(){document.getElementById('modal').classList.add('open');document.getElementById('overlay2').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');document.getElementById('overlay2').classList.remove('open');}
+
+// SOLUZIONI
+const sols=[
+ {ic:'💬',n:'AI Customer Care',d:'Chatbot e ticketing automatico 24/7',c:'Customer Service',on:true},
+ {ic:'📄',n:'Document Intelligence',d:'Estrazione dati da fatture, contratti, PDF',c:'Documenti',on:true},
+ {ic:'🎯',n:'Lead Qualifier',d:'Qualificazione automatica lead in entrata',c:'Vendite',on:false},
+ {ic:'📞',n:'Voice Assistant',d:'Risponditore vocale AI per prenotazioni/info',c:'Telefonia',on:true},
+ {ic:'📧',n:'Email Auto-Reply',d:'Risposte e smistamento email intelligente',c:'Produttività',on:true},
+ {ic:'📈',n:'Report Generator',d:'Report periodici generati da dati grezzi',c:'Analytics',on:false},
+ {ic:'🛡️',n:'Compliance Checker',d:'Controllo documenti vs normative (GDPR, fiscale)',c:'Legal',on:false},
+ {ic:'📅',n:'Appointment Bot',d:'Gestione e promemoria appuntamenti',c:'Operations',on:true},
+];
+const cats=['Tutte',...new Set(sols.map(s=>s.c))];
+let curCat='Tutte';
+function renderChips(){document.getElementById('catChips').innerHTML=cats.map(c=>`<span class="chip ${c===curCat?'active':''}" onclick="setCat('${c}')">${c}</span>`).join('');}
+function setCat(c){curCat=c;renderChips();renderSols();}
+function renderSols(){
+  document.getElementById('solGrid').innerHTML=sols.filter(s=>curCat==='Tutte'||s.c===curCat).map((s,i)=>{
+    const idx=sols.indexOf(s);
+    return `<div class="solcard"><span class="sic">${s.ic}</span> <span class="tag">${s.c}</span><h3>${s.n}</h3><p>${s.d}</p><div class="solfoot"><span style="font-size:12px;color:var(--mut)">Attiva per cliente</span><label class="switch"><input type="checkbox" ${s.on?'checked':''} onchange="sols[${idx}].on=this.checked"><span class="slider"></span></label></div></div>`;
+  }).join('');
+}
+renderChips();renderSols();
+
+// AUTOMAZIONI
+const autos=[
+ {n:'Smistamento ticket di supporto',cl:'Studio Legale Marchetti',tr:'Nuova email',st:'Attiva',ex:47},
+ {n:'Estrazione dati fatture fornitori',cl:'Edilroma Costruzioni',tr:'Upload PDF',st:'Attiva',ex:23},
+ {n:'Promemoria appuntamenti SMS',cl:'Centro Medico Aurelia',tr:'Pianificato (8:00)',st:'Attiva',ex:112},
+ {n:'Qualificazione lead da form sito',cl:'Logistica Capitale',tr:'Submit form',st:'In pausa',ex:0},
+ {n:'Risposta automatica recensioni',cl:'Boutique Hotel Trastevere',tr:'Nuova recensione',st:'Errore',ex:3},
+ {n:'Tracking spedizioni clienti',cl:'Logistica Capitale',tr:'Webhook corriere',st:'Attiva',ex:308},
+];
+function stBadge(st){return st==='Attiva'?'b-ok':st==='In pausa'?'b-warn':'b-err';}
+function renderAutos(){
+  document.getElementById('autoBody').innerHTML=autos.map((a,i)=>`<tr><td onclick="showLog(${i})"><b>${a.n}</b></td><td>${a.cl}</td><td>${a.tr}</td><td><span class="badge ${stBadge(a.st)}">${a.st}</span></td><td>${a.ex}</td><td><button class="btn btn-sec" style="padding:5px 10px" onclick="event.stopPropagation();toggleAuto(${i})">${a.st==='Attiva'?'⏸ Pausa':'▶ Attiva'}</button></td></tr>`).join('');
+}
+function toggleAuto(i){autos[i].st=autos[i].st==='Attiva'?'In pausa':'Attiva';if(autos[i].st==='In pausa')autos[i].ex=0;renderAutos();}
+function showLog(i){document.getElementById('logTitle').textContent='Log esecuzione — '+autos[i].n;document.getElementById('logPanel').classList.remove('hidden');document.getElementById('logPanel').scrollIntoView({behavior:'smooth'});}
+renderAutos();
+
+// BRANDING
+function upd(){
+  const c=document.getElementById('bColor').value;
+  document.getElementById('pvTop').style.background=c;
+  document.getElementById('pvBtn').style.background=c;
+  document.getElementById('pvName').textContent=document.getElementById('bName').value;
+  document.getElementById('pvDom').textContent=document.getElementById('bDom').value;
+}
+upd();
+
+// NAV
+const titles={dashboard:'Dashboard',clienti:'Clienti',soluzioni:'Soluzioni AI',automazioni:'Automazioni / Workflow',branding:'Branding white-label'};
+document.querySelectorAll('.nav-item').forEach(it=>it.onclick=()=>{
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  it.classList.add('active');
+  const v=it.dataset.view;
+  document.querySelectorAll('.content section').forEach(s=>s.classList.add('hidden'));
+  document.getElementById(v).classList.remove('hidden');
+  document.getElementById('pageTitle').textContent=titles[v];
+  document.getElementById('sidebar').classList.remove('open');
+});
+</script>
+</body>
+</html>

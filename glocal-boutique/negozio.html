@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Negozio - G'Local Boutique</title>
+  <meta name="description" content="Shop online G'Local Boutique. Bijoux e gioielli d'autore da Roma. Anelli, bracciali, collane, orecchini.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="icon" href="https://glocalboutique.com/wp-content/uploads/2021/06/GLOCAL-logo-45.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="page-shop">
+  <div id="header-slot"></div>
+
+  <section class="page-hero-mini">
+    <div class="container">
+      <span class="section-label">Shop Online</span>
+      <h1 class="section-title">Negozio</h1>
+      <p class="section-subtitle">Scopri la nostra selezione completa di bijoux e gioielli d'autore.</p>
+    </div>
+  </section>
+
+  <section class="shop-content">
+    <div class="container">
+      <div class="shop-categories-bar">
+        <a href="categorie/bijoux-e-gioielli.html" class="cat-pill">Bijoux e Gioielli</a>
+        <a href="categorie/anelli.html" class="cat-pill">Anelli</a>
+        <a href="categorie/bracciali.html" class="cat-pill">Bracciali</a>
+        <a href="categorie/collane.html" class="cat-pill">Collane</a>
+        <a href="categorie/orecchini.html" class="cat-pill">Orecchini</a>
+      </div>
+      <div class="shop-layout">
+        <aside class="shop-sidebar">
+          <div id="price-filter"></div>
+        </aside>
+        <div class="shop-main">
+          <div class="shop-toolbar">
+            <span id="product-count"></span>
+            <div id="sort-control"></div>
+          </div>
+          <div id="product-grid" class="product-grid"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer-slot"></div>
+
+  <script src="js/products.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    Components.inject('');
+    Store.init('all');
+  </script>
+</body>
+</html>

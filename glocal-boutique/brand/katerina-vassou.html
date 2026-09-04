@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Katerina Vassou - G'Local Boutique</title>
+  <meta name="description" content="Katerina Vassou su G'Local Boutique Roma. Eleganza greca contemporanea con forme organiche.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="icon" href="https://glocalboutique.com/wp-content/uploads/2021/06/GLOCAL-logo-45.png">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div id="header-slot"></div>
+
+  <section class="brand-hero" style="background: linear-gradient(135deg, #6B4F42, #8D6959);">
+    <div class="brand-hero-overlay"></div>
+    <div class="container brand-hero-content">
+      <span class="section-label">Brand</span>
+      <h1>Katerina Vassou</h1>
+    </div>
+  </section>
+
+  <section class="brand-about">
+    <div class="container">
+      <div class="brand-about-grid">
+        <div class="brand-about-text">
+          <h2 class="section-title">Katerina Vassou</h2>
+          <p>Katerina Vassou incarna l'eleganza greca contemporanea. Le sue creazioni presentano forme organiche ispirate alla natura e alla mitologia ellenica, realizzate con materiali preziosi e una sensibilita moderna che rende ogni pezzo senza tempo.</p>
+          <a href="https://glocalboutique.com/brand/katerina-vassou/" class="btn btn-primary">Vedi tutti i prodotti su G'Local</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="shop-content brand-products">
+    <div class="container">
+      <h2 class="section-title" style="text-align:center; margin-bottom:2rem;">I nostri pezzi selezionati</h2>
+      <div id="product-grid" class="product-grid"></div>
+    </div>
+  </section>
+
+  <div id="footer-slot"></div>
+
+  <script src="../js/products.js"></script>
+  <script src="../js/store.js"></script>
+  <script src="../js/components.js"></script>
+  <script src="../js/main.js"></script>
+  <script>
+    Components.inject('../');
+    // Show all products since we don't have brand data per product
+    Store.init('all');
+  </script>
+</body>
+</html>

@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AuditForge AI — ISA Digital Consulting</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
+:root{--bg:#0f1729;--card:#fff;--accent:#5b3df5;--accent2:#7c5cff;--ok:#16a34a;--warn:#d97706;--info:#2563eb;--muted:#64748b;--line:#e2e8f0}
+body{background:#f1f5f9;color:#1e293b}
+.app{display:flex;min-height:100vh}
+/* Sidebar */
+.sidebar{width:248px;background:var(--bg);color:#cbd5e1;position:fixed;top:0;bottom:0;left:0;display:flex;flex-direction:column;z-index:50;transition:transform .3s}
+.brand{padding:22px 20px;border-bottom:1px solid #1e293b;display:flex;align-items:center;gap:10px}
+.brand .logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:20px}
+.brand h1{font-size:16px;color:#fff;line-height:1.1}
+.brand small{font-size:10px;color:#64748b;display:block;margin-top:2px}
+.nav{padding:14px 12px;flex:1}
+.nav a{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:9px;color:#94a3b8;text-decoration:none;font-size:14px;margin-bottom:4px;cursor:pointer;transition:.15s}
+.nav a:hover{background:#1e293b;color:#fff}
+.nav a.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.nav a .ic{font-size:17px}
+.side-foot{padding:16px 20px;border-top:1px solid #1e293b;font-size:11px;color:#475569}
+/* Main */
+.main{flex:1;margin-left:248px;min-width:0}
+.topbar{background:#fff;border-bottom:1px solid var(--line);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40}
+.topbar .left{display:flex;align-items:center;gap:14px}
+.hamb{display:none;font-size:22px;background:none;border:none;cursor:pointer}
+.topbar h2{font-size:19px}
+.topbar .sub{font-size:12px;color:var(--muted)}
+.demo-badge{background:#fde047;color:#854d0e;font-weight:700;font-size:11px;padding:4px 10px;border-radius:20px;letter-spacing:.5px}
+.user{display:flex;align-items:center;gap:9px;font-size:13px}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.content{padding:26px 28px}
+.btn{background:var(--accent);color:#fff;border:none;padding:10px 18px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--accent2)}
+.btn.ghost{background:#fff;color:var(--accent);border:1px solid var(--line)}
+.btn.sm{padding:6px 12px;font-size:13px}
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
+.kpi .ic{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:10px;background:#eef2ff}
+.kpi .val{font-size:28px;font-weight:700}
+.kpi .lbl{font-size:12.5px;color:var(--muted);margin-top:2px}
+.grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px}
+.card h3{font-size:15px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.list-item{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #f1f5f9}
+.list-item:last-child{border:none}
+.list-item .li-l{display:flex;align-items:center;gap:11px}
+.li-ic{width:36px;height:36px;border-radius:9px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:16px}
+.li-name{font-size:14px;font-weight:600}
+.li-sub{font-size:12px;color:var(--muted)}
+.badge{font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px}
+.b-ok{background:#dcfce7;color:#15803d}
+.b-warn{background:#fef3c7;color:#b45309}
+.b-info{background:#dbeafe;color:#1d4ed8}
+.score{font-weight:700;font-size:13px;padding:3px 9px;border-radius:7px}
+.s-hi{background:#dcfce7;color:#15803d}.s-mid{background:#fef3c7;color:#b45309}.s-lo{background:#fee2e2;color:#b91c1c}
+.minibar{margin-bottom:14px}
+.minibar .mt{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.bar{height:8px;background:#f1f5f9;border-radius:6px;overflow:hidden}
+.bar>span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:6px}
+/* Table */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:10px 12px;border-bottom:2px solid var(--line)}
+td{padding:12px;font-size:13.5px;border-bottom:1px solid #f1f5f9}
+tbody tr{cursor:pointer;transition:.1s}
+tbody tr:hover{background:#f8fafc}
+.filters{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+input,select{padding:9px 13px;border:1px solid var(--line);border-radius:9px;font-size:14px;background:#fff;outline:none}
+input:focus,select:focus{border-color:var(--accent)}
+.search{flex:1;min-width:180px}
+.view{display:none}.view.active{display:block}
+/* Wizard */
+.steps{display:flex;gap:10px;margin-bottom:24px}
+.step{flex:1;padding:12px;border-radius:10px;background:#fff;border:1px solid var(--line);font-size:13px;text-align:center;color:var(--muted)}
+.step.active{border-color:var(--accent);color:var(--accent);font-weight:700;background:#f5f3ff}
+.step-pane{display:none}.step-pane.active{display:block}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+.field input,.field select{width:100%}
+.src{display:flex;align-items:center;justify-content:space-between;padding:14px;border:1px solid var(--line);border-radius:10px;margin-bottom:10px}
+.toggle{width:44px;height:24px;border-radius:14px;background:#22c55e;position:relative;cursor:pointer;transition:.2s}
+.toggle.off{background:#cbd5e1}
+.toggle::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;right:3px;transition:.2s}
+.toggle.off::after{right:23px}
+.radio-opt{display:flex;align-items:center;gap:12px;padding:14px;border:2px solid var(--line);border-radius:10px;margin-bottom:10px;cursor:pointer}
+.radio-opt.sel{border-color:var(--accent);background:#f5f3ff}
+.progress-wrap{display:none;text-align:center;padding:30px 0}
+.pbar{height:12px;background:#e2e8f0;border-radius:8px;overflow:hidden;margin:18px 0}
+.pbar>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s}
+/* Gauge */
+.gauge{width:160px;height:160px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;background:conic-gradient(var(--accent) 0% 72%,#e2e8f0 72% 100%)}
+.gauge-in{width:120px;height:120px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gauge-in b{font-size:34px}.gauge-in small{font-size:12px;color:var(--muted)}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:20px}
+.tab{padding:11px 18px;font-size:14px;cursor:pointer;border-bottom:3px solid transparent;color:var(--muted);font-weight:600}
+.tab.active{color:var(--accent);border-color:var(--accent)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+.areas{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:20px 0}
+.crit{padding:11px 14px;background:#fef2f2;border-left:3px solid #ef4444;border-radius:7px;margin-bottom:9px;font-size:13.5px}
+.reco{padding:11px 14px;background:#f0fdf4;border-left:3px solid #22c55e;border-radius:7px;margin-bottom:9px;font-size:13.5px}
+.diff-up{color:#15803d;font-weight:700}.diff-dn{color:#b91c1c;font-weight:700}
+.report-block{background:#fff;border:1px solid var(--line);border-radius:12px;padding:26px;line-height:1.7;font-size:14.5px}
+.report-block h2{font-size:22px;margin-bottom:6px}
+.report-block .ai-tag{font-size:11px;background:#f5f3ff;color:var(--accent);padding:3px 10px;border-radius:20px;font-weight:700}
+.report-block h4{margin:20px 0 8px;font-size:15px}
+.report-block .es{background:#f8fafc;border-left:4px solid var(--accent);padding:16px;border-radius:8px;font-style:italic;color:#334155}
+/* Clienti */
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.ccard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;cursor:pointer;transition:.15s}
+.ccard:hover{box-shadow:0 8px 24px rgba(0,0,0,.08);transform:translateY(-2px)}
+.ccard .ini{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:17px;margin-bottom:12px}
+.ccard .cn{font-weight:700;font-size:15px}
+.ccard .cs{font-size:12px;color:var(--muted);margin-bottom:12px}
+.ccard .cmeta{display:flex;justify-content:space-between;font-size:13px;border-top:1px solid #f1f5f9;padding-top:10px}
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(15,23,41,.6);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+.overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;max-width:520px;width:100%;max-height:88vh;overflow:auto}
+.modal-head{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.modal-body{padding:24px}
+.x{cursor:pointer;font-size:22px;color:var(--muted);background:none;border:none}
+.note{font-size:11.5px;color:var(--muted);margin-top:18px;text-align:center}
+@media(max-width:980px){.kpis{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}.areas{grid-template-columns:1fr}}
+@media(max-width:760px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.hamb{display:block}.kpis{grid-template-columns:1fr 1fr}.content{padding:18px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo">⚡</div>
+      <div><h1>AuditForge AI</h1><small>ISA Digital Consulting</small></div>
+    </div>
+    <nav class="nav">
+      <a class="active" data-view="dashboard"><span class="ic">📊</span> Dashboard</a>
+      <a data-view="nuovo"><span class="ic">✨</span> Nuovo Audit</a>
+      <a data-view="audit"><span class="ic">📁</span> Audit</a>
+      <a data-view="report"><span class="ic">📄</span> Report</a>
+      <a data-view="clienti"><span class="ic">🏢</span> Clienti</a>
+    </nav>
+    <div class="side-foot">v2.4 · AI Audit & Report Engine<br>© 2025 ISA Digital Consulting</div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="left">
+        <button class="hamb" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div>
+          <h2 id="vtitle">Panoramica</h2>
+          <div class="sub">AI Audit & Report Engine</div>
+        </div>
+        <span class="demo-badge">● DEMO</span>
+      </div>
+      <div class="left">
+        <button class="btn" onclick="goView('nuovo')" id="newBtn">+ Nuovo Audit</button>
+        <div class="user"><div class="avatar">MC</div><div>Marco Conti<br><span class="sub">Senior Consultant</span></div></div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <section class="view active" id="dashboard">
+        <p style="font-size:15px;margin-bottom:18px;color:var(--muted)">Bentornato, <b style="color:#1e293b">Marco</b> 👋 Ecco la sintesi della tua attività.</p>
+        <div class="kpis">
+          <div class="kpi"><div class="ic">⚙️</div><div class="val">34</div><div class="lbl">Audit generati questo mese</div></div>
+          <div class="kpi"><div class="ic">⏱️</div><div class="val">218</div><div class="lbl">Ore risparmiate</div></div>
+          <div class="kpi"><div class="ic">📝</div><div class="val">7</div><div class="lbl">Report in bozza</div></div>
+          <div class="kpi"><div class="ic">🚀</div><div class="val">4 min</div><div class="lbl">Tempo medio per audit</div></div>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <h3>Audit recenti <a style="font-size:12px;color:var(--accent);cursor:pointer" onclick="goView('audit')">Vedi tutti →</a></h3>
+            <div id="recentList"></div>
+          </div>
+          <div class="card">
+            <h3>Salute del portafoglio clienti</h3>
+            <div class="minibar"><div class="mt"><span>Score medio digitale</span><b>68/100</b></div><div class="bar"><span style="width:68%"></span></div></div>
+            <div class="minibar"><div class="mt"><span>Clienti monitorati</span><b>24</b></div><div class="bar"><span style="width:80%"></span></div></div>
+            <div class="minibar"><div class="mt"><span>Alert attivi</span><b style="color:#b91c1c">5</b></div><div class="bar"><span style="width:25%;background:#ef4444"></span></div></div>
+            <div style="margin-top:18px;padding:14px;background:#f5f3ff;border-radius:10px;font-size:13px;color:#4c1d95">💡 L'AI suggerisce di rigenerare l'audit di <b>Hotel Belvedere</b> (score 55, sotto media).</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- NUOVO AUDIT -->
+      <section class="view" id="nuovo">
+        <div class="card" style="max-width:640px;margin:0 auto">
+          <div class="steps">
+            <div class="step active" id="st1">1 · Dati cliente</div>
+            <div class="step" id="st2">2 · Fonti dati</div>
+            <div class="step" id="st3">3 · Output</div>
+          </div>
+
+          <div class="step-pane active" id="sp1">
+            <div class="field"><label>Nome azienda</label><input value="Borgo Verde Resort"></div>
+            <div class="field"><label>Settore</label><select><option>Hospitality</option><option>Manifatturiero</option><option>Retail</option><option>Servizi professionali</option><option>E-commerce alimentare</option><option>Fitness</option></select></div>
+            <div class="field"><label>Sito web</label><input value="www.borgoverde-resort.it"></div>
+            <div class="field"><label>Mercato</label><select><option>Italia</option><option>Europa</option><option>Internazionale</option></select></div>
+            <div style="text-align:right"><button class="btn" onclick="wstep(2)">Avanti →</button></div>
+          </div>
+
+          <div class="step-pane" id="sp2">
+            <p style="color:var(--muted);margin-bottom:16px;font-size:14px">Sorgenti dati collegate per l'analisi automatica:</p>
+            <div class="src"><div>📈 Google Analytics</div><div class="toggle" onclick="this.classList.toggle('off')"></div></div>
+            <div class="src"><div>🔍 SEO Crawl</div><div class="toggle" onclick="this.classList.toggle('off')"></div></div>
+            <div class="src"><div>📱 Social Media</div><div class="toggle" onclick="this.classList.toggle('off')"></div></div>
+            <div class="src"><div>⭐ Recensioni Google</div><div class="toggle" onclick="this.classList.toggle('off')"></div></div>
+            <div style="display:flex;justify-content:space-between"><button class="btn ghost" onclick="wstep(1)">← Indietro</button><button class="btn" onclick="wstep(3)">Avanti →</button></div>
+          </div>
+
+          <div class="step-pane" id="sp3">
+            <p style="color:var(--muted);margin-bottom:16px;font-size:14px">Seleziona il tipo di output da generare:</p>
+            <div class="radio-opt sel" onclick="selRadio(this)"><span style="font-size:20px">🔎</span><div><b>Audit Digitale</b><br><small style="color:var(--muted)">Analisi completa SEO, Performance, UX</small></div></div>
+            <div class="radio-opt" onclick="selRadio(this)"><span style="font-size:20px">📊</span><div><b>Report completo</b><br><small style="color:var(--muted)">Documento consulenziale con raccomandazioni</small></div></div>
+            <div class="radio-opt" onclick="selRadio(this)"><span style="font-size:20px">⚔️</span><div><b>Analisi competitiva</b><br><small style="color:var(--muted)">Confronto con 3 competitor di settore</small></div></div>
+            <div style="display:flex;justify-content:space-between;margin-top:8px"><button class="btn ghost" onclick="wstep(2)">← Indietro</button><button class="btn" onclick="generate()">✨ Genera con AI</button></div>
+            <div class="progress-wrap" id="prog">
+              <div style="font-size:15px;font-weight:600" id="progTxt">Analisi delle fonti dati in corso…</div>
+              <div class="pbar"><span id="pbar"></span></div>
+              <small style="color:var(--muted)">L'AI sta elaborando i dati di Borgo Verde Resort</small>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AUDIT TABLE -->
+      <section class="view" id="audit">
+        <div class="filters">
+          <input class="search" id="searchTab" placeholder="🔍 Cerca cliente o settore…" oninput="filterTable()">
+          <select id="statusFilter" onchange="filterTable()">
+            <option value="">Tutti gli stati</option>
+            <option>Completato</option><option>In bozza</option><option>In revisione</option>
+          </select>
+        </div>
+        <div class="card" style="padding:0;overflow-x:auto">
+          <table>
+            <thead><tr><th>Cliente</th><th>Settore</th><th>Tipo</th><th>Score</th><th>Stato</th><th>Data</th><th></th></tr></thead>
+            <tbody id="auditBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- REPORT DETAIL -->
+      <section class="view" id="report">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+            <div><h3 style="margin:0">Borgo Verde Resort</h3><div class="sub">Hospitality · Audit generato il 14/02/2025 · <span class="badge b-ok">Completato</span></div></div>
+            <button class="btn ghost sm" onclick="goView('audit')">← Lista audit</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="tabs">
+            <div class="tab active" onclick="setTab(this,'tab-digi')">🔎 Audit Digitale</div>
+            <div class="tab" onclick="setTab(this,'tab-comp')">⚔️ Analisi Competitiva</div>
+            <div class="tab" onclick="setTab(this,'tab-rep')">📄 Report</div>
+          </div>
+
+          <!-- TAB DIGI -->
+          <div class="tab-pane active" id="tab-digi">
+            <div style="display:flex;gap:30px;align-items:center;flex-wrap:wrap;justify-content:center">
+              <div style="text-align:center">
+                <div class="gauge"><div class="gauge-in"><b>72</b><small>su 100</small></div></div>
+                <p style="margin-top:10px;font-size:13px;color:var(--muted)">Punteggio complessivo</p>
+              </div>
+              <div style="flex:1;min-width:260px">
+                <div class="minibar"><div class="mt"><span>SEO</span><b>65</b></div><div class="bar"><span style="width:65%"></span></div></div>
+                <div class="minibar"><div class="mt"><span>Performance</span><b>58</b></div><div class="bar"><span style="width:58%"></span></div></div>
+                <div class="minibar"><div class="mt"><span>UX</span><b>80</b></div><div class="bar"><span style="width:80%"></span></div></div>
+                <div class="minibar"><div class="mt"><span>Social</span><b>70</b></div><div class="bar"><span style="width:70%"></span></div></div>
+                <div class="minibar"><div class="mt"><span>Sicurezza</span><b>76</b></div><div class="bar"><span style="width:76%"></span></div></div>
+              </div>
+            </div>
+            <div class="areas">
+              <div>
+                <h4 style="margin-bottom:10px">⚠️ Criticità rilevate dall'AI</h4>
+                <div class="crit">Meta description assenti su 14 pagine chiave</div>
+                <div class="crit">Velocità di caricamento elevata (3,2s) sulla home</div>
+                <div class="crit">Immagini non compresse: 4,1 MB di peso medio pagina</div>
+                <div class="crit">Assenza di dati strutturati (schema.org) per le strutture ricettive</div>
+              </div>
+              <div>
+                <h4 style="margin-bottom:10px">✅ Raccomandazioni generate</h4>
+                <div class="reco">Implementare meta description ottimizzate sulle pagine prioritarie</div>
+                <div class="reco">Comprimere asset e attivare lazy-loading immagini (-1,4s stimato)</div>
+                <div class="reco">Aggiungere markup schema per ricavare rich snippet sui motori</div>
+                <div class="reco">Avviare campagna recensioni per superare la media di settore</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB COMP -->
+          <div class="tab-pane" id="tab-comp">
+            <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Metrica</th><th>Borgo Verde</th><th>Agriturismo Le Colline</th><th>Resort Lago Blu</th><th>Media settore</th></tr></thead>
+              <tbody>
+                <tr><td><b>Traffico mensile stimato</b></td><td>12.400 <span class="diff-dn">▼</span></td><td>18.900</td><td>9.200</td><td>13.500</td></tr>
+                <tr><td><b>Recensioni Google</b></td><td>4,3 (320)</td><td>4,6 (540)</td><td>4,1 (210)</td><td>4,3</td></tr>
+                <tr><td><b>Velocità sito (s)</b></td><td>3,2 <span class="diff-dn">▼</span></td><td>2,1</td><td>4,0</td><td>2,9</td></tr>
+                <tr><td><b>Keyword posizionate</b></td><td>142 <span class="diff-dn">▼</span></td><td>310</td><td>98</td><td>180</td></tr>
+              </tbody>
+            </table>
+            </div>
+            <div style="margin-top:18px;padding:16px;background:#f5f3ff;border-radius:10px;font-size:13.5px;color:#4c1d95">🤖 <b>Sintesi AI:</b> Borgo Verde è sotto la media di settore su traffico e keyword posizionate. Il competitor di riferimento (Agriturismo Le Colline) traina su SEO e recensioni: focus consigliato su content marketing e velocità.</div>
+          </div>
+
+          <!-- TAB REPORT -->
+          <div class="tab-pane" id="tab-rep">
+            <div class="report-block">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+                <div><h2>Report di Consulenza Digitale</h2><span class="ai-tag">✨ Generato dall'AI</span></div>
+                <div style="display:flex;gap:8px">
+                  <button class="btn ghost sm" onclick="regen()">↻ Rigenera sezione</button>
+                  <button class="btn sm" onclick="alert('📄 Esportazione PDF simulata (demo).')">⬇ Esporta PDF</button>
+                </div>
+              </div>
+              <h4>Executive Summary</h4>
+              <div class="es" id="esText">"L'analisi automatica del profilo digitale di Borgo Verde Resort evidenzia un posizionamento solido sull'esperienza utente (UX 80/100) ma una visibilità organica sotto la media di settore. La velocità di caricamento (3,2s) penalizza il tasso di conversione. Si raccomanda un intervento prioritario su ottimizzazione SEO on-page e compressione asset, con un impatto stimato del +18% sul traffico qualificato in 90 giorni."</div>
+              <h4>1. Contesto e obiettivi</h4>
+              <p>L'audit è stato condotto sul perimetro digitale completo della struttura ricettiva, integrando dati da Google Analytics, crawl SEO, presenza social e recensioni. L'obiettivo è identificare leve di crescita prioritarie a breve termine.</p>
+              <h4>2. Punti di forza</h4>
+              <p>L'esperienza utente del sito risulta superiore alla media (UX 80/100), con un design moderno e una struttura di prenotazione chiara. La reputazione online è positiva (4,3 su 320 recensioni).</p>
+              <h4>3. Aree di miglioramento prioritarie</h4>
+              <p>Visibilità organica (142 keyword vs 180 medie di settore), performance tecnica e completezza dei metadati SEO. La compressione asset rappresenta il quick-win con miglior rapporto impatto/sforzo.</p>
+              <h4>4. Roadmap suggerita (90 giorni)</h4>
+              <p>Fase 1 — Ottimizzazione tecnica e SEO on-page. Fase 2 — Content marketing e campagna recensioni. Fase 3 — Monitoraggio KPI e A/B test conversioni.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CLIENTI -->
+      <section class="view" id="clienti">
+        <div class="cgrid" id="clientGrid"></div>
+      </section>
+
+      <p class="note">⚠️ Ambiente dimostrativo — Tutti i dati mostrati sono di esempio e non rappresentano clienti reali.</p>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head"><h3 id="mTitle">Profilo cliente</h3><button class="x" onclick="closeModal()">×</button></div>
+    <div class="modal-body" id="mBody"></div>
+  </div>
+</div>
+
+<script>
+const audits=[
+  {c:"Borgo Verde Resort",set:"Hospitality",tipo:"Audit Digitale",score:72,st:"Completato",d:"14/02/2025"},
+  {c:"Officine Marini SRL",set:"Manifatturiero",tipo:"Report completo",score:58,st:"In bozza",d:"13/02/2025"},
+  {c:"Farmacia San Rocco",set:"Retail",tipo:"Analisi competitiva",score:81,st:"Completato",d:"11/02/2025"},
+  {c:"Studio Legale Conti",set:"Servizi professionali",tipo:"Audit Digitale",score:64,st:"In revisione",d:"10/02/2025"},
+  {c:"BioFresh Market",set:"E-commerce alimentare",tipo:"Report completo",score:69,st:"In bozza",d:"09/02/2025"},
+  {c:"Palestra FitZone",set:"Fitness",tipo:"Audit Digitale",score:76,st:"Completato",d:"07/02/2025"},
+  {c:"Hotel Belvedere",set:"Hospitality",tipo:"Analisi competitiva",score:55,st:"In bozza",d:"05/02/2025"}
+];
+const colors=["#5b3df5","#f59e0b","#16a34a","#2563eb","#db2777","#0891b2","#7c3aed"];
+const titles={dashboard:"Panoramica",nuovo:"Nuovo Audit",audit:"Audit",report:"Dettaglio Report",clienti:"Clienti"};
+
+function stBadge(s){return s=="Completato"?'<span class="badge b-ok">'+s+'</span>':s=="In bozza"?'<span class="badge b-warn">'+s+'</span>':'<span class="badge b-info">'+s+'</span>'}
+function scBadge(n){let c=n>=75?'s-hi':n>=63?'s-mid':'s-lo';return '<span class="score '+c+'">'+n+'</span>'}
+
+function goView(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.getElementById(v).classList.add('active');
+  document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('active',a.dataset.view==v));
+  document.getElementById('vtitle').textContent=titles[v];
+  document.getElementById('sidebar').classList.remove('open');
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('.nav a').forEach(a=>a.onclick=()=>goView(a.dataset.view));
+
+// recent list
+document.getElementById('recentList').innerHTML=audits.slice(0,5).map(a=>`
+  <div class="list-item">
+    <div class="li-l"><div class="li-ic">${a.tipo.includes('Audit')?'🔎':a.tipo.includes('Analisi')?'⚔️':'📊'}</div>
+    <div><div class="li-name">${a.c}</div><div class="li-sub">${a.tipo} · ${a.d}</div></div></div>
+    ${stBadge(a.st)}
+  </div>`).join('');
+
+// table
+function renderTable(rows){
+  document.getElementById('auditBody').innerHTML=rows.map(a=>`
+   <tr onclick="goView('report')">
+    <td><b>${a.c}</b></td><td>${a.set}</td><td>${a.tipo}</td><td>${scBadge(a.score)}</td>
+    <td>${stBadge(a.st)}</td><td>${a.d}</td><td><span style="color:var(--accent);font-weight:600">Apri →</span></td>
+   </tr>`).join('');
+}
+renderTable(audits);
+function filterTable(){
+  const q=document.getElementById('searchTab').value.toLowerCase();
+  const s=document.getElementById('statusFilter').value;
+  renderTable(audits.filter(a=>(a.c.toLowerCase().includes(q)||a.set.toLowerCase().includes(q))&&(!s||a.st==s)));
+}
+
+// clients
+const grid=document.getElementById('clientGrid');
+const clientAudits=audits.reduce((m,a)=>{m[a.c]=(m[a.c]||0)+1;return m},{});
+const uniqC=[...new Set(audits.map(a=>a.c))];
+grid.innerHTML=uniqC.map((c,i)=>{
+  const a=audits.find(x=>x.c==c);
+  const ini=c.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  return `<div class="ccard" onclick='openClient(${JSON.stringify(c)})'>
+    <div class="ini" style="background:${colors[i%colors.length]}">${ini}</div>
+    <div class="cn">${c}</div><div class="cs">${a.set}</div>
+    <div class="cmeta"><span>Score: ${scBadge(a.score)}</span><span>${clientAudits[c]} audit</span></div>
+  </div>`;
+}).join('');
+
+function openClient(c){
+  const list=audits.filter(a=>a.c==c);
+  const a=list[0];
+  document.getElementById('mTitle').textContent=c;
+  document.getElementById('mBody').innerHTML=`
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">${a.set} · Score digitale ${scBadge(a.score)}</p>
+    <h4 style="margin-bottom:12px;font-size:14px">Storico audit</h4>
+    ${list.map(x=>`<div class="list-item"><div class="li-l"><div class="li-ic">📄</div><div><div class="li-name">${x.tipo}</div><div class="li-sub">${x.d}</div></div></div>${stBadge(x.st)}</div>`).join('')}
+    <button class="btn" style="margin-top:18px;width:100%" onclick="closeModal();goView('report')">Apri ultimo report →</button>`;
+  document.getElementById('overlay').classList.add('show');
+}
+function closeModal(){document.getElementById('overlay').classList.remove('show')}
+
+// wizard
+function wstep(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('sp'+i).classList.toggle('active',i==n);
+    document.getElementById('st'+i).classList.toggle('active',i<=n);
+  });
+}
+function selRadio(el){document.querySelectorAll('#sp3 .radio-opt').forEach(r=>r.classList.remove('sel'));el.classList.add('sel')}
+function generate(){
+  document.getElementById('prog').style.display='block';
+  const steps=["Analisi delle fonti dati in corso…","Elaborazione SEO & performance…","Generazione raccomandazioni AI…","Composizione report…"];
+  let p=0,si=0;const pb=document.getElementById('pbar'),pt=document.getElementById('progTxt');
+  const t=setInterval(()=>{
+    p+=Math.random()*18+8;if(p>100)p=100;pb.style.width=p+'%';
+    if(p>(si+1)*25&&si<3){si++;pt.textContent=steps[si]}
+    if(p>=100){clearInterval(t);setTimeout(()=>{document.getElementById('prog').style.display='none';pb.style.width='0';wstep(1);goView('report');},500)}
+  },350);
+}
+
+// tabs
+function setTab(el,id){
+  el.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function regen(){
+  const es=document.getElementById('esText');
+  es.style.opacity='.3';es.textContent='✨ Rigenerazione in corso…';
+  setTimeout(()=>{es.style.opacity='1';es.textContent='"Il profilo digitale di Borgo Verde Resort mostra forti potenzialità nell\'esperienza utente. L\'AI identifica nella SEO tecnica e nella velocità di caricamento le due leve a maggior impatto: un intervento mirato può generare un incremento stimato del +18% di traffico qualificato entro 90 giorni, con ROI positivo già dal secondo mese."';},1400);
+}
+</script>
+</body>
+</html>

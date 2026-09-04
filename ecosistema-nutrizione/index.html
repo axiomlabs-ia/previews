@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ecosistema Nutrizione — Axiom Labs</title>
+<link rel="icon" href="data:,">
+<style>
+#axload{position:fixed;inset:0;z-index:99999;background:#020508;display:flex;align-items:center;justify-content:center;transition:opacity .4s ease,visibility .4s}
+#axload.hide{opacity:0;visibility:hidden}
+#axload .ai{display:flex;flex-direction:column;align-items:center;gap:16px;font-family:'Space Grotesk',system-ui,sans-serif}
+#axload .gem{width:32px;height:32px;transform:rotate(45deg);background:linear-gradient(135deg,#00E5A0,#0D9B76);border-radius:6px;box-shadow:0 0 22px rgba(0,229,160,.6);animation:axpulse 1.1s ease-in-out infinite}
+@keyframes axpulse{0%,100%{transform:rotate(45deg) scale(1);box-shadow:0 0 20px rgba(0,229,160,.5)}50%{transform:rotate(45deg) scale(1.16);box-shadow:0 0 36px rgba(0,229,160,.9)}}
+#axload .w{letter-spacing:.28em;font-size:12.5px;font-weight:600;color:#EAF3EF}
+#axload .w b{color:#00E5A0;font-weight:600}
+#axload .bar{width:120px;height:3px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden}
+#axload .bar i{display:block;height:100%;width:38%;border-radius:3px;background:linear-gradient(90deg,#0D9B76,#00E5A0);animation:axslide 1.05s ease-in-out infinite}
+@keyframes axslide{0%{transform:translateX(-130%)}100%{transform:translateX(330%)}}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#020508; --bg-soft:#060B12; --panel:#0A1219; --line:rgba(0,229,160,.14);
+    --emerald:#0D9B76; --aqua:#00E5A0; --ink:#EAF3EF; --muted:#8FA6A0; --muted-dim:#5E7570;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    color:var(--ink);
+    font-family:'DM Sans',system-ui,sans-serif;
+    min-height:100vh; overflow-x:hidden; position:relative;
+    line-height:1.6;
+    background:
+      radial-gradient(600px 600px at 8% 0%, rgba(13,155,118,.16), transparent 60%),
+      radial-gradient(560px 560px at 100% 100%, rgba(0,229,160,.10), transparent 60%),
+      var(--bg);
+    background-attachment:fixed;
+  }
+  .stars{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.6;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(0,229,160,.5), transparent),
+      radial-gradient(1px 1px at 70% 60%, rgba(234,243,239,.35), transparent),
+      radial-gradient(1.5px 1.5px at 40% 80%, rgba(13,155,118,.5), transparent),
+      radial-gradient(1px 1px at 85% 20%, rgba(0,229,160,.4), transparent),
+      radial-gradient(1px 1px at 55% 45%, rgba(234,243,239,.25), transparent),
+      radial-gradient(1.5px 1.5px at 10% 70%, rgba(0,229,160,.35), transparent);
+    background-size:600px 600px;
+  }
+
+  .wrap{position:relative;z-index:2;max-width:1080px;margin:0 auto;padding:64px 24px 48px}
+
+  /* Language switcher */
+  .langsel{position:fixed;top:16px;right:16px;z-index:20;display:flex;gap:2px;
+    background:rgba(10,18,25,.75);border:1px solid var(--line);border-radius:999px;
+    padding:4px;backdrop-filter:blur(6px)}
+  .langsel button{border:0;background:transparent;color:var(--muted);cursor:pointer;
+    font-family:'Space Grotesk',system-ui,sans-serif;font-size:11.5px;font-weight:600;
+    letter-spacing:.06em;padding:6px 10px;border-radius:999px;transition:.2s}
+  .langsel button:hover{color:var(--ink)}
+  .langsel button.on{background:linear-gradient(135deg,var(--aqua),var(--emerald));color:#02120C}
+  @media(max-width:520px){.langsel{top:10px;right:10px;padding:3px}.langsel button{padding:5px 7px;font-size:10.5px}}
+
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:9px;
+    font-family:'Space Grotesk';font-size:12px;font-weight:600;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--aqua);margin-bottom:26px;
+  }
+  .eyebrow .gem{width:9px;height:9px;transform:rotate(45deg);
+    background:linear-gradient(135deg,var(--aqua),var(--emerald));
+    box-shadow:0 0 14px rgba(0,229,160,.7)}
+
+  h1{
+    font-family:'Space Grotesk';font-weight:600;line-height:1.08;letter-spacing:-.02em;
+    font-size:clamp(30px,5.2vw,52px);max-width:16ch;
+  }
+  h1 em{font-style:normal;color:transparent;background:linear-gradient(120deg,var(--aqua),var(--emerald));-webkit-background-clip:text;background-clip:text}
+  .lede{margin-top:20px;font-size:clamp(15px,2vw,18px);color:var(--muted);max-width:56ch}
+
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:52px;position:relative}
+  @media(max-width:760px){.cards{grid-template-columns:1fr;gap:18px}}
+
+  .card{
+    position:relative;background:linear-gradient(180deg,var(--panel),var(--bg-soft));
+    border:1px solid var(--line);border-radius:18px;padding:30px 28px 26px;
+    display:flex;flex-direction:column;
+    transition:transform .3s cubic-bezier(.2,.8,.2,1),border-color .3s,box-shadow .3s;
+    overflow:hidden;
+  }
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,transparent,var(--edge),transparent);opacity:.8}
+  .card:hover{transform:translateY(-4px);border-color:var(--edge);
+    box-shadow:0 20px 50px -20px rgba(0,229,160,.25)}
+  .card.studio{--edge:var(--aqua)}
+  .card.paziente{--edge:var(--emerald)}
+
+  .tag{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;
+    font-family:'Space Grotesk';font-size:11px;font-weight:600;letter-spacing:.14em;
+    text-transform:uppercase;padding:6px 12px;border-radius:999px;
+    border:1px solid var(--edge);color:var(--edge);
+    background:color-mix(in srgb,var(--edge) 10%,transparent);margin-bottom:20px}
+  .tag .dot{width:6px;height:6px;border-radius:50%;background:var(--edge);
+    box-shadow:0 0 8px var(--edge)}
+
+  .card h2{font-family:'Space Grotesk';font-weight:600;font-size:23px;letter-spacing:-.01em;line-height:1.2}
+  .card .who{margin-top:6px;font-size:13.5px;color:var(--muted-dim);font-weight:500}
+  .card p.desc{margin-top:16px;color:var(--muted);font-size:14.5px}
+
+  ul.feat{list-style:none;margin:20px 0 26px;display:flex;flex-direction:column;gap:11px}
+  ul.feat li{display:flex;gap:11px;align-items:flex-start;font-size:14px;color:var(--ink)}
+  ul.feat li svg{flex:0 0 16px;margin-top:3px;color:var(--edge)}
+
+  .cta{margin-top:auto;display:inline-flex;align-items:center;justify-content:center;gap:10px;
+    font-family:'Space Grotesk';font-weight:600;font-size:15px;text-decoration:none;
+    padding:14px 20px;border-radius:12px;
+    background:linear-gradient(135deg,var(--edge),color-mix(in srgb,var(--edge) 55%,#000));
+    color:#02120C;transition:gap .25s,filter .25s}
+  .card.paziente .cta{color:#02120C}
+  .cta:hover{gap:16px;filter:brightness(1.08)}
+  .cta svg{transition:transform .25s}
+  .cta:hover svg{transform:translateX(3px)}
+
+  .bridge{position:relative;z-index:2;margin:34px auto 0;max-width:640px;text-align:center;
+    display:flex;align-items:center;gap:16px;justify-content:center;
+    font-size:14px;color:var(--muted)}
+  .bridge .link-icon{flex:0 0 auto;color:var(--aqua)}
+  .bridge b{color:var(--ink);font-weight:600}
+
+  .foot{position:relative;z-index:2;margin-top:56px;padding-top:22px;border-top:1px solid rgba(255,255,255,.06);
+    display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;
+    font-size:12.5px;color:var(--muted-dim)}
+  .foot .brand{font-family:'Space Grotesk';font-weight:600;color:var(--muted);letter-spacing:.04em}
+  .foot .brand span{color:var(--aqua)}
+</style>
+</head>
+<body>
+  <div id="axload"><div class="ai"><span class="gem"></span><span class="w">AXIOM&nbsp;<b>LABS</b></span><span class="bar"><i></i></span></div></div>
+  <div class="stars"></div>
+
+  <div class="langsel" id="langsel">
+    <button data-l="it">IT</button><button data-l="es">ES</button><button data-l="en">EN</button><button data-l="nl">NL</button><button data-l="de">DE</button>
+  </div>
+
+  <div class="wrap">
+    <span class="eyebrow"><span class="gem"></span><span data-i18n="eyebrow">Axiom Labs · Ecosistema Nutrizione</span></span>
+    <h1 data-i18n="h1">Due strumenti che lavorano insieme:<br><em>uno per te, uno per i tuoi pazienti.</em></h1>
+    <p class="lede" data-i18n="lede">Un unico ecosistema per il tuo studio. Tu gestisci piani, diari e progressi da un portale professionale. I tuoi pazienti seguono il percorso da un'app dedicata. Tutto ciò che registrano arriva direttamente da te — senza email, senza fogli di calcolo, senza rincorrere nessuno.</p>
+
+    <div class="cards">
+      <!-- LATO STUDIO -->
+      <article class="card studio">
+        <span class="tag"><span class="dot"></span><span data-i18n="studioTag">Lato Studio · per te</span></span>
+        <h2 data-i18n="studioH2">Il tuo portale professionale</h2>
+        <div class="who" data-i18n="studioWho">Lo usi tu, nel tuo studio</div>
+        <p class="desc" data-i18n="studioDesc">Il centro di controllo del tuo lavoro: tutti i pazienti, i loro piani e i loro progressi in un'unica schermata.</p>
+        <ul class="feat">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg><span data-i18n="studioF1">Dashboard con tutti i pazienti attivi e la loro aderenza</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg><span data-i18n="studioF2">Piani alimentari da creare, assegnare e aggiornare</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg><span data-i18n="studioF3">Diari dei pazienti da rivedere e approvare con un click</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg><span data-i18n="studioF4">Progressi, peso e misure che si aggiornano da soli</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg><span data-i18n="studioF5">Schede di allenamento da creare e assegnare ai pazienti</span></li>
+        </ul>
+        <a class="cta" href="../nutrizionista-ruggiero-grieco-demo/" target="_blank" rel="noopener">
+          <span data-i18n="studioCta">Apri la demo Studio</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </article>
+
+      <!-- LATO PAZIENTE -->
+      <article class="card paziente">
+        <span class="tag"><span class="dot"></span><span data-i18n="pazTag">Lato Paziente · per loro</span></span>
+        <h2 data-i18n="pazH2">L'app dei tuoi assistiti</h2>
+        <div class="who" data-i18n="pazWho">La usano i tuoi pazienti, ogni giorno</div>
+        <p class="desc" data-i18n="pazDesc">Uno strumento semplice che tiene i pazienti sul percorso — e li fa sentire seguiti anche tra una visita e l'altra.</p>
+        <ul class="feat">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg><span data-i18n="pazF1">Diario alimentare: registrano i pasti in pochi secondi</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg><span data-i18n="pazF2">Controllo del peso e delle misure nel tempo</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg><span data-i18n="pazF3">Il menù settimanale che hai assegnato, sempre in tasca</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg><span data-i18n="pazF4">Scheda palestra con gli esercizi da spuntare, sessione per sessione</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg><span data-i18n="pazF5">Richiesta appuntamenti diretta, senza telefonate</span></li>
+        </ul>
+        <a class="cta" href="../valerio-truglia-nutrizionista-demo/" target="_blank" rel="noopener">
+          <span data-i18n="pazCta">Apri la demo Paziente</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </article>
+    </div>
+
+    <div class="bridge">
+      <svg class="link-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      <span data-i18n="bridge">I due strumenti si parlano: <b>ogni pasto e ogni peso che il paziente registra compare subito nel tuo portale.</b> Nessun passaggio manuale.</span>
+    </div>
+
+    <div class="foot">
+      <span class="brand">AXIOM <span>LABS</span> · axiom-labs.it</span>
+      <span data-i18n="foot">Demo dimostrativa con dati di esempio. Le funzioni sono generiche e verrebbero personalizzate sul tuo studio.</span>
+    </div>
+  </div>
+
+<script>
+const LANG_KEY='ecosistema_lang';
+const I18N={
+  eyebrow:{it:"Axiom Labs · Ecosistema Nutrizione",es:"Axiom Labs · Ecosistema Nutrición",en:"Axiom Labs · Nutrition Ecosystem",nl:"Axiom Labs · Voedingsecosysteem",de:"Axiom Labs · Ernährungs-Ökosystem"},
+  h1:{it:"Due strumenti che lavorano insieme:<br><em>uno per te, uno per i tuoi pazienti.</em>",es:"Dos herramientas que trabajan juntas:<br><em>una para ti, otra para tus pacientes.</em>",en:"Two tools that work together:<br><em>one for you, one for your patients.</em>",nl:"Twee tools die samenwerken:<br><em>één voor jou, één voor je patiënten.</em>",de:"Zwei Werkzeuge, die zusammenarbeiten:<br><em>eines für dich, eines für deine Patienten.</em>"},
+  lede:{it:"Un unico ecosistema per il tuo studio. Tu gestisci piani, diari e progressi da un portale professionale. I tuoi pazienti seguono il percorso da un'app dedicata. Tutto ciò che registrano arriva direttamente da te — senza email, senza fogli di calcolo, senza rincorrere nessuno.",es:"Un único ecosistema para tu consulta. Tú gestionas planes, diarios y progresos desde un portal profesional. Tus pacientes siguen su recorrido desde una app dedicada. Todo lo que registran te llega directamente — sin correos, sin hojas de cálculo, sin perseguir a nadie.",en:"A single ecosystem for your practice. You manage plans, diaries and progress from a professional portal. Your patients follow their journey through a dedicated app. Everything they log comes straight to you — no emails, no spreadsheets, no chasing anyone.",nl:"Eén ecosysteem voor je praktijk. Jij beheert plannen, dagboeken en voortgang vanuit een professioneel portaal. Je patiënten volgen hun traject via een eigen app. Alles wat ze bijhouden komt rechtstreeks bij jou — zonder e-mails, zonder spreadsheets, zonder iemand achterna te zitten.",de:"Ein einziges Ökosystem für deine Praxis. Du verwaltest Pläne, Tagebücher und Fortschritte über ein professionelles Portal. Deine Patienten verfolgen ihren Weg über eine eigene App. Alles, was sie erfassen, kommt direkt zu dir — ohne E-Mails, ohne Tabellen, ohne jemandem hinterherzulaufen."},
+  studioTag:{it:"Lato Studio · per te",es:"Lado Consulta · para ti",en:"Practice side · for you",nl:"Praktijkkant · voor jou",de:"Praxis-Seite · für dich"},
+  studioH2:{it:"Il tuo portale professionale",es:"Tu portal profesional",en:"Your professional portal",nl:"Jouw professionele portaal",de:"Dein professionelles Portal"},
+  studioWho:{it:"Lo usi tu, nel tuo studio",es:"Lo usas tú, en tu consulta",en:"You use it, in your practice",nl:"Jij gebruikt het, in je praktijk",de:"Du nutzt es, in deiner Praxis"},
+  studioDesc:{it:"Il centro di controllo del tuo lavoro: tutti i pazienti, i loro piani e i loro progressi in un'unica schermata.",es:"El centro de control de tu trabajo: todos los pacientes, sus planes y sus progresos en una sola pantalla.",en:"The control center of your work: all your patients, their plans and their progress on a single screen.",nl:"Het controlecentrum van je werk: al je patiënten, hun plannen en hun voortgang op één scherm.",de:"Die Steuerzentrale deiner Arbeit: alle Patienten, ihre Pläne und Fortschritte auf einem Bildschirm."},
+  studioF1:{it:"Dashboard con tutti i pazienti attivi e la loro aderenza",es:"Panel con todos los pacientes activos y su adherencia",en:"Dashboard with all active patients and their adherence",nl:"Dashboard met alle actieve patiënten en hun therapietrouw",de:"Dashboard mit allen aktiven Patienten und ihrer Adhärenz"},
+  studioF2:{it:"Piani alimentari da creare, assegnare e aggiornare",es:"Planes de alimentación para crear, asignar y actualizar",en:"Meal plans to create, assign and update",nl:"Voedingsplannen om te maken, toe te wijzen en bij te werken",de:"Ernährungspläne erstellen, zuweisen und aktualisieren"},
+  studioF3:{it:"Diari dei pazienti da rivedere e approvare con un click",es:"Diarios de los pacientes para revisar y aprobar con un clic",en:"Patient diaries to review and approve in one click",nl:"Patiëntdagboeken om te bekijken en met één klik goed te keuren",de:"Patienten-Tagebücher mit einem Klick prüfen und freigeben"},
+  studioF4:{it:"Progressi, peso e misure che si aggiornano da soli",es:"Progresos, peso y medidas que se actualizan solos",en:"Progress, weight and measurements that update themselves",nl:"Voortgang, gewicht en metingen die zichzelf bijwerken",de:"Fortschritte, Gewicht und Maße, die sich selbst aktualisieren"},
+  studioF5:{it:"Schede di allenamento da creare e assegnare ai pazienti",es:"Rutinas de entrenamiento para crear y asignar a los pacientes",en:"Workout plans to create and assign to patients",nl:"Trainingsschema's om te maken en aan patiënten toe te wijzen",de:"Trainingspläne erstellen und Patienten zuweisen"},
+  studioCta:{it:"Apri la demo Studio",es:"Abrir la demo Consulta",en:"Open the Practice demo",nl:"Open de Praktijk-demo",de:"Praxis-Demo öffnen"},
+  pazTag:{it:"Lato Paziente · per loro",es:"Lado Paciente · para ellos",en:"Patient side · for them",nl:"Patiëntkant · voor hen",de:"Patienten-Seite · für sie"},
+  pazH2:{it:"L'app dei tuoi assistiti",es:"La app de tus pacientes",en:"Your patients' app",nl:"De app van je patiënten",de:"Die App deiner Patienten"},
+  pazWho:{it:"La usano i tuoi pazienti, ogni giorno",es:"La usan tus pacientes, cada día",en:"Your patients use it, every day",nl:"Je patiënten gebruiken het, elke dag",de:"Deine Patienten nutzen sie, jeden Tag"},
+  pazDesc:{it:"Uno strumento semplice che tiene i pazienti sul percorso — e li fa sentire seguiti anche tra una visita e l'altra.",es:"Una herramienta sencilla que mantiene a los pacientes en su recorrido — y les hace sentir acompañados también entre una visita y otra.",en:"A simple tool that keeps patients on track — and makes them feel supported between visits.",nl:"Een eenvoudige tool die patiënten op koers houdt — en ze zich ook tussen afspraken door begeleid laat voelen.",de:"Ein einfaches Werkzeug, das Patienten auf Kurs hält — und ihnen auch zwischen den Terminen das Gefühl gibt, betreut zu werden."},
+  pazF1:{it:"Diario alimentare: registrano i pasti in pochi secondi",es:"Diario de comidas: registran las comidas en segundos",en:"Food diary: they log meals in seconds",nl:"Eetdagboek: ze loggen maaltijden in enkele seconden",de:"Ernährungstagebuch: Mahlzeiten in Sekunden erfassen"},
+  pazF2:{it:"Controllo del peso e delle misure nel tempo",es:"Control del peso y las medidas a lo largo del tiempo",en:"Track weight and measurements over time",nl:"Gewicht en metingen in de tijd volgen",de:"Gewicht und Maße im Zeitverlauf verfolgen"},
+  pazF3:{it:"Il menù settimanale che hai assegnato, sempre in tasca",es:"El menú semanal que has asignado, siempre en el bolsillo",en:"The weekly menu you assigned, always in their pocket",nl:"Het weekmenu dat je hebt toegewezen, altijd op zak",de:"Der von dir zugewiesene Wochenplan, immer dabei"},
+  pazF4:{it:"Scheda palestra con gli esercizi da spuntare, sessione per sessione",es:"Rutina de gimnasio con ejercicios para marcar, sesión a sesión",en:"Gym plan with exercises to check off, session by session",nl:"Sportschema met af te vinken oefeningen, sessie voor sessie",de:"Trainingsplan mit abzuhakenden Übungen, Einheit für Einheit"},
+  pazF5:{it:"Richiesta appuntamenti diretta, senza telefonate",es:"Solicitud de citas directa, sin llamadas",en:"Direct appointment requests, no phone calls",nl:"Direct afspraken aanvragen, zonder te bellen",de:"Termine direkt anfragen, ohne Anrufe"},
+  pazCta:{it:"Apri la demo Paziente",es:"Abrir la demo Paciente",en:"Open the Patient demo",nl:"Open de Patiënt-demo",de:"Patienten-Demo öffnen"},
+  bridge:{it:"I due strumenti si parlano: <b>ogni pasto e ogni peso che il paziente registra compare subito nel tuo portale.</b> Nessun passaggio manuale.",es:"Las dos herramientas se comunican: <b>cada comida y cada peso que el paciente registra aparece al instante en tu portal.</b> Sin pasos manuales.",en:"The two tools talk to each other: <b>every meal and every weight the patient logs appears instantly in your portal.</b> No manual steps.",nl:"De twee tools communiceren met elkaar: <b>elke maaltijd en elk gewicht dat de patiënt registreert, verschijnt meteen in jouw portaal.</b> Geen handmatige stappen.",de:"Die beiden Werkzeuge kommunizieren: <b>jede Mahlzeit und jedes Gewicht, das der Patient erfasst, erscheint sofort in deinem Portal.</b> Keine manuellen Schritte."},
+  foot:{it:"Demo dimostrativa con dati di esempio. Le funzioni sono generiche e verrebbero personalizzate sul tuo studio.",es:"Demo con datos de ejemplo. Las funciones son genéricas y se personalizarían para tu consulta.",en:"Demo with sample data. Features are generic and would be tailored to your practice.",nl:"Demo met voorbeeldgegevens. De functies zijn algemeen en worden afgestemd op jouw praktijk.",de:"Demo mit Beispieldaten. Die Funktionen sind generisch und würden an deine Praxis angepasst."}
+};
+function applyLang(l){
+  document.documentElement.lang=l;
+  try{localStorage.setItem(LANG_KEY,l);}catch(e){}
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.getAttribute('data-i18n');const v=I18N[k]&&I18N[k][l];
+    if(v!=null)el.innerHTML=v;
+  });
+  document.querySelectorAll('#langsel button').forEach(b=>b.classList.toggle('on',b.dataset.l===l));
+}
+document.querySelectorAll('#langsel button').forEach(b=>b.addEventListener('click',()=>applyLang(b.dataset.l)));
+(function(){var LS=['it','es','en','nl','de'];var l;try{l=new URLSearchParams(location.search).get('lang');}catch(e){}if(!LS.includes(l)){try{l=localStorage.getItem(LANG_KEY);}catch(e){}}if(!LS.includes(l))l='it';applyLang(l);})();
+addEventListener('load',function(){var e=document.getElementById('axload');if(!e)return;setTimeout(function(){e.classList.add('hide')},250);setTimeout(function(){e.remove()},700)});
+</script>
+</body>
+</html>

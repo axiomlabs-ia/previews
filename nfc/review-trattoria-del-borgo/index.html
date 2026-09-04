@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trattoria del Borgo — Lascia una recensione</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{ --em:#0D9B76; --mint:#00E5A0; --gold:#FFC53D; }
+  html,body{min-height:100%}
+  body{
+    font-family:'Inter',-apple-system,sans-serif; color:#fff; min-height:100vh; min-height:100dvh;
+    background:#04100c; position:relative; overflow-x:hidden;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  /* sfondo full-page: immagine Higgsfield sfocata + velo, alone verde */
+  .bg{position:fixed; inset:0; z-index:0;
+    background:#04100c url('bg.jpg') center/cover no-repeat;
+    filter:saturate(1.05);}
+  .bg::after{content:'';position:absolute;inset:0;background:
+    radial-gradient(90% 55% at 50% -5%, rgba(0,229,160,.22), transparent 60%),
+    linear-gradient(180deg, rgba(4,16,12,.55) 0%, rgba(4,16,12,.82) 42%, #04100c 88%);}
+  .shell{position:relative; z-index:1; width:100%; max-width:440px; padding:0 20px 30px;
+    display:flex; flex-direction:column; align-items:center; flex:1;}
+
+  /* header */
+  .head{text-align:center; padding:46px 6px 26px}
+  .brandtag{display:inline-flex; align-items:center; gap:6px; font-size:10.5px; letter-spacing:2.5px;
+    text-transform:uppercase; color:var(--mint); font-weight:700;
+    border:1px solid rgba(0,229,160,.3); border-radius:100px; padding:5px 13px; background:rgba(0,229,160,.06)}
+  .nome{font-family:'Fraunces',serif; font-weight:600; font-size:32px; line-height:1.08; margin:20px 0 14px; letter-spacing:-.5px}
+  .stars{display:flex; gap:6px; justify-content:center; margin-bottom:16px}
+  .stars svg{width:26px; height:26px; filter:drop-shadow(0 2px 8px rgba(255,197,61,.45));
+    opacity:0; transform:scale(.2) rotate(-25deg);
+    animation:starpop .55s cubic-bezier(.18,1.5,.4,1) forwards;
+    animation-delay:calc(var(--i) * .13s + .25s)}
+  @keyframes starpop{
+    0%{opacity:0; transform:scale(.2) rotate(-25deg)}
+    60%{opacity:1; transform:scale(1.25) rotate(4deg)}
+    100%{opacity:1; transform:scale(1) rotate(0)} }
+  @media(prefers-reduced-motion:reduce){ .stars svg{animation:none; opacity:1; transform:none} }
+  .sub{font-size:15.5px; line-height:1.5; color:#c9dcd4; max-width:320px; margin:0 auto; font-weight:400}
+
+  /* card bottoni */
+  .card{width:100%; background:rgba(255,255,255,.055); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,.11); border-radius:24px; padding:20px 18px 22px;
+    box-shadow:0 20px 60px rgba(0,0,0,.5); margin-top:8px}
+  .card .lead{text-align:center; font-size:12.5px; letter-spacing:.3px; text-transform:uppercase; font-weight:700; color:#7d938b; margin-bottom:16px}
+  .btn{display:flex; align-items:center; gap:15px; width:100%; padding:15px 17px; margin-bottom:11px;
+    background:#fff; border-radius:16px; text-decoration:none; box-shadow:0 6px 20px rgba(0,0,0,.28);
+    transition:transform .14s ease, box-shadow .14s ease; position:relative; overflow:hidden}
+  .btn:last-child{margin-bottom:0}
+  .btn:active{transform:scale(.975); box-shadow:0 3px 12px rgba(0,0,0,.3)}
+  .btn .logo{width:40px;height:40px;border-radius:11px;flex:none;display:grid;place-items:center;background:var(--lc,#f2f4f6)}
+  .btn .logo svg{width:23px;height:23px;display:block}
+  .btn .tx{display:flex;flex-direction:column;gap:1px;min-width:0}
+  .btn .tx .lbl{font-size:16px;font-weight:700;color:#10221c;line-height:1.15}
+  .btn .tx .sm{font-size:11.5px;color:#8a9a93;font-weight:500}
+  .btn .go{margin-left:auto;color:#c2ccc8;flex:none}
+  .btn .accent{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--ac,#ccc)}
+
+  .empty{text-align:center;color:#7d938b;font-size:14px;padding:24px 0}
+  .foot{position:relative; z-index:1; padding:22px; text-align:center; font-size:11px; color:#4e615a; letter-spacing:.3px}
+  .foot a{color:inherit; text-decoration:none}
+  .foot b{color:var(--em); font-weight:700}
+  .foot a:active b{opacity:.7}
+  .thanks{text-align:center; font-size:12.5px; color:#8fa89f; margin-top:16px}
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="shell">
+    <div class="head">
+      <span class="brandtag">✦ Axiom</span>
+      <div class="nome">Trattoria del Borgo</div>
+      <div class="stars">
+        <svg style="--i:0" viewBox="0 0 24 24" fill="#FFC53D"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77 5.82 21l1.18-6.88-5-4.87 7.1-1.01z"/></svg><svg style="--i:1" viewBox="0 0 24 24" fill="#FFC53D"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77 5.82 21l1.18-6.88-5-4.87 7.1-1.01z"/></svg><svg style="--i:2" viewBox="0 0 24 24" fill="#FFC53D"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77 5.82 21l1.18-6.88-5-4.87 7.1-1.01z"/></svg><svg style="--i:3" viewBox="0 0 24 24" fill="#FFC53D"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77 5.82 21l1.18-6.88-5-4.87 7.1-1.01z"/></svg><svg style="--i:4" viewBox="0 0 24 24" fill="#FFC53D"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77 5.82 21l1.18-6.88-5-4.87 7.1-1.01z"/></svg>
+      </div>
+      <div class="sub">Ci hai fatto visita? La tua recensione vale tantissimo e ci aiuta a crescere. 🙏</div>
+    </div>
+
+    <div class="card">
+      
+      <div class="lead">Lascia una recensione su</div>
+      
+      <a class="btn" style="--lc:#ffffff;--ac:#4285F4" href="https://g.page/r/borgo/review" target="_blank" rel="noopener">
+        <span class="accent"></span>
+        <span class="logo"><svg viewBox="0 0 48 48"><path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/><path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/><path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/></svg></span>
+        <span class="tx"><span class="lbl">Google</span><span class="sm">tocca per recensire</span></span>
+        <svg class="go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </a>
+      
+      <a class="btn" style="--lc:#00AA6C;--ac:#00AA6C" href="https://tripadvisor.it/borgo" target="_blank" rel="noopener">
+        <span class="accent"></span>
+        <span class="logo"><svg viewBox="0 0 48 48"><circle cx="17" cy="23" r="8" fill="#fff"/><circle cx="31" cy="23" r="8" fill="#fff"/><circle cx="17" cy="23" r="3.4" fill="#00AA6C"/><circle cx="31" cy="23" r="3.4" fill="#00AA6C"/><path d="M12 34q12 7 24 0" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg></span>
+        <span class="tx"><span class="lbl">TripAdvisor</span><span class="sm">tocca per recensire</span></span>
+        <svg class="go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </a>
+      
+      <a class="btn" style="--lc:#00645A;--ac:#00645A" href="https://thefork.it/borgo" target="_blank" rel="noopener">
+        <span class="accent"></span>
+        <span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2v7M11 2v7M7 9a2 2 0 004 0M9 9v13"/></svg></span>
+        <span class="tx"><span class="lbl">TheFork</span><span class="sm">tocca per recensire</span></span>
+        <svg class="go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </a>
+      
+      <div class="thanks">Grazie di cuore per il tuo tempo ❤</div>
+      
+    </div>
+  </div>
+  <div class="foot"><a href="https://axiom-labs.it" target="_blank" rel="noopener">powered by <b>Axiom</b> · creiamo la tua presenza digitale</a></div>
+</body>
+</html>

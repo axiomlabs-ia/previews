@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockSync · Francavilla Moda — Gestionale magazzino</title>
+<link rel="icon" href="https://cdn.shopify.com/s/files/1/0264/7444/6922/files/Francavilla_square_logo.png?v=1761310900">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg:#faf8f3;--card:#fff;--ink:#1a1a18;--inksoft:#3a3a36;--muted:#71706a;--line:#e5e1d8;--paper2:#f1ede4;
+--brand:#9a7b4a;--brand2:#7c6238;--green:#2f7d4f;--amber:#a9762a;--red:#b23b2e;
+--greenbg:#e7efe7;--amberbg:#f3ebdb;--redbg:#f6e3e0;--bluebg:#f1ede4;
+--serif:"Cormorant Garamond",Georgia,"Times New Roman",serif;--sans:"Jost",-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+--radius:2px;--ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+.app{display:flex;min-height:100vh}
+/* SIDEBAR */
+.sidebar{width:240px;background:#161a2e;color:#c8cde0;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:40}
+.logo{padding:22px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #262b45}
+.logo .mark{width:34px;height:34px;background:linear-gradient(135deg,var(--brand),var(--brand2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo b{font-size:18px;color:#fff;letter-spacing:.3px}
+.cliente{padding:12px 20px;font-size:12px;color:#8d93b0;border-bottom:1px solid #262b45}
+.cliente b{color:#cfd4ea;display:block;font-size:13px}
+.nav{padding:12px 10px;flex:1}
+.nav a{display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:9px;color:#aeb4d0;text-decoration:none;margin-bottom:3px;cursor:pointer;font-weight:500}
+.nav a:hover{background:#222748;color:#fff}
+.nav a.active{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}
+.nav a .ic{font-size:16px;width:20px;text-align:center}
+.sidebar .demo{margin:14px;padding:12px;background:#222748;border-radius:9px;font-size:11px;color:#9aa0bf}
+/* MAIN */
+.main{margin-left:240px;flex:1;padding:24px 30px;width:calc(100% - 240px)}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:22px}
+.topbar h1{font-size:22px}
+.topbar .sub{color:var(--muted);margin-top:4px;font-size:13px}
+.badge-demo{background:#ffe9c2;color:#92600a;border:1px solid #f5cf86;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.5px}
+.sync-pill{background:var(--greenbg);color:var(--green);padding:6px 13px;border-radius:20px;font-size:12px;font-weight:600;display:inline-flex;gap:6px;align-items:center}
+.view{display:none}
+.view.active{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.kpi .lbl{color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.kpi .val{font-size:26px;font-weight:700;margin-top:8px}
+.kpi .ft{font-size:12px;color:var(--muted);margin-top:4px}
+.kpi .ic{float:right;font-size:22px}
+/* CARD */
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px}
+.card h3{font-size:15px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+/* AI BANNER */
+.ai-banner{background:linear-gradient(110deg,#5b4bf0,#7c6cff);color:#fff;border-radius:14px;padding:20px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:20px}
+.ai-banner .t{font-size:16px;font-weight:600}
+.ai-banner .s{font-size:13px;opacity:.9;margin-top:3px}
+.btn{border:none;cursor:pointer;border-radius:9px;font-weight:600;padding:10px 16px;font-size:13px}
+.btn-white{background:#fff;color:var(--brand)}
+.btn-primary{background:var(--brand);color:#fff}
+.btn-ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn-green{background:var(--green);color:#fff}
+.btn-red{background:#fff;color:var(--red);border:1px solid #f0bcbc}
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:10px 12px;border-bottom:2px solid var(--line)}
+td{padding:12px;border-bottom:1px solid var(--line);font-size:13px}
+tr.clickable{cursor:pointer}
+tr.clickable:hover{background:#f8f9fe}
+.tot{font-weight:700}
+.b{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.b.ok{background:var(--greenbg);color:var(--green)}
+.b.low{background:var(--amberbg);color:var(--amber)}
+.b.out{background:var(--redbg);color:var(--red)}
+.chip{display:inline-block;background:#eef0f6;color:#4b556b;border-radius:6px;padding:2px 7px;font-size:11px;margin:1px;font-weight:600}
+.thumb{width:38px;height:38px;border-radius:8px;background:#eef0f6;display:inline-flex;align-items:center;justify-content:center;font-size:18px}
+.prodcell{display:flex;align-items:center;gap:10px}
+/* CHART */
+.chart{display:flex;align-items:flex-end;gap:14px;height:160px;padding-top:10px}
+.chart .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+.chart .bars{display:flex;gap:3px;align-items:flex-end;height:120px}
+.chart .bar{width:12px;border-radius:4px 4px 0 0}
+.chart .bar.neg{background:var(--brand)}
+.chart .bar.onl{background:#a8a0ff}
+.chart .day{font-size:11px;color:var(--muted)}
+.legend{display:flex;gap:18px;margin-top:12px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+/* filters */
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.filters input,.filters select{border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:13px;background:#fff}
+.filters input{flex:1;min-width:160px}
+.toggle{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.toggle button{border:none;background:#fff;padding:9px 14px;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted)}
+.toggle button.on{background:var(--brand);color:#fff}
+/* card grid inventory */
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;cursor:pointer}
+.pcard:hover{box-shadow:0 6px 20px rgba(0,0,0,.07)}
+.pcard .ph{width:100%;height:90px;background:#eef0f6;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:12px}
+.pcard .nm{font-weight:600;margin-bottom:4px}
+.pcard .sk{font-size:12px;color:var(--muted);margin-bottom:10px}
+.pcard .stk{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px}
+/* drawer */
+.overlay{position:fixed;inset:0;background:rgba(20,24,40,.45);z-index:50;display:none}
+.overlay.open{display:block}
+.drawer{position:fixed;top:0;right:-460px;width:440px;max-width:92vw;height:100vh;background:#fff;z-index:51;transition:right .3s;overflow-y:auto;box-shadow:-6px 0 30px rgba(0,0,0,.15)}
+.drawer.open{right:0}
+.drawer .dh{padding:20px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.drawer .dbody{padding:22px}
+.drawer .dimg{width:100%;height:150px;background:#eef0f6;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:60px;margin-bottom:16px}
+.x{cursor:pointer;font-size:22px;color:var(--muted);background:none;border:none}
+/* AI restock */
+.restock-wrap{display:grid;grid-template-columns:1fr 300px;gap:20px}
+.rcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;border-left:4px solid var(--brand)}
+.rcard.urg{border-left-color:var(--red)}
+.rcard .rh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.rcard .qty{font-size:24px;font-weight:700;color:var(--brand)}
+.rcard .mot{font-size:13px;color:var(--muted);margin:10px 0;background:var(--bluebg);padding:10px 12px;border-radius:8px}
+.rcard .acts{display:flex;gap:8px;margin-top:8px}
+.insight{padding:12px 0;border-bottom:1px solid var(--line);font-size:13px}
+.insight:last-child{border:none}
+.insight b{display:block}
+.counter{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 18px;font-weight:700;display:inline-block;margin-bottom:16px}
+.counter span{color:var(--brand)}
+/* settings */
+.set-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.set-row:last-child{border:none}
+.switch{position:relative;width:46px;height:26px;display:inline-block}
+.switch input{display:none}
+.slider{position:absolute;inset:0;background:#cdd2e0;border-radius:20px;cursor:pointer;transition:.2s}
+.slider:before{content:"";position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked+.slider{background:var(--green)}
+.switch input:checked+.slider:before{transform:translateX(20px)}
+input[type=range]{width:200px}
+.note{font-size:12px;color:var(--muted);font-style:italic;margin-top:10px}
+.menu-toggle{display:none}
+/* INVENTARIO HEADER */
+.invhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.invhead h3{margin:0;font-size:15px}
+.invhead .acts{display:flex;gap:10px;flex-wrap:wrap}
+/* IMPORT MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(20,24,40,.5);z-index:60;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.modal-ov.open{display:flex}
+.modal{background:#fff;border-radius:16px;width:560px;max-width:100%;box-shadow:0 24px 70px rgba(0,0,0,.28);animation:pop .25s ease}
+@keyframes pop{from{opacity:0;transform:scale(.96) translateY(10px)}to{opacity:1;transform:none}}
+.modal .mh{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start}
+.modal .mh h3{font-size:16px;display:flex;gap:8px;align-items:center}
+.modal .mh .note{margin:3px 0 0}
+.modal .mb{padding:22px}
+.dz{border:2px dashed #cfd5e6;border-radius:14px;padding:36px 20px;text-align:center;cursor:pointer;transition:.18s;background:#fafbff}
+.dz.drag,.dz:hover{border-color:var(--brand);background:var(--bluebg)}
+.dz .ic{font-size:44px}
+.dz .t{font-weight:600;margin-top:10px}
+.dz .s{color:var(--muted);font-size:12px;margin-top:5px}
+.preview{display:flex;gap:16px;align-items:center}
+.preview .pv{width:120px;height:120px;border-radius:12px;border:1px solid var(--line);flex-shrink:0;background:#eef0f6;display:flex;align-items:center;justify-content:center;font-size:54px;overflow:hidden}
+.preview .pv img{width:100%;height:100%;object-fit:cover}
+.scan-step{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:13px;color:var(--muted)}
+.scan-step .si{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.scan-step.done{color:var(--ink)}
+.scan-step.done .si{background:var(--green);border-color:var(--green);color:#fff}
+.scan-step.run .si{border-color:var(--brand);border-top-color:transparent;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.conf{display:inline-flex;align-items:center;gap:6px;background:var(--bluebg);color:var(--brand);font-weight:600;font-size:12px;padding:5px 11px;border-radius:20px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px}
+.field input,.field select{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:13px;background:#fff;font-family:inherit}
+.frow{display:flex;gap:12px}
+.frow .field{flex:1}
+.bolla-head{background:#fafbff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.qin{width:62px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13px;text-align:center;font-family:inherit}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:13px 20px;border-radius:12px;font-size:13px;font-weight:500;z-index:80;opacity:0;transition:.3s;box-shadow:0 10px 30px rgba(0,0,0,.25);max-width:90vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:900px){
+.preview{flex-direction:column;text-align:center}
+.frow{flex-direction:column;gap:0}
+.sidebar{left:-240px;transition:left .3s}.sidebar.open{left:0}
+.main{margin-left:0;width:100%;padding:18px}
+.kpis{grid-template-columns:1fr 1fr}
+.restock-wrap{grid-template-columns:1fr}
+.menu-toggle{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 12px;cursor:pointer;font-size:18px}
+}
+/* ============================================================
+   IDENTITÀ FRANCAVILLA MODA — luxury editoriale (Roma dal 1956)
+   Cormorant Garamond + Jost · near-black + crema + ottone · radius 2px
+   ============================================================ */
+body{font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:600;letter-spacing:-.01em}
+.card,.kpi,.ai-banner,.pcard,.rcard,.counter,.modal,.dz,.bolla-head,.thumb,.pcard .ph,.drawer .dimg,.toggle,.menu-toggle,
+.btn,.filters input,.filters select,.field input,.field select,.qin,.overlay+*,.b,.chip{border-radius:var(--radius)}
+/* SIDEBAR */
+.sidebar{background:#14130f;color:#cfc8b8;border-right:1px solid #2a2722}
+.logo{border-bottom:1px solid #2a2722;gap:12px;align-items:center}
+.logo .mark{width:42px;height:42px;background:transparent;border-radius:50%;overflow:hidden;flex-shrink:0}
+.logo .mark img{width:100%;height:100%;object-fit:cover}
+.logo b{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:.02em;line-height:1;color:#fff}
+.logo b small{display:block;font-family:var(--sans);font-size:8px;letter-spacing:.3em;text-transform:uppercase;color:var(--brand);margin-top:4px;font-weight:500}
+.cliente{border-bottom:1px solid #2a2722;color:#8f897b;letter-spacing:.04em}
+.cliente b{color:#e9e3d4;font-family:var(--serif);font-size:16px;font-weight:600;letter-spacing:.01em}
+.nav a{color:#a39b8a;border-radius:var(--radius);font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:500}
+.nav a:hover{background:#222019;color:#fff}
+.nav a.active{background:var(--brand);color:#14130f;font-weight:600}
+.sidebar .demo{background:#222019;border-radius:var(--radius);color:#9b9484;line-height:1.6}
+.sidebar .demo b{color:var(--brand)}
+/* TOPBAR */
+.topbar h1{font-size:30px;font-weight:600}
+.badge-demo{background:var(--paper2);color:var(--brand2);border:1px solid #d9cdb5;border-radius:100px;letter-spacing:.16em;text-transform:uppercase;font-weight:600}
+.sync-pill{background:var(--greenbg);color:var(--green);border-radius:100px;font-weight:500}
+/* KPI */
+.kpi{border:1px solid var(--line)}
+.kpi .lbl{letter-spacing:.16em}
+.kpi .val{font-family:var(--serif);font-size:36px;font-weight:600;letter-spacing:-.01em;margin-top:6px}
+.kpi .ic{opacity:.55}
+/* CARD */
+.card{border:1px solid var(--line)}
+.card h3{font-size:19px;font-weight:600;margin-bottom:16px}
+/* AI BANNER → ink */
+.ai-banner{background:#1a1a18;color:#faf8f3}
+.ai-banner .t{font-family:var(--serif);font-size:21px;font-weight:600}
+.ai-banner .s{color:rgba(255,255,255,.78)}
+/* BUTTONS */
+.btn{text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:500;padding:13px 24px;transition:all .3s var(--ease)}
+.btn-white{background:#faf8f3;color:#1a1a18}
+.btn-white:hover{background:#fff}
+.btn-primary{background:var(--ink);color:var(--bg)}
+.btn-primary:hover{background:var(--brand2)}
+.btn-ghost{background:#fff;color:var(--ink);border:1px solid var(--ink)}
+.btn-ghost:hover{background:var(--ink);color:var(--bg)}
+.btn-green{background:var(--green);color:#fff}
+.btn-red{background:#fff;color:var(--red);border:1px solid #e0c4bf}
+/* TABLE */
+th{letter-spacing:.16em;border-bottom:1px solid var(--line)}
+td{border-bottom:1px solid var(--line)}
+tr.clickable:hover{background:var(--paper2)}
+/* BADGE / CHIP */
+.b{text-transform:uppercase;letter-spacing:.08em;font-size:10px;font-weight:600;border-radius:100px;padding:4px 11px}
+.b.ok{background:var(--greenbg);color:var(--green)}
+.b.low{background:var(--amberbg);color:var(--amber)}
+.b.out{background:var(--redbg);color:var(--red)}
+.chip{background:var(--paper2);color:var(--inksoft);border:1px solid var(--line);border-radius:100px;font-weight:500}
+.thumb,.pcard .ph,.drawer .dimg{background:var(--paper2)}
+/* CHART */
+.chart .bar.neg{background:var(--brand)}
+.chart .bar.onl{background:#d3bf9a}
+/* INVENTORY */
+.invhead h3{font-size:19px}
+.filters input,.filters select{border:1px solid var(--line)}
+.filters input:focus,.filters select:focus,.field input:focus,.field select:focus,.qin:focus{outline:none;border-color:var(--brand)}
+.toggle{border:1px solid var(--line)}
+.toggle button{color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-size:12px;font-weight:500}
+.toggle button.on{background:var(--ink);color:var(--bg)}
+.pcard{border:1px solid var(--line)}
+.pcard:hover{box-shadow:0 12px 34px rgba(20,19,15,.08)}
+.pcard .nm{font-family:var(--serif);font-size:19px;font-weight:600}
+/* DRAWER */
+.drawer{border-left:1px solid var(--line)}
+.drawer .dh h3{font-family:var(--serif)}
+/* RESTOCK */
+.rcard{border:1px solid var(--line);border-left:3px solid var(--brand)}
+.rcard.urg{border-left-color:var(--red)}
+.rcard .qty{font-family:var(--serif);font-size:32px;font-weight:600;color:var(--brand2)}
+.rcard .mot{background:var(--paper2);color:var(--inksoft)}
+.insight b{font-family:var(--serif);font-size:16px;font-weight:600}
+.counter{border:1px solid var(--line);text-transform:uppercase;letter-spacing:.1em;font-size:12px;font-weight:500;color:var(--muted)}
+.counter span{color:var(--brand2);font-family:var(--serif);font-size:18px}
+/* SETTINGS */
+.slider{background:#d8d2c4}
+/* MODAL */
+.modal .mh h3{font-family:var(--serif);font-size:21px}
+.dz{border:2px dashed #d6cdb8;background:var(--paper2)}
+.dz.drag,.dz:hover{border-color:var(--brand);background:#fff}
+.conf{background:var(--paper2);color:var(--brand2)}
+.field label{letter-spacing:.14em}
+.bolla-head{background:var(--paper2)}
+.toast{background:var(--ink);border-radius:var(--radius);letter-spacing:.02em}
+</style>
+</head>
+<body>
+<div class="app">
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+<div class="logo"><div class="mark"><img src="https://cdn.shopify.com/s/files/1/0264/7444/6922/files/Francavilla_square_logo.png?v=1761310900" alt="Francavilla Moda"></div><b>StockSync<small>Francavilla · Gestionale</small></b></div>
+<div class="cliente"><b>Francavilla Moda</b>Roma dal 1956 · Abbigliamento</div>
+<nav class="nav">
+<a class="active" data-v="dashboard" onclick="nav('dashboard',this)"><span class="ic">📊</span>Dashboard</a>
+<a data-v="inventario" onclick="nav('inventario',this)"><span class="ic">📦</span>Inventario</a>
+<a data-v="restock" onclick="nav('restock',this)"><span class="ic">🤖</span>AI Restock</a>
+<a data-v="movimenti" onclick="nav('movimenti',this)"><span class="ic">🔁</span>Movimenti</a>
+<a data-v="impostazioni" onclick="nav('impostazioni',this)"><span class="ic">⚙️</span>Impostazioni</a>
+</nav>
+<div class="demo">Versione <b>DEMO</b> — i dati mostrati sono di esempio e non rappresentano un magazzino reale.</div>
+</aside>
+
+<main class="main">
+<div class="topbar">
+<div>
+<button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+<h1 id="vtitle">Buongiorno, Francavilla Moda 👋</h1>
+<div class="sub" id="vsub">Oggi è martedì 18 giugno 2024 · <span class="sync-pill">🟢 Sincronizzazione attiva — ultimo sync 2 min fa</span></div>
+</div>
+<span class="badge-demo">● DEMO · Dati di esempio</span>
+</div>
+
+<!-- DASHBOARD -->
+<section class="view active" id="dashboard">
+<div class="kpis">
+<div class="kpi"><span class="ic">📦</span><div class="lbl">Articoli totali</div><div class="val">1.284</div><div class="ft">su 312 referenze</div></div>
+<div class="kpi"><span class="ic">💰</span><div class="lbl">Valore magazzino</div><div class="val">€87.430</div><div class="ft">+3,1% vs mese scorso</div></div>
+<div class="kpi"><span class="ic">⚠️</span><div class="lbl">Sotto-scorta</div><div class="val" style="color:var(--amber)">12 articoli</div><div class="ft">richiedono riordino</div></div>
+<div class="kpi"><span class="ic">🛒</span><div class="lbl">Vendite oggi</div><div class="val">€2.340</div><div class="ft">Negozio €1.510 · Online €830</div></div>
+</div>
+
+<div class="ai-banner">
+<div><div class="t">🤖 6 riordini suggeriti dall'AI</div><div class="s">Risparmio stimato evitando rotture di stock: <b>€1.240</b></div></div>
+<button class="btn btn-white" onclick="nav('restock',document.querySelector('[data-v=restock]'))">Vedi suggerimenti →</button>
+</div>
+
+<div class="card">
+<h3>📋 Stock unico in tempo reale</h3>
+<table>
+<thead><tr><th>Prodotto</th><th>SKU</th><th>Negozio</th><th>Online</th><th>Totale</th><th>Stato</th></tr></thead>
+<tbody id="dashTable"></tbody>
+</table>
+</div>
+
+<div class="card">
+<h3>📈 Vendite ultimi 7 giorni — Negozio vs Online</h3>
+<div class="chart" id="chart"></div>
+<div class="legend"><span><i class="dot" style="background:var(--brand)"></i>Negozio</span><span><i class="dot" style="background:#d3bf9a"></i>Online</span></div>
+</div>
+</section>
+
+<!-- INVENTARIO -->
+<section class="view" id="inventario">
+<div class="card">
+<div class="invhead">
+<h3>📦 Catalogo prodotti</h3>
+<div class="acts">
+<button class="btn btn-ghost" onclick="openImport('foto')">📷 Aggiungi da foto</button>
+<button class="btn btn-primary" onclick="openImport('bolla')">📄 Importa bolla</button>
+</div>
+</div>
+<div class="filters">
+<input type="text" id="search" placeholder="🔍 Cerca prodotto o SKU…" oninput="renderInv()">
+<select id="fcat" onchange="renderInv()"><option value="">Tutte le categorie</option></select>
+<select id="fstato" onchange="renderInv()">
+<option value="">Tutti gli stati</option><option>Disponibile</option><option>In esaurimento</option><option>Esaurito</option>
+</select>
+<div class="toggle"><button id="vt" class="on" onclick="setView('t')">Tabella</button><button id="vc" onclick="setView('c')">Card</button></div>
+</div>
+<div id="invTableWrap">
+<table>
+<thead><tr><th>Prodotto</th><th>SKU</th><th>Categoria</th><th>Taglie</th><th>Negozio</th><th>Online</th><th>Totale</th><th>Stato</th></tr></thead>
+<tbody id="invTable"></tbody>
+</table>
+</div>
+<div id="invCards" class="cardgrid" style="display:none"></div>
+</div>
+</section>
+
+<!-- AI RESTOCK -->
+<section class="view" id="restock">
+<div class="counter">Riordini approvati: <span id="approvedCount">0</span>/6</div>
+<p style="color:var(--muted);margin-bottom:18px">Previsioni basate su vendite delle ultime 8 settimane + stagionalità rilevata sul brand.</p>
+<div class="restock-wrap">
+<div id="restockList"></div>
+<div>
+<div class="card">
+<h3>📊 Trend rilevati</h3>
+<div class="insight"><b>👕 Taglia M la più venduta</b>34% degli ordini camiceria</div>
+<div class="insight"><b>🔵 Azzurro in crescita</b>+38% richieste ultime 2 settimane</div>
+<div class="insight"><b>🧥 Cappotti in calo stagionale</b>−22%, sospendere riordini</div>
+<div class="insight"><b>👟 Sneakers bianche stabili</b>vendita costante online</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- MOVIMENTI -->
+<section class="view" id="movimenti">
+<div class="card">
+<div class="filters">
+<select id="fcanale" onchange="renderMov()">
+<option value="">Tutti i canali</option><option>Negozio</option><option>Online</option>
+</select>
+</div>
+<table>
+<thead><tr><th>Timestamp</th><th>Tipo</th><th>Prodotto</th><th>Q.tà</th><th>Canale</th><th>Sync</th></tr></thead>
+<tbody id="movTable"></tbody>
+</table>
+</div>
+</section>
+
+<!-- IMPOSTAZIONI -->
+<section class="view" id="impostazioni">
+<div class="card">
+<h3>🔌 Canali connessi</h3>
+<div class="set-row"><div><b>🏪 Negozio Roma — POS</b><div class="note" style="margin:0">Sincronizzazione cassa in tempo reale</div></div><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+<div class="set-row"><div><b>🛒 Shop Online — Shopify</b><div class="note" style="margin:0">Connesso a francavillamoda.myshopify.com</div></div><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+</div>
+<div class="card">
+<h3>🤖 Regole AI Restock</h3>
+<div class="set-row"><div><b>Soglia sotto-scorta</b><div class="note" style="margin:0">Avvisa quando lo stock totale scende sotto <span id="thrVal">5</span> pezzi</div></div><input type="range" min="1" max="20" value="5" oninput="document.getElementById('thrVal').textContent=this.value"></div>
+<div class="set-row"><div><b>Frequenza analisi AI</b></div><select style="border:1px solid var(--line);border-radius:9px;padding:8px 12px"><option>Giornaliera</option><option selected>Ogni 12 ore</option><option>Settimanale</option></select></div>
+<div class="set-row"><div><b>Auto-approvazione sotto €200</b><div class="note" style="margin:0">Approva riordini economici senza conferma manuale</div></div><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+<div class="note">Impostazioni dimostrative — non salvate.</div>
+</div>
+</section>
+</main>
+</div>
+
+<!-- DRAWER -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer">
+<div class="dh"><h3 id="drTitle">Scheda prodotto</h3><button class="x" onclick="closeDrawer()">✕</button></div>
+<div class="dbody" id="drBody"></div>
+</aside>
+
+<!-- IMPORT MODAL -->
+<div class="modal-ov" id="impOv" onclick="closeImport()">
+<div class="modal" onclick="event.stopPropagation()">
+<div class="mh">
+<div><h3 id="impTitle">📷 Aggiungi da foto</h3><div class="note" id="impSub">Scatta o carica una foto del capo</div></div>
+<button class="x" onclick="closeImport()">✕</button>
+</div>
+<div class="mb">
+<!-- STEP 1: upload -->
+<div id="impStep1">
+<div class="dz" id="impDz" onclick="document.getElementById('impFile').click()">
+<div class="ic" id="dzIc">📷</div>
+<div class="t" id="dzT">Trascina qui la foto o clicca per caricare</div>
+<div class="s" id="dzS">JPG, PNG · l'AI riconosce capo, colore e taglie</div>
+</div>
+<input type="file" id="impFile" accept="image/*" style="display:none" onchange="handleImpFile(this)">
+</div>
+<!-- STEP 2: analisi -->
+<div id="impStep2" style="display:none">
+<div class="preview"><div class="pv" id="impPv">📄</div><div style="flex:1">
+<span class="conf">🤖 Analisi AI in corso</span>
+<div id="scanSteps" style="margin-top:12px"></div>
+</div></div>
+</div>
+<!-- STEP 3: risultato -->
+<div id="impStep3" style="display:none"></div>
+</div>
+</div>
+</div>
+
+<script>
+/* DATA */
+const products=[
+{n:"Blazer in lino beige",sku:"FM-BLZ-001",cat:"Giacche",neg:8,onl:4,st:"Disponibile",em:"🧥",tg:["S","M","L","XL"]},
+{n:"Camicia bianca slim",sku:"FM-CAM-014",cat:"Camicie",neg:2,onl:1,st:"In esaurimento",em:"👔",tg:["S","M","L"]},
+{n:"Jeans skinny scuro",sku:"FM-JNS-027",cat:"Pantaloni",neg:15,onl:9,st:"Disponibile",em:"👖",tg:["28","30","32","34"]},
+{n:"Maglione lana grigio",sku:"FM-MAG-008",cat:"Maglieria",neg:0,onl:2,st:"Esaurito",em:"🧶",tg:["M","L","XL"]},
+{n:"Trench cammello",sku:"FM-TRC-003",cat:"Cappotti",neg:6,onl:3,st:"Disponibile",em:"🧥",tg:["S","M","L"]},
+{n:"T-shirt cotone nera",sku:"FM-TSH-041",cat:"T-shirt",neg:1,onl:0,st:"In esaurimento",em:"👕",tg:["S","M","L","XL"]},
+{n:"Gonna midi plissé",sku:"FM-GON-019",cat:"Gonne",neg:11,onl:7,st:"Disponibile",em:"👗",tg:["S","M","L"]},
+{n:"Sneakers bianche",sku:"FM-SNK-052",cat:"Scarpe",neg:4,onl:5,st:"Disponibile",em:"👟",tg:["39","40","41","42","43"]},
+];
+const detail={"FM-CAM-014":[
+{v:"S / Bianco",neg:0,onl:0,st:"Esaurito"},{v:"M / Bianco",neg:1,onl:1,st:"In esaurimento"},
+{v:"L / Bianco",neg:1,onl:0,st:"In esaurimento"},{v:"M / Azzurro",neg:0,onl:0,st:"Esaurito"}]};
+const restocks=[
+{n:"Camicia bianca slim",vc:"M / Azzurro",q:24,urg:1,m:"Esaurita su entrambi i canali, +38% richieste nelle ultime 2 settimane."},
+{n:"Maglione lana grigio",vc:"Taglia L",q:18,urg:1,m:"Esaurito in negozio, solo 2 pezzi online. Forte stagionalità in arrivo."},
+{n:"T-shirt cotone nera",vc:"M / Nero",q:30,urg:0,m:"Best seller online, scorta sotto soglia. Lead time fornitore 7 giorni."},
+{n:"Trench cammello",vc:"S / Cammello",q:8,urg:0,m:"Taglia S esaurita in negozio, domanda media costante."},
+{n:"Jeans skinny scuro",vc:"32 / Scuro",q:12,urg:0,m:"Vendite stabili, mantenere scorta ottimale per il canale fisico."},
+{n:"Blazer in lino beige",vc:"M / Beige",q:10,urg:0,m:"Collezione estiva in crescita, +15% rispetto alla previsione."},
+];
+const movs=[
+{t:"18/06 14:32",tp:"Vendita online",p:"Sneakers bianche",q:-1,c:"Online"},
+{t:"18/06 14:18",tp:"Vendita negozio",p:"Jeans skinny scuro",q:-2,c:"Negozio"},
+{t:"18/06 13:55",tp:"Sync",p:"Aggiornamento globale catalogo",q:0,c:"Online"},
+{t:"18/06 13:40",tp:"Reso",p:"Trench cammello",q:1,c:"Negozio"},
+{t:"18/06 12:22",tp:"Vendita online",p:"Gonna midi plissé",q:-1,c:"Online"},
+{t:"18/06 11:50",tp:"Riordino",p:"Camicia bianca slim",q:24,c:"Negozio"},
+{t:"18/06 11:10",tp:"Vendita negozio",p:"Blazer in lino beige",q:-1,c:"Negozio"},
+{t:"18/06 10:33",tp:"Vendita online",p:"T-shirt cotone nera",q:-3,c:"Online"},
+{t:"18/06 09:48",tp:"Vendita negozio",p:"Sneakers bianche",q:-1,c:"Negozio"},
+{t:"18/06 09:15",tp:"Sync",p:"Sincronizzazione apertura cassa",q:0,c:"Negozio"},
+];
+const sales=[{d:"Mer",n:42,o:28},{d:"Gio",n:51,o:33},{d:"Ven",n:68,o:45},{d:"Sab",n:82,o:39},{d:"Dom",n:30,o:52},{d:"Lun",n:48,o:31},{d:"Mar",n:55,o:38}];
+
+function bCls(s){return s=="Disponibile"?"ok":s=="In esaurimento"?"low":"out"}
+function nav(v,el){
+document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+document.getElementById(v).classList.add('active');
+document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
+el.classList.add('active');
+const titles={dashboard:["Buongiorno, Francavilla Moda 👋",""],inventario:["Inventario","312 referenze · stock unico negozio + online"],restock:["AI Restock","Suggerimenti automatici di riordino"],movimenti:["Movimenti","Log sincronizzazione in tempo reale"],impostazioni:["Impostazioni","Configurazione canali e regole AI"]};
+document.getElementById('vtitle').textContent=titles[v][0];
+document.getElementById('vsub').innerHTML = v=='dashboard'?'Oggi è martedì 18 giugno 2024 · <span class="sync-pill">🟢 Sincronizzazione attiva — ultimo sync 2 min fa</span>':titles[v][1];
+if(window.innerWidth<900)document.getElementById('sidebar').classList.remove('open');
+window.scrollTo(0,0);
+}
+
+/* DASHBOARD TABLE */
+function renderDash(){
+document.getElementById('dashTable').innerHTML=products.slice(0,6).map(p=>`
+<tr><td><div class="prodcell"><div class="thumb">${p.em}</div>${p.n}</div></td><td>${p.sku}</td><td>${p.neg}</td><td>${p.onl}</td><td class="tot">${p.neg+p.onl}</td><td><span class="b ${bCls(p.st)}">${p.st}</span></td></tr>`).join('');
+}
+renderDash();
+
+/* CHART */
+const mx=Math.max(...sales.map(s=>s.n+s.o));
+document.getElementById('chart').innerHTML=sales.map(s=>`
+<div class="col"><div class="bars">
+<div class="bar neg" style="height:${s.n/mx*120}px" title="Negozio ${s.n}"></div>
+<div class="bar onl" style="height:${s.o/mx*120}px" title="Online ${s.o}"></div>
+</div><div class="day">${s.d}</div></div>`).join('');
+
+/* INVENTORY */
+let invView='t';
+const cats=[...new Set(products.map(p=>p.cat))];
+document.getElementById('fcat').innerHTML='<option value="">Tutte le categorie</option>'+cats.map(c=>`<option>${c}</option>`).join('');
+function setView(v){invView=v;document.getElementById('vt').classList.toggle('on',v=='t');document.getElementById('vc').classList.toggle('on',v=='c');document.getElementById('invTableWrap').style.display=v=='t'?'':'none';document.getElementById('invCards').style.display=v=='c'?'grid':'none';renderInv();}
+function renderInv(){
+const q=document.getElementById('search').value.toLowerCase();
+const fc=document.getElementById('fcat').value, fs=document.getElementById('fstato').value;
+const list=products.filter(p=>(p.n.toLowerCase().includes(q)||p.sku.toLowerCase().includes(q))&&(!fc||p.cat==fc)&&(!fs||p.st==fs));
+document.getElementById('invTable').innerHTML=list.map(p=>`
+<tr class="clickable" onclick="openDrawer('${p.sku}')"><td><div class="prodcell"><div class="thumb">${p.em}</div>${p.n}</div></td><td>${p.sku}</td><td>${p.cat}</td><td>${p.tg.map(t=>`<span class="chip">${t}</span>`).join('')}</td><td>${p.neg}</td><td>${p.onl}</td><td class="tot">${p.neg+p.onl}</td><td><span class="b ${bCls(p.st)}">${p.st}</span></td></tr>`).join('')||`<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Nessun articolo trovato</td></tr>`;
+document.getElementById('invCards').innerHTML=list.map(p=>`
+<div class="pcard" onclick="openDrawer('${p.sku}')"><div class="ph">${p.em}</div><div class="nm">${p.n}</div><div class="sk">${p.sku} · ${p.cat}</div><div class="stk"><span>🏪 Neg: <b>${p.neg}</b></span><span>🛒 Online: <b>${p.onl}</b></span></div><span class="b ${bCls(p.st)}">${p.st}</span></div>`).join('');
+}
+renderInv();
+
+/* DRAWER */
+function openDrawer(sku){
+const p=products.find(x=>x.sku==sku);
+const rows=detail[sku]||p.tg.map((t,i)=>({v:t+" / "+p.cat,neg:Math.max(0,Math.round(p.neg/p.tg.length)),onl:Math.max(0,Math.round(p.onl/p.tg.length)),st:p.st}));
+document.getElementById('drTitle').textContent=p.n;
+document.getElementById('drBody').innerHTML=`
+<div class="dimg">${p.em}</div>
+<div style="display:flex;justify-content:space-between;margin-bottom:14px"><div><b>${p.sku}</b><div class="note" style="margin:0">${p.cat}</div></div><span class="b ${bCls(p.st)}">${p.st}</span></div>
+<h3 style="font-size:14px;margin-bottom:8px">📐 Stock per taglia / colore</h3>
+<table style="margin-bottom:18px"><thead><tr><th>Variante</th><th>Neg</th><th>Online</th><th>Stato</th></tr></thead><tbody>
+${rows.map(r=>`<tr><td>${r.v}</td><td>${r.neg}</td><td>${r.onl}</td><td><span class="b ${bCls(r.st)}">${r.st}</span></td></tr>`).join('')}
+</tbody></table>
+<h3 style="font-size:14px;margin-bottom:8px">📈 Storico vendite (8 sett.)</h3>
+<div class="chart" style="height:120px;margin-bottom:18px">${[6,9,12,8,14,11,16,13].map(v=>`<div class="col"><div class="bars"><div class="bar neg" style="height:${v*6}px"></div></div></div>`).join('')}</div>
+<button class="btn btn-primary" style="width:100%" onclick="syncNow(this)">🔄 Sincronizza ora</button>`;
+document.getElementById('overlay').classList.add('open');
+document.getElementById('drawer').classList.add('open');
+}
+function closeDrawer(){document.getElementById('overlay').classList.remove('open');document.getElementById('drawer').classList.remove('open');}
+function syncNow(b){b.textContent="✓ Sincronizzato ora";b.style.background="var(--green)";setTimeout(()=>{b.innerHTML="🔄 Sincronizza ora";b.style.background="var(--brand)";},2000);}
+
+/* RESTOCK */
+let approved=0;
+function renderRestock(){
+document.getElementById('restockList').innerHTML=restocks.map((r,i)=>`
+<div class="rcard ${r.urg?'urg':''}" id="rc${i}">
+<div class="rh"><div><b style="font-size:15px">${r.n}</b><div class="note" style="margin:2px 0 0">${r.vc}</div></div>
+<span class="b ${r.urg?'out':'low'}">${r.urg?'🔴 Urgente':'🟡 Consigliato'}</span></div>
+<div style="margin:10px 0"><span class="note">Quantità suggerita AI</span><div class="qty">${r.q} pz</div></div>
+<div class="mot">🤖 ${r.m}</div>
+<div class="acts" id="acts${i}">
+<button class="btn btn-green" onclick="approve(${i})">✓ Approva</button>
+<button class="btn btn-red" onclick="ignore(${i})">Ignora</button>
+</div></div>`).join('');
+}
+function approve(i){document.getElementById('acts'+i).innerHTML='<span class="b ok" style="padding:8px 14px">✓ Riordino approvato</span>';document.getElementById('rc'+i).style.opacity=.7;approved++;document.getElementById('approvedCount').textContent=approved;}
+function ignore(i){document.getElementById('acts'+i).innerHTML='<span class="note">Suggerimento ignorato</span>';document.getElementById('rc'+i).style.opacity=.5;}
+renderRestock();
+
+/* MOVIMENTI */
+function renderMov(){
+const fc=document.getElementById('fcanale').value;
+const ico={"Vendita online":"🛒","Vendita negozio":"🏪","Sync":"🔄","Reso":"↩️","Riordino":"📥","Carico merce":"📦"};
+document.getElementById('movTable').innerHTML=movs.filter(m=>!fc||m.c==fc).map(m=>`
+<tr><td>${m.t}</td><td>${ico[m.tp]||"•"} ${m.tp}</td><td>${m.p}</td><td style="font-weight:700;color:${m.q<0?'var(--red)':m.q>0?'var(--green)':'var(--muted)'}">${m.q>0?'+':''}${m.q||'—'}</td><td><span class="chip">${m.c}</span></td><td><span class="b ok">✓ Sincronizzato</span></td></tr>`).join('');
+}
+renderMov();
+
+/* ============================================================
+   IMPORT PRODOTTI — da foto (riconoscimento AI) o bolla (OCR)
+   Demo: l'estrazione è simulata; i prodotti vengono però
+   aggiunti realmente all'inventario in memoria.
+   ============================================================ */
+const catEmoji={Giacche:"🧥",Camicie:"👔",Pantaloni:"👖",Maglieria:"🧶",Cappotti:"🧥","T-shirt":"👕",Gonne:"👗",Scarpe:"👟",Accessori:"👜",Vestiti:"👗"};
+
+/* Capi di esempio che l'AI "riconosce" dalla foto (a rotazione) */
+const photoSamples=[
+{n:"Cappotto lana doppiopetto",cat:"Cappotti",em:"🧥",tg:["S","M","L","XL"],neg:6,onl:0,conf:97},
+{n:"Camicia denim azzurra",cat:"Camicie",em:"👔",tg:["S","M","L","XL"],neg:9,onl:0,conf:95},
+{n:"Derby in pelle marrone",cat:"Scarpe",em:"👞",tg:["40","41","42","43","44"],neg:8,onl:0,conf:96},
+{n:"Felpa girocollo panna",cat:"Maglieria",em:"🧶",tg:["S","M","L","XL"],neg:12,onl:0,conf:94},
+];
+let photoIdx=0;
+
+/* Bolla di consegna di esempio che l'AI "legge" */
+const bollaData={
+fornitore:"Tessuti Conti S.r.l.",
+num:"BL-2024-0834",
+data:"18/06/2024",
+items:[
+{n:"Camicia bianca slim",cat:"Camicie",em:"👔",tg:["S","M","L"],q:24},
+{n:"Maglione lana grigio",cat:"Maglieria",em:"🧶",tg:["M","L","XL"],q:18},
+{n:"Pantaloni chino beige",cat:"Pantaloni",em:"👖",tg:["46","48","50","52"],q:12},
+{n:"Cintura pelle cuoio",cat:"Accessori",em:"👜",tg:["Unica"],q:20},
+],
+};
+
+let impMode='foto';
+
+function recalc(p){const t=(+p.neg||0)+(+p.onl||0);p.st=t===0?"Esaurito":t<5?"In esaurimento":"Disponibile";}
+function refreshCats(){const cats=[...new Set(products.map(p=>p.cat))];const sel=document.getElementById('fcat');const cur=sel.value;sel.innerHTML='<option value="">Tutte le categorie</option>'+cats.map(c=>`<option ${c==cur?'selected':''}>${c}</option>`).join('');}
+function nowStamp(){const d=new Date();const z=n=>String(n).padStart(2,'0');return `${z(d.getDate())}/${z(d.getMonth()+1)} ${z(d.getHours())}:${z(d.getMinutes())}`;}
+function skuFor(name){return "FM-"+name.replace(/[^a-zA-Z]/g,'').slice(0,3).toUpperCase()+"-"+Math.floor(100+Math.random()*900);}
+function toast(msg){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.className='toast';document.body.appendChild(t);}t.innerHTML=msg;requestAnimationFrame(()=>t.classList.add('show'));clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),3400);}
+
+function openImport(mode){
+impMode=mode;
+document.getElementById('impStep1').style.display='';
+document.getElementById('impStep2').style.display='none';
+document.getElementById('impStep3').style.display='none';
+const f=document.getElementById('impFile');f.value='';
+if(mode=='foto'){
+document.getElementById('impTitle').textContent='📷 Aggiungi da foto';
+document.getElementById('impSub').textContent='Scatta o carica una foto del capo';
+document.getElementById('dzIc').textContent='📷';
+document.getElementById('dzT').textContent='Trascina qui la foto o clicca per caricare';
+document.getElementById('dzS').textContent="JPG, PNG · l'AI riconosce capo, colore e taglie";
+f.setAttribute('accept','image/*');
+}else{
+document.getElementById('impTitle').textContent='📄 Importa bolla di consegna';
+document.getElementById('impSub').textContent="Carica la bolla del fornitore, l'AI estrae gli articoli";
+document.getElementById('dzIc').textContent='📄';
+document.getElementById('dzT').textContent='Trascina qui la bolla o clicca per caricare';
+document.getElementById('dzS').textContent="JPG, PNG o PDF · l'AI legge le righe e le quantità";
+f.setAttribute('accept','image/*,application/pdf');
+}
+document.getElementById('impOv').classList.add('open');
+}
+function closeImport(){document.getElementById('impOv').classList.remove('open');}
+
+function handleImpFile(input){
+const file=input.files&&input.files[0];if(!file)return;
+const pv=document.getElementById('impPv');
+if(file.type&&file.type.startsWith('image/')){
+const r=new FileReader();r.onload=e=>{pv.innerHTML='<img src="'+e.target.result+'" alt="">';};r.readAsDataURL(file);
+}else{pv.innerHTML='📄';}
+document.getElementById('impStep1').style.display='none';
+document.getElementById('impStep2').style.display='';
+const steps=impMode=='foto'
+?["Lettura immagine","Riconoscimento del capo","Estrazione colore e taglie","Generazione SKU"]
+:["Lettura documento","OCR righe bolla","Match con il catalogo","Calcolo quantità"];
+runScan(steps,()=>impMode=='foto'?renderPhotoForm():renderBollaForm());
+}
+
+function runScan(steps,done){
+const box=document.getElementById('scanSteps');
+box.innerHTML=steps.map((s,i)=>`<div class="scan-step" id="ss${i}"><span class="si">${i+1}</span>${s}</div>`).join('');
+let i=0;
+(function step(){
+if(i>0){const prev=document.getElementById('ss'+(i-1));if(prev){prev.className='scan-step done';prev.querySelector('.si').textContent='✓';}}
+if(i>=steps.length){setTimeout(done,350);return;}
+const cur=document.getElementById('ss'+i);if(cur)cur.className='scan-step run';
+i++;setTimeout(step,650);
+})();
+}
+
+function renderPhotoForm(){
+const s=photoSamples[photoIdx%photoSamples.length];photoIdx++;
+const cats=[...new Set(products.map(p=>p.cat))];
+let opts=cats.map(c=>`<option ${c==s.cat?'selected':''}>${c}</option>`).join('');
+if(!cats.includes(s.cat))opts+=`<option selected>${s.cat}</option>`;
+document.getElementById('impStep2').style.display='none';
+const el=document.getElementById('impStep3');el.style.display='';
+el.innerHTML=`
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<span class="conf">🤖 Riconosciuto · ${s.conf}% confidenza</span>
+<button class="x" style="font-size:13px;color:var(--brand);font-weight:600" onclick="openImport('foto')">↻ Riprova</button>
+</div>
+<div class="field"><label>Nome prodotto</label><input id="pfNome" value="${s.n}"></div>
+<div class="frow">
+<div class="field"><label>Categoria</label><select id="pfCat">${opts}</select></div>
+<div class="field"><label>SKU</label><input id="pfSku" value="${skuFor(s.n)}"></div>
+</div>
+<div class="field"><label>Taglie rilevate</label><input id="pfTg" value="${s.tg.join(', ')}"></div>
+<div class="frow">
+<div class="field"><label>Q.tà negozio</label><input id="pfNeg" type="number" min="0" value="${s.neg}"></div>
+<div class="field"><label>Q.tà online</label><input id="pfOnl" type="number" min="0" value="${s.onl}"></div>
+</div>
+<button class="btn btn-primary" style="width:100%;margin-top:6px" onclick="confirmPhoto('${s.em}')">✓ Aggiungi all'inventario</button>`;
+}
+
+function confirmPhoto(em){
+const cat=document.getElementById('pfCat').value;
+const p={
+n:document.getElementById('pfNome').value.trim()||"Nuovo prodotto",
+sku:document.getElementById('pfSku').value.trim()||skuFor("PRD"),
+cat:cat,
+neg:+document.getElementById('pfNeg').value||0,
+onl:+document.getElementById('pfOnl').value||0,
+em:em||catEmoji[cat]||"📦",
+tg:document.getElementById('pfTg').value.split(',').map(x=>x.trim()).filter(Boolean),
+};
+recalc(p);
+products.unshift(p);
+movs.unshift({t:nowStamp(),tp:"Carico merce",p:p.n,q:p.neg+p.onl,c:"Negozio"});
+refreshCats();renderInv();renderDash();renderMov();
+closeImport();
+toast(`✓ <b>${p.n}</b> aggiunto all'inventario`);
+}
+
+function renderBollaForm(){
+const b=bollaData;
+const rows=b.items.map((it,i)=>{
+const exist=products.find(p=>p.n.toLowerCase()==it.n.toLowerCase());
+return `<tr>
+<td><input type="checkbox" checked id="bk${i}"></td>
+<td><div class="prodcell"><div class="thumb">${it.em}</div>${it.n}</div></td>
+<td>${it.cat}</td>
+<td><input class="qin" type="number" min="0" id="bq${i}" value="${it.q}"></td>
+<td>${exist?'<span class="b low">↑ Aggiorna</span>':'<span class="b ok">＋ Nuovo</span>'}</td></tr>`;
+}).join('');
+document.getElementById('impStep2').style.display='none';
+const el=document.getElementById('impStep3');el.style.display='';
+el.innerHTML=`
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+<span class="conf">🤖 Bolla letta · ${b.items.length} articoli rilevati</span>
+<button class="x" style="font-size:13px;color:var(--brand);font-weight:600" onclick="openImport('bolla')">↻ Riprova</button>
+</div>
+<div class="bolla-head">
+<div><span class="note" style="margin:0">Fornitore</span><b>${b.fornitore}</b></div>
+<div><span class="note" style="margin:0">N. bolla</span><b>${b.num}</b></div>
+<div><span class="note" style="margin:0">Data</span><b>${b.data}</b></div>
+</div>
+<table style="margin-bottom:18px"><thead><tr><th></th><th>Articolo</th><th>Categoria</th><th>Q.tà</th><th>Esito</th></tr></thead><tbody>${rows}</tbody></table>
+<button class="btn btn-primary" style="width:100%" onclick="confirmBolla()">✓ Carica articoli a magazzino</button>`;
+}
+
+function confirmBolla(){
+let added=0,updated=0,units=0;
+bollaData.items.forEach((it,i)=>{
+const cb=document.getElementById('bk'+i);if(!cb||!cb.checked)return;
+const q=+document.getElementById('bq'+i).value||0;if(q<=0)return;
+units+=q;
+const exist=products.find(p=>p.n.toLowerCase()==it.n.toLowerCase());
+if(exist){exist.neg+=q;recalc(exist);updated++;}
+else{const p={n:it.n,sku:skuFor(it.n),cat:it.cat,neg:q,onl:0,em:it.em,tg:it.tg.slice()};recalc(p);products.unshift(p);added++;}
+movs.unshift({t:nowStamp(),tp:"Carico merce",p:it.n,q:q,c:"Negozio"});
+});
+if(!units){toast("Nessun articolo selezionato");return;}
+refreshCats();renderInv();renderDash();renderMov();
+closeImport();
+toast(`✓ Bolla caricata · <b>${units} pezzi</b> · ${added} nuovi, ${updated} aggiornati`);
+}
+
+/* Drag & drop sulla dropzone */
+(function(){const dz=document.getElementById('impDz');if(!dz)return;
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');const f=document.getElementById('impFile');if(e.dataTransfer.files.length){f.files=e.dataTransfer.files;handleImpFile(f);}});
+})();
+</script>
+</body>
+</html>

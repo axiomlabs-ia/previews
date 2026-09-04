@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpaceHub — Space Rocket</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--brand:#5b3df5;--brand2:#8b5cf6;--bg:#f4f5fa;--card:#fff;--txt:#1a1a2e;
+--muted:#7a7f92;--border:#e6e8f0;--green:#16a34a;--red:#dc2626;--amber:#d97706;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--txt);font-size:14px}
+.hidden{display:none!important}
+a{text-decoration:none;color:inherit}
+.demo-badge{background:#ff9800;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.5px}
+
+/* LOGIN */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;
+background:linear-gradient(135deg,#5b3df5,#8b5cf6 60%,#c084fc)}
+.login-card{background:#fff;padding:44px 40px;border-radius:18px;width:380px;max-width:92vw;
+box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center}
+.rocket-logo{font-size:38px}
+.login-card h1{font-size:22px;margin-top:6px}
+.login-card .claim{color:var(--muted);margin-bottom:26px;font-size:13px}
+.login-card label{display:block;text-align:left;font-size:12px;font-weight:600;margin:14px 0 5px;color:var(--muted)}
+.login-card input{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:9px;font-size:14px}
+.btn{background:var(--brand);color:#fff;border:none;padding:12px;border-radius:9px;font-weight:600;
+cursor:pointer;font-size:14px;width:100%;margin-top:22px;transition:.2s}
+.btn:hover{background:#4a2fd4}
+.login-note{font-size:11px;color:var(--muted);margin-top:18px}
+
+/* APP */
+#app{display:flex;min-height:100vh}
+.sidebar{width:238px;background:#1a1730;color:#cdd0e0;position:fixed;top:0;bottom:0;left:0;
+display:flex;flex-direction:column;padding:22px 0;z-index:100;transition:.3s}
+.sb-logo{padding:0 22px 22px;display:flex;align-items:center;gap:10px;font-weight:700;color:#fff;font-size:18px}
+.sb-client{margin:0 16px 18px;background:#2a2545;padding:12px;border-radius:10px}
+.sb-client .n{font-weight:600;color:#fff;font-size:13px}
+.sb-client .s{font-size:11px;color:#8a86a8;margin-top:2px}
+.nav-item{padding:12px 22px;display:flex;align-items:center;gap:12px;cursor:pointer;font-size:14px;border-left:3px solid transparent}
+.nav-item:hover{background:#241f3d}
+.nav-item.active{background:#241f3d;border-left-color:var(--brand2);color:#fff}
+.sb-foot{margin-top:auto;padding:16px 22px;font-size:11px;color:#6a6688;border-top:1px solid #2a2545}
+.main{flex:1;margin-left:238px}
+.topbar{background:#fff;padding:14px 26px;display:flex;align-items:center;justify-content:space-between;
+border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
+.topbar h2{font-size:19px}
+.topbar .right{display:flex;align-items:center;gap:14px}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--brand);color:#fff;display:flex;
+align-items:center;justify-content:center;font-weight:600}
+.burger{display:none;font-size:22px;background:none;border:none;cursor:pointer}
+.content{padding:26px}
+
+/* CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+.kpi{background:var(--card);padding:18px;border-radius:14px;border:1px solid var(--border)}
+.kpi .lbl{color:var(--muted);font-size:12px;font-weight:600}
+.kpi .val{font-size:26px;font-weight:700;margin:6px 0 3px}
+.kpi .chg{font-size:12px;font-weight:600}
+.up{color:var(--green)}.down{color:var(--red)}
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px}
+.panel h3{font-size:15px;margin-bottom:14px}
+.chart{width:100%;height:200px}
+.prog{margin:12px 0}
+.prog .top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
+.bar{height:8px;background:var(--border);border-radius:5px;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--brand);border-radius:5px}
+.feed{list-style:none}
+.feed li{padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;display:flex;gap:10px}
+.feed li:last-child{border:none}
+.feed .dot{width:8px;height:8px;border-radius:50%;background:var(--brand2);margin-top:6px;flex-shrink:0}
+.feed .t{color:var(--muted);font-size:11px;margin-top:3px}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:11px 12px;font-size:13px;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase}
+.badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
+.b-top3{background:#dcfce7;color:#15803d}.b-top10{background:#dbeafe;color:#1d4ed8}
+.filterbar{display:flex;gap:12px;align-items:center;margin-bottom:16px}
+select{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff}
+
+/* KAMPAGNEN */
+.camp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.camp{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px}
+.camp h4{font-size:15px}
+.camp .kanal{color:var(--muted);font-size:12px;margin:2px 0 12px}
+.st{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
+.st-aktiv{background:#dcfce7;color:#15803d}
+.st-pausiert{background:#fef3c7;color:#b45309}
+.st-beendet{background:#e5e7eb;color:#4b5563}
+.camp-row{display:flex;justify-content:space-between;font-size:12px;margin:6px 0}
+.mini-btn{margin-top:12px;padding:7px 12px;border:1px solid var(--border);background:#fff;border-radius:8px;
+cursor:pointer;font-size:12px;font-weight:600;width:100%}
+.mini-btn:hover{background:var(--bg)}
+
+/* KANBAN */
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.col{background:#eef0f7;border-radius:14px;padding:14px;min-height:300px}
+.col h3{font-size:14px;margin-bottom:12px;display:flex;justify-content:space-between}
+.col h3 span{background:#fff;border-radius:20px;padding:1px 9px;font-size:11px}
+.task{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;cursor:pointer;font-size:13px}
+.task:hover{box-shadow:0 3px 10px rgba(0,0,0,.08)}
+.task .tag{font-size:10px;color:var(--muted);margin-top:6px}
+
+/* DONUT LEGEND */
+.legend{display:flex;flex-direction:column;gap:8px;font-size:13px}
+.legend div{display:flex;align-items:center;gap:8px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* SLIDE PANEL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200}
+.slide{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:90vw;background:#fff;z-index:201;
+padding:26px;box-shadow:-8px 0 30px rgba(0,0,0,.2);overflow:auto}
+.slide h3{font-size:18px;margin-bottom:6px}
+.slide .close{float:right;cursor:pointer;font-size:22px;color:var(--muted);border:none;background:none}
+.detail-row{margin:14px 0}
+.detail-row .l{font-size:12px;color:var(--muted);font-weight:600}
+.detail-row .v{font-size:14px;margin-top:3px}
+
+@media(max-width:900px){
+.kpi-grid{grid-template-columns:repeat(2,1fr)}
+.grid2,.camp-grid,.board{grid-template-columns:1fr}
+.sidebar{transform:translateX(-100%)}
+.sidebar.open{transform:translateX(0)}
+.main{margin-left:0}
+.burger{display:block}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-card">
+    <div class="rocket-logo">🚀</div>
+    <h1>Space Rocket</h1>
+    <p class="claim">Ihr Marketing-Cockpit</p>
+    <label>E-Mail</label>
+    <input type="email" value="kunde@muster-gmbh.de">
+    <label>Passwort</label>
+    <input type="password" value="demopass">
+    <button class="btn" onclick="doLogin()">Anmelden</button>
+    <p class="login-note">Demo-Modus — Beispieldaten</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-logo">🚀 SpaceHub</div>
+    <div class="sb-client">
+      <div class="n">Muster GmbH</div>
+      <div class="s">Restaurant-Kette Berlin</div>
+    </div>
+    <div class="nav-item active" data-view="dashboard" onclick="nav(this)">📊 Dashboard</div>
+    <div class="nav-item" data-view="rankings" onclick="nav(this)">🔍 Rankings / SEO</div>
+    <div class="nav-item" data-view="traffic" onclick="nav(this)">📈 Traffic / Analytics</div>
+    <div class="nav-item" data-view="kampagnen" onclick="nav(this)">📣 Kampagnen</div>
+    <div class="nav-item" data-view="projekte" onclick="nav(this)">🗂️ Projekte</div>
+    <div class="sb-foot">SpaceHub v2.4 · white-label<br>Powered by Space Rocket</div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="burger" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <h2 id="pageTitle">Dashboard</h2>
+        <span class="demo-badge">DEMO</span>
+      </div>
+      <div class="right">
+        <span style="font-size:12px;color:var(--muted)">Beispieldaten</span>
+        <div class="avatar">MG</div>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <section id="dashboard">
+        <div class="kpi-grid">
+          <div class="kpi"><div class="lbl">Organischer Traffic</div><div class="val">12.480</div><div class="chg up">▲ +8,2%</div></div>
+          <div class="kpi"><div class="lbl">Ø Ranking</div><div class="val">6,4</div><div class="chg up">▲ +1,3</div></div>
+          <div class="kpi"><div class="lbl">Aktive Kampagnen</div><div class="val">3</div><div class="chg" style="color:var(--muted)">2 pausiert/beendet</div></div>
+          <div class="kpi"><div class="lbl">Offene Aufgaben</div><div class="val">5</div><div class="chg down">2 überfällig</div></div>
+        </div>
+        <div class="grid2">
+          <div class="panel">
+            <h3>Organischer Traffic — letzte 6 Monate</h3>
+            <svg class="chart" id="dashChart" viewBox="0 0 600 200" preserveAspectRatio="none"></svg>
+          </div>
+          <div>
+            <div class="panel">
+              <h3>Projektstatus</h3>
+              <div class="prog"><div class="top"><span>SEO-Optimierung Standortseiten</span><span>65%</span></div><div class="bar"><span style="width:65%"></span></div></div>
+              <div class="prog"><div class="top"><span>Google Ads Q2 Setup</span><span>40%</span></div><div class="bar"><span style="width:40%"></span></div></div>
+              <div class="prog"><div class="top"><span>Landingpage Catering</span><span>15%</span></div><div class="bar"><span style="width:15%"></span></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Letzte Aktivitäten</h3>
+          <ul class="feed">
+            <li><div class="dot"></div><div>Ranking für <b>brunch berlin</b> auf Position 7 gestiegen<div class="t">vor 2 Std.</div></div></li>
+            <li><div class="dot"></div><div>Kampagne <b>Instagram Retargeting</b> beendet<div class="t">gestern</div></div></li>
+            <li><div class="dot"></div><div>Neue Aufgabe hinzugefügt: Blogartikel Sommermenü<div class="t">vor 2 Tagen</div></div></li>
+            <li><div class="dot"></div><div>Traffic-Ziel Februar erreicht (12.000)<div class="t">vor 3 Tagen</div></div></li>
+            <li><div class="dot"></div><div>Report Januar bereitgestellt<div class="t">vor 5 Tagen</div></div></li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- RANKINGS -->
+      <section id="rankings" class="hidden">
+        <div class="filterbar">
+          <label style="font-size:13px;color:var(--muted);font-weight:600">Zeitraum:</label>
+          <select id="rankPeriod" onchange="updateRankings()">
+            <option value="7">Letzte 7 Tage</option>
+            <option value="30" selected>Letzte 30 Tage</option>
+            <option value="90">Letzte 90 Tage</option>
+          </select>
+        </div>
+        <div class="panel">
+          <table>
+            <thead><tr><th>Keyword</th><th>Position</th><th>Veränderung</th><th>Suchvolumen</th><th>URL</th></tr></thead>
+            <tbody id="rankBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TRAFFIC -->
+      <section id="traffic" class="hidden">
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+          <div class="kpi"><div class="lbl">Sitzungen</div><div class="val">14.920</div><div class="chg up">▲ +6,4%</div></div>
+          <div class="kpi"><div class="lbl">Nutzer</div><div class="val">9.760</div><div class="chg up">▲ +4,1%</div></div>
+          <div class="kpi"><div class="lbl">Absprungrate</div><div class="val">38,2%</div><div class="chg up">▲ -2,3%</div></div>
+        </div>
+        <div class="grid2">
+          <div class="panel">
+            <h3>Sitzungen — Verlauf</h3>
+            <svg class="chart" id="trafChart" viewBox="0 0 600 200" preserveAspectRatio="none"></svg>
+          </div>
+          <div class="panel">
+            <h3>Kanäle</h3>
+            <div style="display:flex;align-items:center;gap:20px">
+              <svg width="130" height="130" viewBox="0 0 42 42" id="donut"></svg>
+              <div class="legend">
+                <div><i style="background:#5b3df5"></i>Organisch 62%</div>
+                <div><i style="background:#8b5cf6"></i>Direkt 18%</div>
+                <div><i style="background:#ec4899"></i>Social 12%</div>
+                <div><i style="background:#f59e0b"></i>Bezahlt 8%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Top Quellen</h3>
+          <table>
+            <thead><tr><th>Quelle</th><th>Anteil</th><th>Sitzungen</th></tr></thead>
+            <tbody>
+              <tr><td>Google</td><td>62%</td><td>9.250</td></tr>
+              <tr><td>Direkt</td><td>18%</td><td>2.686</td></tr>
+              <tr><td>Instagram</td><td>12%</td><td>1.790</td></tr>
+              <tr><td>Newsletter</td><td>8%</td><td>1.194</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- KAMPAGNEN -->
+      <section id="kampagnen" class="hidden">
+        <div class="camp-grid" id="campGrid"></div>
+      </section>
+
+      <!-- PROJEKTE -->
+      <section id="projekte" class="hidden">
+        <div class="board" id="board"></div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div id="slideWrap" class="hidden">
+  <div class="overlay" onclick="closeSlide()"></div>
+  <div class="slide" id="slide"></div>
+</div>
+
+<script>
+/* LOGIN */
+function doLogin(){
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+}
+
+/* NAV */
+const titles={dashboard:'Dashboard',rankings:'Rankings / SEO',traffic:'Traffic / Analytics',kampagnen:'Kampagnen',projekte:'Projekte'};
+function nav(el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  const v=el.dataset.view;
+  document.querySelectorAll('.content > section').forEach(s=>s.classList.add('hidden'));
+  document.getElementById(v).classList.remove('hidden');
+  document.getElementById('pageTitle').textContent=titles[v];
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+/* LINE CHART helper */
+function lineChart(id,data,color){
+  const svg=document.getElementById(id);
+  const w=600,h=200,pad=20;
+  const max=Math.max(...data)*1.1,min=Math.min(...data)*0.9;
+  const pts=data.map((d,i)=>{
+    const x=pad+i*((w-2*pad)/(data.length-1));
+    const y=h-pad-((d-min)/(max-min))*(h-2*pad);
+    return [x,y];
+  });
+  const path=pts.map((p,i)=>(i?'L':'M')+p[0]+' '+p[1]).join(' ');
+  const area=path+` L${pts[pts.length-1][0]} ${h-pad} L${pts[0][0]} ${h-pad} Z`;
+  let dots=pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="${color}"/>`).join('');
+  svg.innerHTML=`<defs><linearGradient id="g${id}" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="${color}" stop-opacity="0.25"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#g${id})"/>
+    <path d="${path}" fill="none" stroke="${color}" stroke-width="3"/>${dots}`;
+}
+lineChart('dashChart',[8900,9400,10200,9800,11600,12480],'#5b3df5');
+lineChart('trafChart',[11200,12100,13400,12800,14100,14920],'#8b5cf6');
+
+/* DONUT */
+(function(){
+  const data=[[62,'#5b3df5'],[18,'#8b5cf6'],[12,'#ec4899'],[8,'#f59e0b']];
+  let off=25,html='';
+  data.forEach(([v,c])=>{
+    html+=`<circle r="15.9" cx="21" cy="21" fill="transparent" stroke="${c}" stroke-width="6"
+      stroke-dasharray="${v} ${100-v}" stroke-dashoffset="${off}"/>`;
+    off-=v;
+  });
+  document.getElementById('donut').innerHTML=html;
+})();
+
+/* RANKINGS */
+const rankData={
+  '7':[['restaurant berlin mitte',3,2,4400,'/standorte/mitte'],['brunch berlin',7,4,8100,'/brunch'],['italienisch essen berlin',12,-1,2900,'/kueche'],['tisch reservieren berlin',5,1,1600,'/reservierung'],['catering berlin',9,3,3300,'/catering'],['beste pizza berlin',15,-2,5400,'/pizza']],
+  '30':[['restaurant berlin mitte',3,5,4400,'/standorte/mitte'],['brunch berlin',7,9,8100,'/brunch'],['italienisch essen berlin',12,-3,2900,'/kueche'],['tisch reservieren berlin',5,2,1600,'/reservierung'],['catering berlin',9,6,3300,'/catering'],['beste pizza berlin',15,-5,5400,'/pizza']],
+  '90':[['restaurant berlin mitte',3,11,4400,'/standorte/mitte'],['brunch berlin',7,18,8100,'/brunch'],['italienisch essen berlin',12,-7,2900,'/kueche'],['tisch reservieren berlin',5,4,1600,'/reservierung'],['catering berlin',9,14,3300,'/catering'],['beste pizza berlin',15,-9,5400,'/pizza']]
+};
+function updateRankings(){
+  const p=document.getElementById('rankPeriod').value;
+  const body=document.getElementById('rankBody');
+  body.innerHTML=rankData[p].map(r=>{
+    const [kw,pos,chg,vol,url]=r;
+    const badge=pos<=3?'<span class="badge b-top3">Top 3</span>':pos<=10?'<span class="badge b-top10">Top 10</span>':'';
+    const ch=chg>=0?`<span class="up">▲ ${chg}</span>`:`<span class="down">▼ ${Math.abs(chg)}</span>`;
+    return `<tr><td>${kw} ${badge}</td><td><b>${pos}</b></td><td>${ch}</td><td>${vol.toLocaleString('de-DE')}</td><td style="color:var(--muted)">${url}</td></tr>`;
+  }).join('');
+}
+updateRankings();
+
+/* KAMPAGNEN */
+const camps=[
+  {n:'Frühlings-Aktion Brunch',k:'Google Ads',bud:2500,aus:1780,st:'Aktiv',ctr:'4,2%',roas:'3,8x'},
+  {n:'Instagram Retargeting',k:'Meta',bud:1200,aus:1200,st:'Beendet',ctr:'2,1%',roas:'2,4x'},
+  {n:'Catering B2B',k:'Google Ads',bud:900,aus:340,st:'Pausiert',ctr:'3,7%',roas:'5,1x'}
+];
+function renderCamps(){
+  document.getElementById('campGrid').innerHTML=camps.map((c,i)=>{
+    const pct=Math.round(c.aus/c.bud*100);
+    const cls=c.st==='Aktiv'?'st-aktiv':c.st==='Pausiert'?'st-pausiert':'st-beendet';
+    let btn='';
+    if(c.st!=='Beendet') btn=`<button class="mini-btn" onclick="toggleCamp(${i})">${c.st==='Aktiv'?'⏸ Pausieren':'▶ Aktivieren'}</button>`;
+    return `<div class="camp">
+      <div style="display:flex;justify-content:space-between;align-items:start">
+        <h4>${c.n}</h4><span class="st ${cls}">${c.st}</span></div>
+      <div class="kanal">${c.k}</div>
+      <div class="camp-row"><span style="color:var(--muted)">Budget</span><b>${c.bud.toLocaleString('de-DE')} €</b></div>
+      <div class="camp-row"><span style="color:var(--muted)">Ausgegeben</span><b>${c.aus.toLocaleString('de-DE')} € (${pct}%)</b></div>
+      <div class="bar"><span style="width:${pct}%"></span></div>
+      <div class="camp-row" style="margin-top:12px"><span style="color:var(--muted)">CTR</span><b>${c.ctr}</b></div>
+      <div class="camp-row"><span style="color:var(--muted)">ROAS</span><b>${c.roas}</b></div>
+      ${btn}
+    </div>`;
+  }).join('');
+}
+function toggleCamp(i){
+  camps[i].st=camps[i].st==='Aktiv'?'Pausiert':'Aktiv';
+  renderCamps();
+}
+renderCamps();
+
+/* KANBAN */
+let tasks=[
+  {id:1,t:'Neue Landingpage Catering',col:0,tag:'Webdesign · Fällig 12.04',desc:'Erstellung einer conversion-optimierten Landingpage für das Catering-Angebot inkl. Anfrageformular.'},
+  {id:2,t:'Blogartikel: Sommermenü',col:0,tag:'Content · Fällig 20.04',desc:'SEO-Artikel über das neue Sommermenü mit Fokus auf Keywords "sommermenü berlin".'},
+  {id:3,t:'SEO-Optimierung Standortseiten',col:1,tag:'SEO · 65% erledigt',desc:'Onpage-Optimierung aller 4 Standortseiten: Meta-Tags, interne Verlinkung, Ladezeit.'},
+  {id:4,t:'Google Ads Q2 Setup',col:1,tag:'SEA · 40% erledigt',desc:'Aufsetzen der Q2-Kampagnenstruktur inkl. Zielgruppen und Budgetplanung.'},
+  {id:5,t:'Website Relaunch',col:2,tag:'Webdesign · Abgeschlossen',desc:'Kompletter Relaunch der Website mit neuem Design-System.'},
+  {id:6,t:'Instagram-Feed Redesign',col:2,tag:'Social · Abgeschlossen',desc:'Neues visuelles Konzept für den Instagram-Feed.'},
+  {id:7,t:'Newsletter-Template',col:2,tag:'E-Mail · Abgeschlossen',desc:'Responsives Newsletter-Template im Corporate Design.'}
+];
+const cols=['To Do','In Arbeit','Erledigt'];
+function renderBoard(){
+  document.getElementById('board').innerHTML=cols.map((c,ci)=>{
+    const list=tasks.filter(t=>t.col===ci);
+    return `<div class="col"><h3>${c}<span>${list.length}</span></h3>${
+      list.map(t=>`<div class="task" onclick="openTask(${t.id})"><b>${t.t}</b><div class="tag">${t.tag}</div></div>`).join('')
+    }</div>`;
+  }).join('');
+}
+function openTask(id){
+  const t=tasks.find(x=>x.id===id);
+  document.getElementById('slideWrap').classList.remove('hidden');
+  document.getElementById('slide').innerHTML=`
+    <button class="close" onclick="closeSlide()">×</button>
+    <h3>${t.t}</h3>
+    <span class="st st-aktiv" style="background:#ede9fe;color:#5b3df5">${cols[t.col]}</span>
+    <div class="detail-row"><div class="l">Kategorie</div><div class="v">${t.tag}</div></div>
+    <div class="detail-row"><div class="l">Beschreibung</div><div class="v">${t.desc}</div></div>
+    <div class="detail-row"><div class="l">Spalte ändern</div>
+      <select onchange="moveTask(${t.id},this.value)" style="width:100%;margin-top:6px">
+        ${cols.map((c,i)=>`<option value="${i}" ${i===t.col?'selected':''}>${c}</option>`).join('')}
+      </select>
+    </div>`;
+}
+function moveTask(id,col){
+  tasks.find(x=>x.id===id).col=parseInt(col);
+  renderBoard();closeSlide();
+}
+function closeSlide(){document.getElementById('slideWrap').classList.add('hidden');}
+renderBoard();
+</script>
+</body>
+</html>
