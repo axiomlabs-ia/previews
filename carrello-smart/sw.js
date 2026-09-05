@@ -1,6 +1,6 @@
 /* Service worker: same-origin network-first (aggiornamenti immediati), cache come fallback offline.
    Open Food Facts, CDN e font restano fuori: sempre rete. */
-const CACHE = 'carrello-smart-v4';
+const CACHE = 'carrello-smart-v5';
 const SHELL = ['./', './index.html', './calc.js', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });

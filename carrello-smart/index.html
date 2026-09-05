@@ -246,6 +246,8 @@
   .prod .src { font-size: 11px; color: var(--paper-mute); }
   .prod .src.ok { color: #1f8a52; }
   .prod .src.warn { color: var(--warn); font-size: 12.5px; }
+  .prod .src.loading::after { content: ""; display: inline-block; width: 1.2em; text-align: left; animation: dots 1.2s steps(4, end) infinite; }
+  @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
   .prod .retry { margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--paper-ink); background: var(--paper-2); padding: 7px 12px; border-radius: 10px 10px 10px 3px; }
   .prod .retry:disabled { opacity: .5; }
   .settings-group { margin-top: 18px; }
@@ -592,6 +594,7 @@
     $('fPrice').classList.toggle('warn', !isEdit && !!ctx.ocrUncertain);
     setTimeout(() => {
       if (isEdit) return $('fPrice').focus();
+      if (ctx.source === 'loading') return;   // i campi arrivano da soli: niente tastiera a sorpresa
       if (!$('fName').value) return $('fName').focus();
       if (!$('fPrice').value || ctx.ocrUncertain) return $('fPrice').focus();
       $('btnSaveItem').focus();   // tutto compilato: basta un tap su "Aggiungi"
@@ -673,20 +676,52 @@
     }
     // Nuovo: chiedo il nome a Open Food Facts (timeout 6 s), poi apro la sheet per il prezzo.
     scanner.pause(true);
-    toast(frame ? 'Leggo il cartellino…' : 'Cerco il prodotto…');
-    const [info, lab] = await Promise.all([
-      lookupProduct(ean),
-      frame ? ocr.read(frame).then((lines) => C.parseShelfLabel(lines || [])).catch(() => null) : Promise.resolve(null),
-    ]);
-    hideToast();
-    const name = info.name || (lab && lab.name) || '';
-    const parts = [];
-    if (lab && lab.price != null) parts.push(lab.confidence === 'high' ? 'Prezzo letto dal cartellino' : 'Prezzo letto dal cartellino, ma incerto: controlla');
-    else if (frame) parts.push('Prezzo non leggibile dal cartellino: scrivilo tu');
-    if (info.name) parts.push('nome da archivio'); else if (lab && lab.name) parts.push('nome letto dal cartellino'); else parts.push(info.label);
-    openItem({ ean, name, image: info.image || null, source: info.source, sourceLabel: parts.join(' · '), voucherOk: info.voucherOk,
-      price: lab && lab.price != null ? lab.price : undefined, loyaltyPrice: lab && lab.loyaltyPrice != null ? lab.loyaltyPrice : undefined,
-      ocrUncertain: !!(lab && lab.price != null && lab.confidence !== 'high') });
+    // La scheda si apre SUBITO: nome e prezzo arrivano dopo, ognuno appena pronto.
+    // Se l'utente intanto scrive qualcosa, non glielo sovrascrivo.
+    openItem({ ean, name: '', source: 'loading', sourceLabel: frame ? 'Leggo il cartellino e cerco il nome' : 'Cerco il nome in archivio', voucherOk: true });
+    const pending = { ocr: !!frame, lookup: true };
+    const stillHere = () => openSheet === 'sheetItem' && editing && !editing.id && editing.ean === ean;
+    const refreshLabel = (msg) => {
+      if (!stillHere()) return;
+      const el = $('prodBox').querySelector('.src'); if (!el) return;
+      const parts = [msg];
+      if (pending.ocr || pending.lookup) parts.push(pending.ocr && pending.lookup ? 'leggo il cartellino e cerco il nome' : pending.ocr ? 'leggo il cartellino' : 'cerco il nome');
+      el.textContent = parts.filter(Boolean).join(' · ');
+      el.className = 'src ' + ((pending.ocr || pending.lookup) ? 'loading' : (msg && /non|incerto/i.test(msg) ? 'warn' : 'ok'));
+    };
+    let ocrMsg = '', nameMsg = '', labResult = null, infoResult = null;
+    const finish = () => {
+      if (pending.ocr || pending.lookup || !stillHere()) return;
+      editing.source = infoResult && infoResult.source || 'none';
+      // Nessun nome da nessuna fonte: offro il tasto Riprova
+      if (!$('fName').value.trim() && !(labResult && labResult.name)) {
+        openItem({ ...editing, name: '', source: infoResult ? infoResult.source : 'error', sourceLabel: [ocrMsg, infoResult ? infoResult.label : ''].filter(Boolean).join(' · '), keepPrice: $('fPrice').value });
+      }
+    };
+    if (frame) ocr.read(frame, 6000).then((lines) => C.parseShelfLabel(lines || [])).catch(() => null).then((lab) => {
+      pending.ocr = false; labResult = lab;
+      if (!stillHere()) return;
+      if (lab && lab.price != null) {
+        if (!$('fPrice').value.trim()) { $('fPrice').value = lab.price.toFixed(2).replace('.', ','); $('fPrice').classList.toggle('warn', lab.confidence !== 'high'); }
+        if (lab.loyaltyPrice != null && !$('fLoyalty').value.trim()) $('fLoyalty').value = lab.loyaltyPrice.toFixed(2).replace('.', ',');
+        ocrMsg = lab.confidence === 'high' ? 'prezzo letto dal cartellino' : 'prezzo letto ma incerto: controlla';
+      } else ocrMsg = 'prezzo non leggibile: scrivilo tu';
+      if (lab && lab.name && !$('fName').value.trim() && !pending.lookup) $('fName').value = lab.name;
+      refreshLabel([ocrMsg, nameMsg].filter(Boolean).join(' · '));
+      if (!pending.lookup && $('fName').value.trim() && $('fPrice').value.trim() && !(lab && lab.confidence !== 'high')) $('btnSaveItem').focus();
+      finish();
+    });
+    lookupProduct(ean).then((info) => {
+      pending.lookup = false; infoResult = info;
+      if (!stillHere()) return;
+      if (info.name && !$('fName').value.trim()) $('fName').value = info.name;
+      else if (!info.name && labResult && labResult.name && !$('fName').value.trim()) $('fName').value = labResult.name;
+      if (info.voucherOk === false) $('fVoucher').checked = false;
+      if (info.image) { editing.image = info.image; const img = $('prodBox').querySelector('img, .ph'); if (img) { const n = document.createElement('img'); n.src = info.image; n.alt = ''; img.replaceWith(n); } }
+      nameMsg = info.name ? 'nome da archivio' : ($('fName').value.trim() ? 'nome letto dal cartellino' : 'nome non in archivio: scrivilo tu');
+      refreshLabel([ocrMsg, nameMsg].filter(Boolean).join(' · '));
+      finish();
+    });
   }
 
   // Interrogo in parallelo i 4 archivi della famiglia Open Food Facts (alimentari, cosmetici,
@@ -694,7 +729,7 @@
   const OFF_HOSTS = ['world.openfoodfacts.org', 'world.openproductsfacts.org', 'world.openbeautyfacts.org', 'world.openpetfoodfacts.org'];
   async function lookupProduct(ean) {
     if (!navigator.onLine) return { name: '', source: 'offline', label: 'Sei offline: scrivi tu il nome', voucherOk: true };
-    const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 10000);
+    const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 8000);
     const fields = 'product_name,product_name_it,brands,quantity,image_small_url,categories_tags';
     const one = async (host) => {
       const r = await fetch(`https://${host}/api/v2/product/${encodeURIComponent(ean)}.json?fields=${fields}`, { signal: ctrl.signal, headers: { 'Accept': 'application/json' } });
@@ -785,8 +820,9 @@
     // Ritaglia dal video la fascia centrale dove l'utente inquadra il cartellino, in scala di grigi, ~1200 px di larghezza.
     function grab(video) {
       const vw = video.videoWidth, vh = video.videoHeight; if (!vw || !vh) return null;
-      const sx = vw * 0.04, sw = vw * 0.92, sy = vh * 0.20, sh = vh * 0.60;
-      const scale = Math.min(2.5, 1200 / sw);
+      // Fascia centrale dove sta il cartellino inquadrato nel reticolo, ~900 px di larghezza: metà del lavoro rispetto a 1200 px, stessa lettura.
+      const sx = vw * 0.08, sw = vw * 0.84, sy = vh * 0.22, sh = vh * 0.56;
+      const scale = Math.min(2, 900 / sw);
       const c = document.createElement('canvas'); c.width = Math.round(sw * scale); c.height = Math.round(sh * scale);
       const g = c.getContext('2d', { willReadFrequently: true });
       g.drawImage(video, sx, sy, sw, sh, 0, 0, c.width, c.height);
@@ -897,6 +933,7 @@
 
   /* ================= Avvio ================= */
   render();
+  if (!('BarcodeDetector' in window)) { const el = document.createElement('script'); el.src = 'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js'; el.async = true; document.head.appendChild(el); }
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
 </script>
