@@ -1,0 +1,16 @@
+{
+  "name": "Carrello Smart",
+  "short_name": "Carrello",
+  "description": "Scontrino in tempo reale mentre fai la spesa: scansiona, calcola sconti carta e buoni pasto.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0e0c",
+  "theme_color": "#0f0e0c",
+  "lang": "it",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
