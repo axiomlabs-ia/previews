@@ -8,7 +8,7 @@
 
   C.fmtEUR = (x) => {
     const n = Number.isFinite(Number(x)) ? Number(x) : 0;
-    return n.toFixed(2).replace('.', ',') + ' €';
+    return n.toFixed(2).replace('.', ',') + ' \u20AC';
   };
 
   /* ---- Codici a barre -------------------------------------------------- */
@@ -31,7 +31,7 @@
   /* ---- Validazione input utente --------------------------------------- */
   C.parsePrice = (raw) => {
     if (raw == null) return null;
-    const s = String(raw).trim().replace(/€/g, '').replace(/\s/g, '').replace(',', '.');
+    const s = String(raw).trim().replace(/\u20AC/g, '').replace(/\s/g, '').replace(',', '.');
     if (!/^\d+(\.\d{0,2})?$/.test(s)) return null;
     const n = Number(s);
     if (!(n >= 0 && n <= 999.99)) return null;
@@ -83,6 +83,50 @@
       };
     }
     return { n, covered, cash, extra, value };
+  };
+
+  /* ---- Cartellino a scaffale (OCR) ------------------------------------ */
+  // Input: righe OCR [{ text, height }] (height = altezza del riquadro in px, serve a
+  // capire quale prezzo è "grande"). Output: { price, fullPrice, loyaltyPrice, name, confidence }.
+  // Regole: il prezzo con il carattere più grande è quello che paghi; un prezzo più alto
+  // scritto piccolo è il prezzo pieno barrato; se il cartellino parla di carta/soci il prezzo
+  // grande vale solo con la carta. Prezzi al kg/litro/100 g vengono ignorati.
+  const PRICE_RE = /(?:\u20AC\s*)?(\d{1,3})\s*[,.]\s*(\d{2})(?!\d)(\s*\u20AC)?/g;
+  const UNIT_RE = /\/\s*(kg|l|lt|litro|100\s*g|pz|pezzo)\b|al\s+(kg|litro|pezzo|pz)\b|\bkg\b|\blitro\b|(price|prezzo|preis)[^a-z0-9]{0,2}l?(kg|lt?)\b|\beur\W{0,2}(kg|l)\b/i;
+  const NOISE_RE = /offerta|sconto|promo|prezzo|price|euro|risparm|valid[oa]|dal\b|fino|soci|carta|card|fidelity|fedelt|tessera|out of stock|vat|iva|conad|coop|sisa|sidis|dimeglio|esselunga|carrefour|lidl|eurospin|pam|despar|md\b|\bcod\b|\bart\b/i;
+  C.parseShelfLabel = (lines) => {
+    const out = { price: null, fullPrice: null, loyaltyPrice: null, name: '', confidence: 'none' };
+    if (!Array.isArray(lines) || !lines.length) return out;
+    const prices = [];
+    lines.forEach((l, idx) => {
+      const text = String((l && l.text) || '');
+      if (UNIT_RE.test(text)) return;                       // prezzo al kg: non è il prezzo del pezzo
+      for (const m of text.matchAll(PRICE_RE)) {
+        const v = Number(m[1] + '.' + m[2]);
+        if (v > 0 && v < 1000) prices.push({ value: v, height: Number(l.height) || 0, euro: !!(m[0].includes('\u20AC')), idx });
+      }
+    });
+    const all = lines.map(l => String((l && l.text) || '')).join(' ').toLowerCase();
+    const loyalty = /soci|carta|card|fidelity|fedelt|tessera|club/.test(all);
+    if (prices.length) {
+      prices.sort((a, b) => (b.height - a.height) || (b.euro - a.euro));
+      const main = prices[0];
+      const distinct = prices.filter(p => Math.abs(p.value - main.value) > 0.004);
+      const higher = distinct.filter(p => p.value > main.value);
+      const full = higher.length ? Math.max(...higher.map(p => p.value)) : null;
+      if (full != null && loyalty) { out.price = full; out.loyaltyPrice = main.value; out.fullPrice = full; }
+      else { out.price = main.value; out.fullPrice = full; }
+      // Fiducia: alta se c'è un solo prezzo (o il principale è nettamente più grande), bassa se ambiguo
+      const second = distinct[0];
+      out.confidence = (!second || (main.height > 0 && second.height > 0 && main.height >= second.height * 1.25)) ? 'high' : 'low';
+    }
+    // Nome: riga più lunga con almeno 4 lettere, senza prezzi, senza parole di servizio
+    const cand = lines.map(l => String((l && l.text) || '').replace(/[|_~^`]/g, ' ').replace(/\s+/g, ' ').trim())
+      .filter(t => (t.match(/[A-Za-z\u00C0-\u00FF]/g) || []).length >= 4 && !PRICE_RE.test(t) && !NOISE_RE.test(t) && !UNIT_RE.test(t) && !/^\d[\d\s]*$/.test(t));
+    PRICE_RE.lastIndex = 0;
+    cand.sort((a, b) => b.length - a.length);
+    if (cand[0]) out.name = cand[0].replace(/^[^A-Za-z\u00C0-\u00FF0-9]+|[^A-Za-z\u00C0-\u00FF0-9.)]+$/g, '').slice(0, 60);
+    return out;
   };
 
   /* ---- Riepilogo ------------------------------------------------------- */
