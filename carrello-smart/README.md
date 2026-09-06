@@ -55,5 +55,6 @@ python3 -m http.server 8765  # poi http://localhost:8765 (la fotocamera funziona
 
 - I prezzi non arrivano da nessuna API pubblica: li leggo dal cartellino con l'OCR. Se la lettura è incerta il campo è evidenziato in giallo, se fallisce lo scrivi tu. Collaudato su 4 foto reali di cartellini PIM (carta senza codice, etichette elettroniche), 2 inquadrature ciascuna: 8/8 prezzi corretti. Regole imparate dalle foto: cifre senza virgola ("€249"), "2.99 €/Pz." vale come prezzo, "2:99" con i due punti, prezzo al kg escluso.
 - L'OCR (~2 MB) si scarica dal CDN alla prima accensione della fotocamera e poi resta in cache.
+- La qualità del fotogramma conta più del motore: stesse foto, a piena risoluzione 8/8, a 720p 4/8, con mosso 2/8. Per questo l'app chiede video 1080p con fuoco continuo, usa la foto vera (ImageCapture) dove c'è, tiene il più nitido di 3 fotogrammi e riprova una volta da sola se non legge il prezzo. Avvicinati: il cartellino deve riempire il riquadro.
 - La memoria prezzi è del singolo telefono (localStorage). Cambi telefono, la perdi.
 - Il nome da Open Food Facts va controllato: l'archivio è collaborativo.

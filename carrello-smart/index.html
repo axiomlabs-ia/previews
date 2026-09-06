@@ -773,15 +773,21 @@
       const el = $('prodBox').querySelector('.ean'); if (el) el.textContent = code;
     };
     if (ean) lookupProduct(ean).then(applyLookup);
-    if (frame) ocr.read(frame, 8000).catch(() => null).then((lines) => {
-      pending.ocr = false;
+    // Lettura del cartellino. Se al primo tentativo non esce un prezzo e la fotocamera è ancora accesa,
+    // riprovo UNA volta con un nuovo scatto: il mosso è la prima causa di lettura fallita.
+    const runOcr = (framePromise, attempt) => ocr.read(framePromise, 8000).catch(() => null).then((lines) => {
       const lab = C.parseShelfLabel(lines || []); labResult = lab;
-      if (!stillHere()) return;
+      if (!stillHere()) { pending.ocr = false; return; }
+      if (lab.price == null && attempt === 0 && scanner.running && !$('fPrice').value.trim()) {
+        msgs.ocr = 'non ho letto il prezzo, riprovo'; refreshLabel();
+        return runOcr(ocr.capture($('video'), scanner.track), 1);
+      }
+      pending.ocr = false;
       if (lab.price != null) {
         if (!$('fPrice').value.trim()) { $('fPrice').value = fmt(lab.price); $('fPrice').classList.toggle('warn', lab.confidence !== 'high'); }
         if (lab.loyaltyPrice != null && !$('fLoyalty').value.trim()) $('fLoyalty').value = fmt(lab.loyaltyPrice);
         msgs.ocr = lab.confidence === 'high' ? 'prezzo letto dal cartellino' : 'prezzo letto ma incerto: controlla';
-      } else msgs.ocr = lines ? 'prezzo non leggibile: scrivilo tu' : 'lettura non riuscita: scrivi tu il prezzo';
+      } else msgs.ocr = lines ? 'prezzo non leggibile: scrivilo tu (avvicinati e tieni fermo)' : 'lettura non riuscita: scrivi tu il prezzo';
       if (!editing.ean) {
         // Senza codice a barre: provo con le cifre stampate (etichette elettroniche), altrimenti memoria per nome
         const code = C.findEAN(lines || []);
@@ -800,6 +806,7 @@
       }
       finishStep();
     });
+    if (frame) runOcr(frame, 0);
     if (!ean && !frame) { pending.ocr = false; finishStep(); }
     refreshLabel();
   }
@@ -811,10 +818,11 @@
   $('btnFree').onclick = () => openItem({ ean: null });
   $('btnShot').onclick = () => {
     if (!scanner.running) return scanner.start();
-    const frame = ocr.grab($('video'));
-    if (!frame) { toast('Fotocamera non ancora pronta', true); return; }
+    if (!ocr.grab($('video'))) { toast('Fotocamera non ancora pronta', true); return; }
     $('cam').classList.remove('hit'); void $('cam').offsetWidth; $('cam').classList.add('hit');
-    beep(true); scanner.pause(true);
+    beep(true);
+    const frame = ocr.capture($('video'), scanner.track);   // promise: la scheda si apre intanto
+    scanner.pause(true);
     openProgressive({ frame });
   };
 
@@ -877,9 +885,14 @@
       const c = document.createElement('canvas'); c.width = Math.round(sw * scale); c.height = Math.round(sh * scale);
       const g = c.getContext('2d', { willReadFrequently: true });
       g.drawImage(video, sx, sy, sw, sh, 0, 0, c.width, c.height);
-      // Scala di grigi + contrasto fatti a mano sui pixel (ctx.filter non è affidabile su Safari).
-      // Verificato: senza questa conversione il prezzo sui cartellini gialli non viene letto.
+      toGray(c);
+      return c;
+    }
+    // Scala di grigi + contrasto fatti a mano sui pixel (ctx.filter non è affidabile su Safari).
+    // Verificato: senza questa conversione il prezzo sui cartellini gialli non viene letto.
+    function toGray(c) {
       try {
+        const g = c.getContext('2d', { willReadFrequently: true });
         const img = g.getImageData(0, 0, c.width, c.height), d = img.data;
         for (let i = 0; i < d.length; i += 4) {
           let y = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
@@ -888,12 +901,47 @@
         }
         g.putImageData(img, 0, 0);
       } catch {}
-      return c;
     }
     // Due passate: a piena risoluzione (~900 px) per il testo piccolo, a metà per le cifre giganti del prezzo,
     // che a piena risoluzione Tesseract non riconosce (verificato sulle foto reali: 2/8 → 8/8). Altezze riportate
     // alla stessa scala così il parser confronta le dimensioni correttamente.
+    // Nitidezza = varianza del laplaciano su una miniatura in grigi: il mosso la abbassa molto.
+    function sharpness(canvas) {
+      try {
+        const w = 160, h = Math.max(8, Math.round(canvas.height * w / canvas.width));
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(canvas, 0, 0, w, h);
+        const d = g.getImageData(0, 0, w, h).data; const Y = new Float32Array(w * h);
+        for (let i = 0, j = 0; i < d.length; i += 4, j++) Y[j] = d[i];   // già in grigi
+        let sum = 0, sum2 = 0, n = 0;
+        for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) { const i = y * w + x; const v = 4 * Y[i] - Y[i - 1] - Y[i + 1] - Y[i - w] - Y[i + w]; sum += v; sum2 += v * v; n++; }
+        const mean = sum / n; return sum2 / n - mean * mean;
+      } catch { return 0; }
+    }
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    // Scatto: su Android Chrome ImageCapture.takePhoto dà una foto a piena risoluzione e a fuoco (entro 1,5 s);
+    // altrimenti prendo 3 fotogrammi video in ~200 ms e tengo il più nitido.
+    async function capture(video, track) {
+      let best = grab(video), bestS = best ? sharpness(best) : -1;
+      if (track && 'ImageCapture' in window) {
+        try {
+          const ic = new window.ImageCapture(track);
+          const blob = await Promise.race([ic.takePhoto(), wait(1500).then(() => { throw new Error('photo-timeout'); })]);
+          const bmp = await createImageBitmap(blob);
+          const sx = bmp.width * 0.08, sw = bmp.width * 0.84, sy = bmp.height * 0.22, sh = bmp.height * 0.56;
+          const scale = Math.min(2, 1000 / sw);
+          const c = document.createElement('canvas'); c.width = Math.round(sw * scale); c.height = Math.round(sh * scale);
+          const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(bmp, sx, sy, sw, sh, 0, 0, c.width, c.height); bmp.close && bmp.close();
+          toGray(c);
+          const sP = sharpness(c);
+          if (sP > bestS * 0.8) return c;   // la foto vince salvo che sia nettamente più mossa del video
+        } catch {}
+      }
+      for (let i = 0; i < 2; i++) { await wait(90); const f = grab(video); if (!f) continue; const sc = sharpness(f); if (sc > bestS) { best = f; bestS = sc; } }
+      return best;
+    }
     async function read(canvas, timeoutMs = 8000) {
+      canvas = await canvas;   // accetta anche una Promise (scatto in corso)
       if (!canvas) return null;
       const deadline = Date.now() + timeoutMs;
       const race = (p) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('ocr-timeout')), Math.max(400, deadline - Date.now())))]);
@@ -914,7 +962,7 @@
       } catch {}
       return first.concat(second);
     }
-    return { warm, grab, read, get ready() { return ready; } };
+    return { warm, grab, capture, read, get ready() { return ready; } };
   })();
 
   /* ================= Scanner ================= */
@@ -928,7 +976,7 @@
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { toast('Questo browser non può usare la fotocamera. Usa "Digita codice".', true); return; }
       if (!window.isSecureContext) { toast('La fotocamera funziona solo su HTTPS (o localhost).', true); return; }
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 }, advanced: [{ focusMode: 'continuous' }] }, audio: false });
       } catch (e) {
         toast(e.name === 'NotAllowedError' ? 'Permesso fotocamera negato: abilitalo nelle impostazioni del browser.' : 'Fotocamera non disponibile: ' + e.message, true); return;
       }
@@ -937,6 +985,7 @@
       running = true; cam.classList.remove('off'); cam.classList.add('live');
       ocr.warm().catch(() => {});   // scarica il lettore di testo mentre l'utente inquadra
       const caps = track.getCapabilities ? track.getCapabilities() : {};
+      if (Array.isArray(caps.focusMode) && caps.focusMode.includes('continuous')) track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {});
       $('btnTorch').hidden = !caps.torch;
       // Motore 1: BarcodeDetector nativo (Chrome/Edge Android, Safari recenti). Motore 2: ZXing via CDN.
       if ('BarcodeDetector' in window) {
@@ -946,7 +995,7 @@
           if (want.length) { detector = new window.BarcodeDetector({ formats: want }); engine = 'nativo'; }
         } catch {}
       }
-      if (detector) { setStatus('inquadra il cartellino e premi il pulsante'); nativeLoop(); }
+      if (detector) { setStatus('riempi il riquadro col cartellino e premi'); nativeLoop(); }
       else { setStatus('carico il lettore…'); await zxingStart(); }
       $('engineLabel').textContent = 'motore scanner: ' + engine;
     }
@@ -971,7 +1020,7 @@
         zx = new window.ZXing.BrowserMultiFormatReader(hints, 200);
         // Riuso lo stream già aperto: decodifico dall'elemento video.
         await zx.decodeFromStream(stream, video, (result) => { if (result && !paused && running) handleCode(result.getText(), ocr.grab(video)); });
-        engine = 'ZXing'; setStatus('inquadra il cartellino e premi il pulsante');
+        engine = 'ZXing'; setStatus('riempi il riquadro col cartellino e premi');
       } catch (e) {
         engine = 'nessuno'; setStatus('lettore non disponibile');
         toast('Non riesco a caricare il lettore di codici. Usa "Digita codice".', true);
@@ -990,7 +1039,7 @@
       try { await track.applyConstraints({ advanced: [{ torch: on }] }); } catch { toast('Torcia non controllabile su questo dispositivo', true); }
     }
     document.addEventListener('visibilitychange', () => { if (document.hidden && running) stop(); });
-    return { start, stop, pause, torch, get running() { return running; } };
+    return { start, stop, pause, torch, get running() { return running; }, get track() { return track; } };
   })();
   $('btnStart').onclick = () => scanner.start();
   $('btnStop').onclick = () => scanner.stop();
