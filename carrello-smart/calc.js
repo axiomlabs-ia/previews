@@ -91,8 +91,12 @@
   // Regole: il prezzo con il carattere più grande è quello che paghi; un prezzo più alto
   // scritto piccolo è il prezzo pieno barrato; se il cartellino parla di carta/soci il prezzo
   // grande vale solo con la carta. Prezzi al kg/litro/100 g vengono ignorati.
-  const PRICE_RE = /(?:\u20AC\s*)?(\d{1,3})\s*[,.]\s*(\d{2})(?!\d)(\s*\u20AC)?/g;
-  const UNIT_RE = /\/\s*(kg|l|lt|litro|100\s*g|pz|pezzo)\b|al\s+(kg|litro|pezzo|pz)\b|\bkg\b|\blitro\b|(price|prezzo|preis)[^a-z0-9]{0,2}l?(kg|lt?)\b|\beur\W{0,2}(kg|l)\b/i;
+  const PRICE_RE = /(?:\u20AC\s*)?(\d{1,3})\s*[,.:;]\s*(\d{2})(?!\d)(\s*\u20AC)?/g;   // OCR a volte legge la virgola come : o ;
+  // Prezzo per unità di misura (al kg, al litro, ai 100 g): NON è il prezzo del pezzo. "/pz" invece è al pezzo = quello che paghi.
+  const UNIT_RE = /\/\s*(kg|l|lt|litro|100\s*g)\b|al\s+(kg|litro)\b|\bkg\b|\blitro\b|(price|prezzo|preis)[^a-z0-9]{0,2}l?(kg|lt?)\b|\beur\W{0,2}(kg|l)\b/i;
+  const PER_PIECE_RE = /\/\s*pz\b|al\s+pezzo|\/\s*pezzo/i;
+  // Cifre grandi lette senza separatore ("€249", "249 €"): 3-4 cifre attaccate al simbolo euro → ultime due sono i centesimi
+  const NOSEP_RE = /(?:\u20AC\s*(\d{3,4})(?!\d)|(?<!\d)(\d{3,4})\s*\u20AC)/g;
   const NOISE_RE = /offerta|sconto|promo|prezzo|price|euro|risparm|valid[oa]|dal\b|fino|soci|carta|card|fidelity|fedelt|tessera|out of stock|vat|iva|conad|coop|sisa|sidis|dimeglio|esselunga|carrefour|lidl|eurospin|pam|despar|md\b|\bcod\b|\bart\b/i;
   C.parseShelfLabel = (lines) => {
     const out = { price: null, fullPrice: null, loyaltyPrice: null, name: '', confidence: 'none' };
@@ -101,16 +105,25 @@
     lines.forEach((l, idx) => {
       const text = String((l && l.text) || '');
       if (UNIT_RE.test(text)) return;                       // prezzo al kg: non è il prezzo del pezzo
+      const perPiece = PER_PIECE_RE.test(text);             // "2.99 €/Pz.": piccolo ma affidabile, vale come conferma
+      let found = false;
       for (const m of text.matchAll(PRICE_RE)) {
         const v = Number(m[1] + '.' + m[2]);
-        if (v > 0 && v < 1000) prices.push({ value: v, height: Number(l.height) || 0, euro: !!(m[0].includes('\u20AC')), idx });
+        if (v > 0 && v < 1000) { found = true; prices.push({ value: v, height: Number(l.height) || 0, euro: !!(m[0].includes('\u20AC')), perPiece, idx }); }
+      }
+      if (!found) for (const m of text.matchAll(NOSEP_RE)) {   // "€249" → 2,49
+        const digits = m[1] || m[2]; const v = Number(digits.slice(0, -2) + '.' + digits.slice(-2));
+        if (v > 0 && v < 1000) prices.push({ value: v, height: Number(l.height) || 0, euro: true, nosep: true, perPiece, idx });
       }
     });
     const all = lines.map(l => String((l && l.text) || '')).join(' ').toLowerCase();
     const loyalty = /soci|carta|card|fidelity|fedelt|tessera|club/.test(all);
     if (prices.length) {
       prices.sort((a, b) => (b.height - a.height) || (b.euro - a.euro));
-      const main = prices[0];
+      let main = prices[0];
+      // Se c'è un prezzo "al pezzo" e il grande non c'è o è diverso, il prezzo al pezzo è più affidabile del big-digit OCR
+      const pp = prices.find(p => p.perPiece);
+      if (pp && (main.perPiece || Math.abs(pp.value - main.value) > 0.004)) main = pp;
       const distinct = prices.filter(p => Math.abs(p.value - main.value) > 0.004);
       const higher = distinct.filter(p => p.value > main.value);
       const full = higher.length ? Math.max(...higher.map(p => p.value)) : null;
@@ -118,15 +131,51 @@
       else { out.price = main.value; out.fullPrice = full; }
       // Fiducia: alta se c'è un solo prezzo (o il principale è nettamente più grande), bassa se ambiguo
       const second = distinct[0];
-      out.confidence = (!second || (main.height > 0 && second.height > 0 && main.height >= second.height * 1.25)) ? 'high' : 'low';
+      const confirmed = prices.some(p => p !== main && Math.abs(p.value - main.value) <= 0.004);   // stesso prezzo letto due volte
+      out.confidence = (confirmed || main.perPiece || !second || (main.height > 0 && second.height > 0 && main.height >= second.height * 1.25)) ? 'high' : 'low';
+      if (main.nosep && !confirmed) out.confidence = 'low';
     }
-    // Nome: riga più lunga con almeno 4 lettere, senza prezzi, senza parole di servizio
-    const cand = lines.map(l => String((l && l.text) || '').replace(/[|_~^`]/g, ' ').replace(/\s+/g, ' ').trim())
-      .filter(t => (t.match(/[A-Za-z\u00C0-\u00FF]/g) || []).length >= 4 && !PRICE_RE.test(t) && !NOISE_RE.test(t) && !UNIT_RE.test(t) && !/^\d[\d\s]*$/.test(t));
-    PRICE_RE.lastIndex = 0;
-    cand.sort((a, b) => b.length - a.length);
-    if (cand[0]) out.name = cand[0].replace(/^[^A-Za-z\u00C0-\u00FF0-9]+|[^A-Za-z\u00C0-\u00FF0-9.)]+$/g, '').slice(0, 60);
+    // Nome: tra le righe "di testo" scelgo quella con il miglior punteggio altezza × plausibilità.
+    // Plausibilità = quota di token che sembrano parole (≥3 lettere con una vocale). Così "SUSINE" (grande, una
+    // parola vera) batte "WE WB WEEE NE NAA" (la scritta stilizzata "LA FRUTTERIA" letta male, più lunga).
+    const wordish = (tok) => /^[A-Za-z\u00C0-\u00FF]{3,}$/.test(tok) && /[aeiouAEIOU\u00C0-\u00FF]/.test(tok) && !/[^aeiouAEIOU\u00C0-\u00FF]{4}/.test(tok) && !/(.)\1\1/.test(tok);   // 4 consonanti di fila o 3 lettere uguali = spazzatura OCR
+    let best = null, bestScore = 0;
+    for (const l of lines) {
+      const t = String((l && l.text) || '').replace(/[|_~^`"'«»*@#&=<>{}\[\]]/g, ' ').replace(/\s+/g, ' ').trim();
+      const letters = (t.match(/[A-Za-z\u00C0-\u00FF]/g) || []).length;
+      if (letters < 5 || PRICE_RE.test(t) || NOSEP_RE.test(t) || NOISE_RE.test(t) || UNIT_RE.test(t) || PER_PIECE_RE.test(t)) { PRICE_RE.lastIndex = 0; NOSEP_RE.lastIndex = 0; continue; }
+      PRICE_RE.lastIndex = 0; NOSEP_RE.lastIndex = 0;
+      if (letters < t.replace(/\s/g, '').length * 0.6) continue;
+      const toks = t.split(' ').filter(Boolean);
+      const good = toks.filter(wordish).length, frac = good / toks.length;
+      if (good === 0 || (toks.length === 1 && toks[0].length < 5)) continue;
+      // sqrt(altezza): il testo grande conta, ma non domina; più parole vere = più credibile
+      const score = Math.sqrt(Number(l.height) || 1) * (0.3 + frac) * (1 + 0.3 * Math.min(good, 3));
+      if (score > bestScore) { bestScore = score; best = t; }
+    }
+    if (best) out.name = best.replace(/^[^A-Za-z\u00C0-\u00FF0-9]+|[^A-Za-z\u00C0-\u00FF0-9.)]+$/g, '').slice(0, 60);
     return out;
+  };
+
+  C.findEAN = (lines) => {
+    if (!Array.isArray(lines)) return null;
+    for (const l of lines) {
+      const text = String((l && l.text) || '');
+      for (const run of text.replace(/[ .\-]/g, '').match(/\d{8,13}/g) || []) {
+        for (const cand of [run, run.length === 13 && run.startsWith('00000') ? run.slice(5) : null, run.length > 13 ? run.slice(-13) : null]) {
+          if (!cand) continue;
+          const n = C.normalizeEAN(cand);
+          if (n) return n.length === 13 && n.startsWith('00000') ? n.slice(5) : n;
+        }
+      }
+    }
+    return null;
+  };
+
+  // Chiave di memoria per prodotti senza codice (frutta, banco, cartelli di carta): nome normalizzato
+  C.nameKey = (name) => {
+    const k = String(name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
+    return k.length >= 3 ? 'n:' + k : null;
   };
 
   /* ---- Riepilogo ------------------------------------------------------- */

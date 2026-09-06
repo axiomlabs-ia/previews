@@ -110,6 +110,14 @@
   }
   .cta svg { width: 20px; height: 20px; }
   .cam .flash { position: absolute; inset: 0; background: var(--cassa); opacity: 0; pointer-events: none; }
+  .cam .shutter {
+    position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 9px;
+    background: var(--cassa); color: var(--cassa-ink); font-weight: 700; font-size: 15px; padding: 12px 18px 12px 14px;
+    border-radius: 999px; box-shadow: 0 8px 24px -6px rgba(255,212,0,.7), 0 0 0 4px rgba(15,14,12,.45);
+  }
+  .cam .shutter svg { width: 22px; height: 22px; }
+  .cam .shutter:active { transform: translateX(-50%) scale(.96); }
+  .cam.off .shutter, .cam.paused .shutter { display: none; }
   .cam.hit .flash { animation: flash .35s ease-out; }
   @keyframes flash { from { opacity: .7; } to { opacity: 0; } }
 
@@ -293,6 +301,10 @@
   <div class="laser"></div>
   <div class="flash"></div>
   <div class="status" id="camStatus">fotocamera spenta</div>
+  <button class="shutter" id="btnShot" aria-label="Leggi il cartellino">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l2-2h6l2 2h3v12H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+    <span>Leggi cartellino</span>
+  </button>
   <div class="tools">
     <button class="iconbtn" id="btnTorch" aria-label="Torcia" hidden>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
@@ -306,7 +318,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M11 8v8M15 8v8M18 8v8"/></svg>
       Inizia a scansionare
     </button>
-    <p>Inquadra il <b>cartellino a scaffale</b>: leggo il codice e il prezzo stampato accanto.</p>
+    <p>Inquadra il <b>cartellino</b> e premi il pulsante: leggo prezzo e nome. Se c'è un codice a barre lo prendo da solo.</p>
   </div>
 </section>
 
@@ -581,7 +593,8 @@
       $('fVoucher').checked = info.voucherOk !== false && $('fVoucher').checked;
       openItem({ ...editing, name: $('fName').value, image: editing.image, source: info.source, sourceLabel: info.label, keepPrice: $('fPrice').value });
     };
-    $('prodBox').style.display = ean ? '' : 'none';
+    $('prodBox').style.display = (ean || ctx.source === 'loading') ? '' : 'none';
+    if (!ean && ctx.source === 'loading') $('prodBox').innerHTML = `<div class="ph">▤</div><div><div class="ean">senza codice</div><div class="src loading"></div></div>`;
     $('fName').value = isEdit ? it.name : (ctx.name || '');
     $('fPrice').value = isEdit ? it.price.toFixed(2).replace('.', ',') : (ctx.keepPrice != null ? ctx.keepPrice : (ctx.price != null ? ctx.price.toFixed(2).replace('.', ',') : ''));
     $('fLoyalty').value = (isEdit ? it.loyaltyPrice : ctx.loyaltyPrice) != null ? (isEdit ? it.loyaltyPrice : ctx.loyaltyPrice).toFixed(2).replace('.', ',') : '';
@@ -626,16 +639,17 @@
     if (editing.id) {
       const it = state.items.find(i => i.id === editing.id); if (!it) return hide();
       Object.assign(it, { name, price, loyaltyPrice, qty, voucherOk });
-      if (it.ean) remember(it.ean, it);
+      remember(it.ean, it);
     } else {
       const it = { id: uid(), ean: editing.ean || null, name, price, loyaltyPrice, qty, voucherOk, image: editing.image || null };
       state.items.push(it); lastAddedId = it.id;
-      if (it.ean) remember(it.ean, it);
+      remember(it.ean, it);
     }
     hide(); render(); scrollReceipt();
   };
   function remember(ean, it) {
-    state.memory[ean] = { name: it.name, price: it.price, loyaltyPrice: it.loyaltyPrice, voucherOk: it.voucherOk, image: it.image || null, store: state.settings.store || '', ts: Date.now() };
+    const key = ean || C.nameKey(it.name); if (!key) return;
+    state.memory[key] = { name: it.name, price: it.price, loyaltyPrice: it.loyaltyPrice, voucherOk: it.voucherOk, image: it.image || null, store: state.settings.store || '', ts: Date.now() };
   }
   function scrollReceipt() { const w = $('receiptWrap'); requestAnimationFrame(() => { w.scrollTop = w.scrollHeight; }); }
   $('lines').addEventListener('click', (e) => { const li = e.target.closest('.line'); if (li) openItem({ id: li.dataset.id }); });
@@ -676,53 +690,9 @@
     }
     // Nuovo: chiedo il nome a Open Food Facts (timeout 6 s), poi apro la sheet per il prezzo.
     scanner.pause(true);
-    // La scheda si apre SUBITO: nome e prezzo arrivano dopo, ognuno appena pronto.
-    // Se l'utente intanto scrive qualcosa, non glielo sovrascrivo.
-    openItem({ ean, name: '', source: 'loading', sourceLabel: frame ? 'Leggo il cartellino e cerco il nome' : 'Cerco il nome in archivio', voucherOk: true });
-    const pending = { ocr: !!frame, lookup: true };
-    const stillHere = () => openSheet === 'sheetItem' && editing && !editing.id && editing.ean === ean;
-    const refreshLabel = (msg) => {
-      if (!stillHere()) return;
-      const el = $('prodBox').querySelector('.src'); if (!el) return;
-      const parts = [msg];
-      if (pending.ocr || pending.lookup) parts.push(pending.ocr && pending.lookup ? 'leggo il cartellino e cerco il nome' : pending.ocr ? 'leggo il cartellino' : 'cerco il nome');
-      el.textContent = parts.filter(Boolean).join(' · ');
-      el.className = 'src ' + ((pending.ocr || pending.lookup) ? 'loading' : (msg && /non|incerto/i.test(msg) ? 'warn' : 'ok'));
-    };
-    let ocrMsg = '', nameMsg = '', labResult = null, infoResult = null;
-    const finish = () => {
-      if (pending.ocr || pending.lookup || !stillHere()) return;
-      editing.source = infoResult && infoResult.source || 'none';
-      // Nessun nome da nessuna fonte: offro il tasto Riprova
-      if (!$('fName').value.trim() && !(labResult && labResult.name)) {
-        openItem({ ...editing, name: '', source: infoResult ? infoResult.source : 'error', sourceLabel: [ocrMsg, infoResult ? infoResult.label : ''].filter(Boolean).join(' · '), keepPrice: $('fPrice').value });
-      }
-    };
-    if (frame) ocr.read(frame, 6000).then((lines) => C.parseShelfLabel(lines || [])).catch(() => null).then((lab) => {
-      pending.ocr = false; labResult = lab;
-      if (!stillHere()) return;
-      if (lab && lab.price != null) {
-        if (!$('fPrice').value.trim()) { $('fPrice').value = lab.price.toFixed(2).replace('.', ','); $('fPrice').classList.toggle('warn', lab.confidence !== 'high'); }
-        if (lab.loyaltyPrice != null && !$('fLoyalty').value.trim()) $('fLoyalty').value = lab.loyaltyPrice.toFixed(2).replace('.', ',');
-        ocrMsg = lab.confidence === 'high' ? 'prezzo letto dal cartellino' : 'prezzo letto ma incerto: controlla';
-      } else ocrMsg = 'prezzo non leggibile: scrivilo tu';
-      if (lab && lab.name && !$('fName').value.trim() && !pending.lookup) $('fName').value = lab.name;
-      refreshLabel([ocrMsg, nameMsg].filter(Boolean).join(' · '));
-      if (!pending.lookup && $('fName').value.trim() && $('fPrice').value.trim() && !(lab && lab.confidence !== 'high')) $('btnSaveItem').focus();
-      finish();
-    });
-    lookupProduct(ean).then((info) => {
-      pending.lookup = false; infoResult = info;
-      if (!stillHere()) return;
-      if (info.name && !$('fName').value.trim()) $('fName').value = info.name;
-      else if (!info.name && labResult && labResult.name && !$('fName').value.trim()) $('fName').value = labResult.name;
-      if (info.voucherOk === false) $('fVoucher').checked = false;
-      if (info.image) { editing.image = info.image; const img = $('prodBox').querySelector('img, .ph'); if (img) { const n = document.createElement('img'); n.src = info.image; n.alt = ''; img.replaceWith(n); } }
-      nameMsg = info.name ? 'nome da archivio' : ($('fName').value.trim() ? 'nome letto dal cartellino' : 'nome non in archivio: scrivilo tu');
-      refreshLabel([ocrMsg, nameMsg].filter(Boolean).join(' · '));
-      finish();
-    });
+    openProgressive({ ean, frame });
   }
+
 
   // Interrogo in parallelo i 4 archivi della famiglia Open Food Facts (alimentari, cosmetici,
   // prodotti generici, pet food). Vince il primo che conosce il codice. Timeout 10 s complessivo.
@@ -761,11 +731,92 @@
     return { name, image: p.image_small_url || null, source: 'off', label: name ? 'Trovato in archivio · controlla che il nome sia giusto' : 'In archivio ma senza nome: scrivilo tu', voucherOk };
   }
 
+
+  // Apre la scheda SUBITO e la riempie man mano: OCR del cartellino (prezzo, nome, codice stampato),
+  // ricerca nome in archivio, memoria prezzi. Usata sia dal bip del codice a barre sia dal pulsante.
+  // Regola: mai sovrascrivere ciò che l'utente ha già digitato.
+  function openProgressive({ ean = null, frame = null }) {
+    openItem({ ean, name: '', source: 'loading', sourceLabel: '', voucherOk: true });
+    const pending = { ocr: !!frame, lookup: !!ean };
+    const msgs = { ocr: '', name: '' };
+    let labResult = null;
+    const stillHere = () => openSheet === 'sheetItem' && editing && !editing.id;
+    const fmt = (v) => v.toFixed(2).replace('.', ',');
+    const refreshLabel = () => {
+      if (!stillHere()) return;
+      const el = $('prodBox').querySelector('.src'); if (!el) return;
+      const parts = [msgs.ocr, msgs.name].filter(Boolean);
+      if (pending.ocr || pending.lookup) parts.push(pending.ocr && pending.lookup ? 'leggo il cartellino e cerco il nome' : pending.ocr ? 'leggo il cartellino' : 'cerco il nome');
+      el.textContent = parts.join(' · ');
+      el.className = 'src ' + ((pending.ocr || pending.lookup) ? 'loading' : (/non |incerto|ricordato/i.test(parts.join(' ')) ? 'warn' : 'ok'));
+    };
+    const finishStep = () => {
+      refreshLabel();
+      if (!pending.ocr && !pending.lookup && stillHere()) {
+        if (!$('fName').value.trim() && labResult && labResult.name) $('fName').value = labResult.name;
+        if ($('fName').value.trim() && $('fPrice').value.trim() && !$('fPrice').classList.contains('warn')) $('btnSaveItem').focus();
+        else if (!$('fPrice').value.trim()) $('fPrice').focus();
+      }
+    };
+    const applyLookup = (info) => {
+      pending.lookup = false;
+      if (!stillHere()) return;
+      if (info.name && !$('fName').value.trim()) $('fName').value = info.name;
+      if (info.voucherOk === false) $('fVoucher').checked = false;
+      if (info.image) { editing.image = info.image; const ph = $('prodBox').querySelector('img, .ph'); if (ph) { const n = document.createElement('img'); n.src = info.image; n.alt = ''; ph.replaceWith(n); } }
+      msgs.name = info.name ? 'nome da archivio' : (($('fName').value.trim() || (labResult && labResult.name)) ? 'nome letto dal cartellino' : 'nome non in archivio: scrivilo tu');
+      finishStep();
+    };
+    const setEan = (code) => {
+      editing.ean = code;
+      $('prodBox').style.display = '';
+      const el = $('prodBox').querySelector('.ean'); if (el) el.textContent = code;
+    };
+    if (ean) lookupProduct(ean).then(applyLookup);
+    if (frame) ocr.read(frame, 8000).catch(() => null).then((lines) => {
+      pending.ocr = false;
+      const lab = C.parseShelfLabel(lines || []); labResult = lab;
+      if (!stillHere()) return;
+      if (lab.price != null) {
+        if (!$('fPrice').value.trim()) { $('fPrice').value = fmt(lab.price); $('fPrice').classList.toggle('warn', lab.confidence !== 'high'); }
+        if (lab.loyaltyPrice != null && !$('fLoyalty').value.trim()) $('fLoyalty').value = fmt(lab.loyaltyPrice);
+        msgs.ocr = lab.confidence === 'high' ? 'prezzo letto dal cartellino' : 'prezzo letto ma incerto: controlla';
+      } else msgs.ocr = lines ? 'prezzo non leggibile: scrivilo tu' : 'lettura non riuscita: scrivi tu il prezzo';
+      if (!editing.ean) {
+        // Senza codice a barre: provo con le cifre stampate (etichette elettroniche), altrimenti memoria per nome
+        const code = C.findEAN(lines || []);
+        if (code) {
+          setEan(code);
+          const mem = state.memory[code];
+          if (mem) { if (!$('fName').value.trim()) $('fName').value = mem.name; if (!$('fPrice').value.trim() && mem.price != null) { $('fPrice').value = fmt(mem.price); msgs.ocr = 'prezzo ricordato dall\'ultima volta: controlla'; } }
+          pending.lookup = true; refreshLabel();
+          lookupProduct(code).then(applyLookup);
+        } else {
+          if (lab.name && !$('fName').value.trim()) $('fName').value = lab.name;
+          const key = C.nameKey($('fName').value); const mem = key ? state.memory[key] : null;
+          if (mem && !$('fPrice').value.trim() && mem.price != null) { $('fPrice').value = fmt(mem.price); $('fPrice').classList.add('warn'); msgs.ocr = 'prezzo ricordato dall\'ultima volta: controlla'; }
+          msgs.name = $('fName').value.trim() ? (lab.name ? 'nome letto dal cartellino' : '') : 'nome non leggibile: scrivilo tu';
+        }
+      }
+      finishStep();
+    });
+    if (!ean && !frame) { pending.ocr = false; finishStep(); }
+    refreshLabel();
+  }
+
   /* ---- Codice manuale / prodotto libero ---- */
   $('btnManualEAN').onclick = () => { $('fEAN').value = ''; show('sheetEAN'); setTimeout(() => $('fEAN').focus(), 320); };
   $('btnEANGo').onclick = () => { const v = $('fEAN').value; if (!C.normalizeEAN(v)) { $('fEAN').classList.add('err'); beep(false); toast('Codice non valido (checksum errato o lunghezza sbagliata)', true); return; } $('fEAN').classList.remove('err'); hide(); handleCode(v); };
   $('fEAN').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnEANGo').click(); });
   $('btnFree').onclick = () => openItem({ ean: null });
+  $('btnShot').onclick = () => {
+    if (!scanner.running) return scanner.start();
+    const frame = ocr.grab($('video'));
+    if (!frame) { toast('Fotocamera non ancora pronta', true); return; }
+    $('cam').classList.remove('hit'); void $('cam').offsetWidth; $('cam').classList.add('hit');
+    beep(true); scanner.pause(true);
+    openProgressive({ frame });
+  };
 
   /* ---- Svuota ---- */
   $('btnClear').onclick = () => {
@@ -839,15 +890,29 @@
       } catch {}
       return c;
     }
-    async function read(canvas, timeoutMs = 7000) {
+    // Due passate: a piena risoluzione (~900 px) per il testo piccolo, a metà per le cifre giganti del prezzo,
+    // che a piena risoluzione Tesseract non riconosce (verificato sulle foto reali: 2/8 → 8/8). Altezze riportate
+    // alla stessa scala così il parser confronta le dimensioni correttamente.
+    async function read(canvas, timeoutMs = 8000) {
       if (!canvas) return null;
-      const w = await Promise.race([warm(), new Promise((_, rej) => setTimeout(() => rej(new Error('ocr-load-timeout')), timeoutMs))]);
-      const res = await Promise.race([w.recognize(canvas, {}, { text: true, blocks: true }), new Promise((_, rej) => setTimeout(() => rej(new Error('ocr-timeout')), timeoutMs))]);
-      const d = res && res.data ? res.data : {};
-      let lines = [];
-      if (Array.isArray(d.lines) && d.lines.length) lines = d.lines;
-      else if (Array.isArray(d.blocks)) lines = d.blocks.flatMap(b => (b.paragraphs || []).flatMap(p => p.lines || []));
-      return lines.map(l => ({ text: l.text || '', height: l.bbox ? (l.bbox.y1 - l.bbox.y0) : 0 })).filter(l => l.text.trim());
+      const deadline = Date.now() + timeoutMs;
+      const race = (p) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('ocr-timeout')), Math.max(400, deadline - Date.now())))]);
+      const toLines = (d, k) => {
+        let lines = [];
+        if (Array.isArray(d.lines) && d.lines.length) lines = d.lines;
+        else if (Array.isArray(d.blocks)) lines = d.blocks.flatMap(b => (b.paragraphs || []).flatMap(p => p.lines || []));
+        return lines.map(l => ({ text: l.text || '', height: l.bbox ? (l.bbox.y1 - l.bbox.y0) * k : 0 })).filter(l => l.text.trim());
+      };
+      const w = await race(warm());
+      const rec = async (c, k) => { const res = await w.recognize(c, {}, { text: true, blocks: true }); return toLines(res && res.data ? res.data : {}, k); };
+      const first = await race(rec(canvas, 1));
+      let second = [];
+      try {
+        const half = document.createElement('canvas'); half.width = Math.max(1, Math.round(canvas.width / 2)); half.height = Math.max(1, Math.round(canvas.height / 2));
+        half.getContext('2d').drawImage(canvas, 0, 0, half.width, half.height);
+        second = await race(rec(half, 2));
+      } catch {}
+      return first.concat(second);
     }
     return { warm, grab, read, get ready() { return ready; } };
   })();
@@ -881,7 +946,7 @@
           if (want.length) { detector = new window.BarcodeDetector({ formats: want }); engine = 'nativo'; }
         } catch {}
       }
-      if (detector) { setStatus('pronto · inquadra il cartellino'); nativeLoop(); }
+      if (detector) { setStatus('inquadra il cartellino e premi il pulsante'); nativeLoop(); }
       else { setStatus('carico il lettore…'); await zxingStart(); }
       $('engineLabel').textContent = 'motore scanner: ' + engine;
     }
@@ -906,7 +971,7 @@
         zx = new window.ZXing.BrowserMultiFormatReader(hints, 200);
         // Riuso lo stream già aperto: decodifico dall'elemento video.
         await zx.decodeFromStream(stream, video, (result) => { if (result && !paused && running) handleCode(result.getText(), ocr.grab(video)); });
-        engine = 'ZXing'; setStatus('pronto · inquadra il cartellino');
+        engine = 'ZXing'; setStatus('inquadra il cartellino e premi il pulsante');
       } catch (e) {
         engine = 'nessuno'; setStatus('lettore non disponibile');
         toast('Non riesco a caricare il lettore di codici. Usa "Digita codice".', true);

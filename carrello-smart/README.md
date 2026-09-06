@@ -9,9 +9,9 @@ Zero backend, zero account, zero AI: tutto gira nel browser del telefono e resta
 
 ## Come funziona
 
-1. **Inizia a scansionare** → inquadri il cartellino. Al bip catturo il fotogramma: codice a barre + OCR del prezzo (Tesseract.js, modalità testo sparso, immagine in scala di grigi).
-2. Codice nuovo → in parallelo cerco il nome nei 4 archivi Open*Facts (10 s di timeout) e leggo prezzo/nome dal cartellino. La scheda si apre già compilata: controlli e confermi con un tap.
-   Codice già visto → entra al volo; se il cartellino mostra un prezzo diverso da quello ricordato, lo aggiorno e ti avviso.
+1. **Inizia a scansionare** → inquadri il cartellino e premi **Leggi cartellino**. Se c'è un codice a barre leggibile, parte da solo al bip.
+2. La scheda si apre subito e si riempie man mano: prezzo e nome dall'OCR (Tesseract.js, testo sparso, due scale: 900 px per il testo piccolo e 450 px per le cifre giganti), codice dalle cifre stampate sotto il barcode delle etichette elettroniche, nome dagli archivi Open*Facts se il codice c'è, prezzo ricordato se il prodotto è già passato (anche senza codice: memoria per nome).
+   Codice già visto → entra al volo; se il cartellino mostra un prezzo diverso, lo aggiorno e ti avviso.
 3. **Digita codice** se il barcode è rovinato, **Senza codice** per frutta, banco, sfuso.
 4. Tocchi una riga per correggere prezzo/quantità o eliminarla.
 5. ⚙️ Impostazioni: supermercato, carta fedeltà on/off, valore e numero dei buoni pasto.
@@ -40,7 +40,7 @@ Safari → Condividi → **Aggiungi a Home** (iOS) oppure Chrome → menu → **
 ## Test
 
 ```bash
-node test/calc.test.mjs      # 34 test sulla logica: EAN, prezzi, fedeltà, buoni pasto, parser cartellino
+node test/calc.test.mjs      # 45 test sulla logica: EAN, prezzi, fedeltà, buoni pasto, parser cartellino
 python3 -m http.server 8765  # poi http://localhost:8765 (la fotocamera funziona anche su localhost)
 ```
 
@@ -53,7 +53,7 @@ python3 -m http.server 8765  # poi http://localhost:8765 (la fotocamera funziona
 
 ## Limiti noti
 
-- I prezzi non arrivano da nessuna API pubblica: li leggo dal cartellino con l'OCR. Se la lettura è incerta il campo è evidenziato in giallo, se fallisce lo scrivi tu. Collaudato su cartellini sintetici (Conad giallo, offerta con barrato, etichetta elettronica): 6/6. Sui cartellini veri il collaudo lo fa la prima spesa.
+- I prezzi non arrivano da nessuna API pubblica: li leggo dal cartellino con l'OCR. Se la lettura è incerta il campo è evidenziato in giallo, se fallisce lo scrivi tu. Collaudato su 4 foto reali di cartellini PIM (carta senza codice, etichette elettroniche), 2 inquadrature ciascuna: 8/8 prezzi corretti. Regole imparate dalle foto: cifre senza virgola ("€249"), "2.99 €/Pz." vale come prezzo, "2:99" con i due punti, prezzo al kg escluso.
 - L'OCR (~2 MB) si scarica dal CDN alla prima accensione della fotocamera e poi resta in cache.
 - La memoria prezzi è del singolo telefono (localStorage). Cambi telefono, la perdi.
 - Il nome da Open Food Facts va controllato: l'archivio è collaborativo.
