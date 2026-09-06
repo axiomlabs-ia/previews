@@ -35,8 +35,8 @@
     --safe-t: env(safe-area-inset-top, 0px);
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; margin: 0; background: var(--ink); color: var(--chalk); font-family: var(--sans); overscroll-behavior: none; }
-  body { display: flex; flex-direction: column; min-height: 100dvh; }
+  html, body { height: 100%; margin: 0; background: var(--ink); color: var(--chalk); font-family: var(--sans); overscroll-behavior: none; overflow: hidden; }
+  body { display: flex; flex-direction: column; height: 100dvh; }
   button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
   button:active { transform: translateY(1px); }
   input, select { font: inherit; }
@@ -121,19 +121,49 @@
   .cam.hit .flash { animation: flash .35s ease-out; }
   @keyframes flash { from { opacity: .7; } to { opacity: 0; } }
 
-  .quick { display: flex; gap: 8px; padding: 10px 12px 4px; }
-  .quick button {
-    flex: 1; padding: 11px 10px; border-radius: 12px; background: var(--ink-2); border: 1px solid #2c2923;
-    font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  .tabs { display: flex; gap: 6px; padding: 10px 12px 2px; }
+  .tab {
+    flex: 1; padding: 11px 10px; border-radius: 12px 12px 4px 12px; background: var(--ink-2); border: 1px solid #2c2923;
+    font-size: 14px; font-weight: 600; color: var(--mute); display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   }
-  .quick button svg { width: 17px; height: 17px; opacity: .8; }
+  .tab:last-child { border-radius: 12px 12px 12px 4px; }
+  .tab .cnt { font-family: var(--mono); font-size: 12px; padding: 2px 7px; border-radius: 999px; background: var(--ink-3); color: var(--mute); }
+  .tab.on { color: var(--chalk); border-color: var(--cassa); box-shadow: inset 0 -3px 0 var(--cassa); }
+  .tab.on .cnt { background: var(--cassa); color: var(--cassa-ink); }
+  .rtools { display: flex; justify-content: flex-end; gap: 16px; padding: 0 6px 8px; }
+  .rtools button { font-size: 12.5px; color: var(--mute); text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ---------- Lista della spesa (foglio a righe) ---------- */
+  .pad {
+    background: var(--paper-2); color: var(--paper-ink); border-radius: 4px 18px 4px 4px; padding: 14px 14px 18px; position: relative;
+    background-image: repeating-linear-gradient(0deg, transparent 0 39px, rgba(60,50,30,.12) 39px 40px); background-origin: content-box;
+    box-shadow: 0 30px 60px -30px rgba(0,0,0,.9);
+  }
+  .pad::before { content: ""; position: absolute; left: 34px; top: 0; bottom: 0; width: 1.5px; background: rgba(232,84,47,.35); }
+  .pad h3 { margin: 0 0 8px 26px; font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--paper-mute); font-weight: 500; line-height: 40px; }
+  .pad .add { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin: 0 0 4px 26px; height: 40px; align-items: center; }
+  .pad .add input { width: 100%; padding: 8px 10px; border-radius: 10px; border: 1.5px solid #cfc7b3; background: #fff; font-size: 16px; outline: none; }
+  .pad .add input:focus { border-color: var(--paper-ink); }
+  .pad .add button { background: var(--paper-ink); color: var(--paper); font-weight: 700; padding: 8px 14px; border-radius: 10px 10px 10px 3px; }
+  .litems { list-style: none; margin: 0; padding: 0 0 0 26px; }
+  .litem { display: grid; grid-template-columns: 28px 1fr auto auto; align-items: center; gap: 8px; height: 40px; font-size: 16px; }
+  .litem .chk { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #9a927f; display: grid; place-items: center; color: var(--cassa-ink); font-size: 14px; font-weight: 700; }
+  .litem.done .chk { background: var(--cassa); border-color: var(--cassa); }
+  .litem .txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .litem.done .txt { text-decoration: line-through; color: var(--paper-mute); }
+  .litem .go, .litem .del { color: var(--paper-mute); font-size: 18px; padding: 6px 8px; }
+  .litem .go { font-size: 14px; font-weight: 700; color: var(--paper-ink); background: rgba(0,0,0,.06); border-radius: 8px; padding: 4px 9px; }
+  .pad .lfoot { display: flex; justify-content: space-between; margin: 10px 0 0 26px; font-size: 12px; color: var(--paper-mute); }
+  .pad .lfoot button { color: var(--warn); text-decoration: underline; text-underline-offset: 3px; }
+  .pad .lempty { margin-left: 26px; color: var(--paper-mute); font-size: 13px; line-height: 40px; }
 
   /* ---------- Scontrino ---------- */
-  main { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-  .receipt-wrap { flex: 1; overflow-y: auto; padding: 14px 12px 0; -webkit-overflow-scrolling: touch; }
+  main { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .receipt-wrap, .list-wrap { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 10px 12px 0; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  .receipt-wrap[hidden], .list-wrap[hidden] { display: none; }
   .receipt {
     background: var(--paper); color: var(--paper-ink); font-family: var(--mono); font-size: 13.5px; line-height: 1.45;
-    padding: 18px 16px 30px; position: relative;
+    padding: 18px 16px 30px; position: relative; overflow: hidden; overflow-wrap: anywhere;
     border-radius: 4px 4px 0 0;
     box-shadow: 0 -2px 0 #fff inset, 0 30px 60px -30px rgba(0,0,0,.9);
     /* bordo frastagliato in basso */
@@ -158,6 +188,7 @@
     text-transform: uppercase; align-items: start;
   }
   .line:active { background: var(--paper-2); }
+  .line > div { min-width: 0; }   /* senza questo il nome lungo allarga la griglia e lo scontrino scorre di lato */
   .line .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .line .sub { color: var(--paper-mute); font-size: 11.5px; text-transform: none; letter-spacing: 0; }
   .line .sub s { margin-right: 6px; }
@@ -322,19 +353,14 @@
   </div>
 </section>
 
-<div class="quick">
-  <button id="btnManualEAN">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2M8 9v6M12 9v6M16 9v6"/></svg>
-    Digita codice
-  </button>
-  <button id="btnFree">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-    Senza codice
-  </button>
+<div class="tabs" role="tablist">
+  <button class="tab on" id="tabReceipt" role="tab">Scontrino <span class="cnt" id="cntReceipt">0</span></button>
+  <button class="tab" id="tabList" role="tab">Lista <span class="cnt" id="cntList">0</span></button>
 </div>
 
 <main>
   <div class="receipt-wrap" id="receiptWrap">
+    <div class="rtools"><button id="btnManualEAN">digita codice</button><button id="btnFree">aggiungi a mano</button></div>
     <article class="receipt" id="receipt" aria-live="polite">
       <div class="r-head">
         <b>Carrello Smart</b>
@@ -350,6 +376,16 @@
       <div class="barcode"></div>
       <div class="r-foot">STIMA PRE-CASSA · NON È UN DOCUMENTO FISCALE</div>
     </article>
+  </div>
+
+  <div class="list-wrap" id="listWrap" hidden>
+    <section class="pad">
+      <h3>Lista della spesa</h3>
+      <form class="add" id="listForm"><input id="listInput" placeholder="es. latte, pane, susine" autocomplete="off" enterkeyhint="done"><button type="submit">Aggiungi</button></form>
+      <ul class="litems" id="litems"></ul>
+      <div class="lempty" id="lempty">Scrivila prima di uscire. Mentre fotografi i cartellini, spunto io quello che hai preso.</div>
+      <div class="lfoot"><span id="lprogress"></span><span><button id="btnListClearDone">togli i presi</button> · <button id="btnListClear">svuota</button></span></div>
+    </section>
   </div>
 
   <div class="totalbar">
@@ -472,7 +508,7 @@
   const C = window.Calc;
 
   /* ================= Stato & persistenza ================= */
-  const KEYS = { cart: 'cs.cart.v1', settings: 'cs.settings.v1', memory: 'cs.memory.v1' };
+  const KEYS = { cart: 'cs.cart.v1', settings: 'cs.settings.v1', memory: 'cs.memory.v1', list: 'cs.list.v1', tab: 'cs.tab.v1' };
   const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch { return d; } };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { toast('Memoria piena: non riesco a salvare', true); } };
 
@@ -480,11 +516,13 @@
     items: load(KEYS.cart, []),
     settings: Object.assign({ store: '', loyaltyOn: false, voucher: { value: 8, owned: 0, max: 8 } }, load(KEYS.settings, {})),
     memory: load(KEYS.memory, {}),   // ean -> { name, price, loyaltyPrice, voucherOk, image, store, ts }
+    list: load(KEYS.list, []),         // [{ id, text, done }]
   };
+  state.list = (Array.isArray(state.list) ? state.list : []).filter(i => i && typeof i.text === 'string' && i.text.trim()).map(i => ({ id: i.id || uid(), text: i.text.trim().slice(0, 60), done: !!i.done }));
   // Sanifica quello che arriva dallo storage (potrebbe essere di una versione vecchia o corrotto)
   state.items = (Array.isArray(state.items) ? state.items : []).filter(i => i && typeof i.name === 'string' && Number.isFinite(Number(i.price)))
     .map(i => ({ id: i.id || uid(), ean: i.ean || null, name: i.name, price: Number(i.price), loyaltyPrice: (i.loyaltyPrice != null && i.loyaltyPrice !== '' && Number.isFinite(Number(i.loyaltyPrice))) ? Number(i.loyaltyPrice) : null, qty: C.parseQty(i.qty) || 1, voucherOk: i.voucherOk !== false, image: i.image || null }));
-  const persist = () => { save(KEYS.cart, state.items); save(KEYS.settings, state.settings); save(KEYS.memory, state.memory); };
+  const persist = () => { save(KEYS.cart, state.items); save(KEYS.settings, state.settings); save(KEYS.memory, state.memory); save(KEYS.list, state.list); };
   function uid() { return Math.random().toString(36).slice(2, 9) + Date.now().toString(36); }
 
   /* ================= Feedback ================= */
@@ -563,8 +601,66 @@
       badge.className = 'vbadge'; badge.innerHTML = `${v.n} ${v.n === 1 ? 'buono' : 'buoni'}<b>+ ${C.fmtEUR(v.cash)}</b>`;
     } else { badge.className = 'vbadge none'; badge.innerHTML = 'buoni<br>pasto: –'; }
     $('memCount').textContent = `Prezzi memorizzati: ${Object.keys(state.memory).length}`;
+    $('cntReceipt').textContent = s.count;
+    renderList();
     persist();
   }
+
+  /* ================= Lista della spesa ================= */
+  function renderList() {
+    const done = state.list.filter(i => i.done).length, tot = state.list.length;
+    $('litems').innerHTML = state.list.map(i => `<li class="litem ${i.done ? 'done' : ''}" data-id="${i.id}">
+      <button class="chk" data-act="toggle" aria-label="spunta">${i.done ? '✓' : ''}</button>
+      <span class="txt" data-act="toggle">${esc(i.text)}</span>
+      <button class="go" data-act="go" title="Aggiungi allo scontrino">+ €</button>
+      <button class="del" data-act="del" aria-label="elimina">×</button></li>`).join('');
+    $('lempty').hidden = tot > 0;
+    $('lprogress').textContent = tot ? `${done}/${tot} presi` : '';
+    $('cntList').textContent = tot ? `${done}/${tot}` : '0';
+  }
+  function addListItems(text) {
+    const parts = String(text || '').split(/[\n,;]+/).map(t => t.trim().slice(0, 60)).filter(Boolean);
+    let added = 0;
+    for (const t of parts) { if (!state.list.some(i => C.nameKey(i.text) === C.nameKey(t))) { state.list.push({ id: uid(), text: t, done: false }); added++; } }
+    return added;
+  }
+  const tokensOf = (t) => (C.nameKey(t) || '').slice(2).split(' ').filter(w => w.length >= 3);
+  // Spunta automatica: un articolo della lista è "preso" se tutte le sue parole (≥3 lettere) compaiono nel nome
+  // del prodotto aggiunto, o viceversa ("latte" ↔ "LATTE PARZ. SCREMATO"). Prefisso di 4 lettere per i plurali (susina/susine).
+  function tickListFor(productName) {
+    const pt = tokensOf(productName); if (!pt.length) return;
+    const hit = (a, b) => a.every(w => b.some(x => x === w || (w.length >= 4 && x.length >= 4 && x.slice(0, 4) === w.slice(0, 4))));
+    for (const li of state.list) {
+      if (li.done) continue;
+      const lt = tokensOf(li.text); if (!lt.length) continue;
+      if (hit(lt, pt) || hit(pt, lt)) { li.done = true; renderList(); persist(); toast(`Lista: <b>${esc(li.text)}</b> preso ✓`); return; }
+    }
+  }
+  $('listForm').addEventListener('submit', (e) => { e.preventDefault(); const n = addListItems($('listInput').value); $('listInput').value = ''; if (n) { renderList(); persist(); } $('listInput').focus(); });
+  $('listInput').addEventListener('paste', (e) => { const t = (e.clipboardData || window.clipboardData).getData('text'); if (t && /[\n,;]/.test(t)) { e.preventDefault(); if (addListItems(t)) { renderList(); persist(); } } });
+  $('litems').addEventListener('click', (e) => {
+    const el = e.target.closest('[data-act]'); if (!el) return;
+    const li = e.target.closest('.litem'); const item = state.list.find(i => i.id === li.dataset.id); if (!item) return;
+    if (el.dataset.act === 'toggle') { item.done = !item.done; renderList(); persist(); }
+    else if (el.dataset.act === 'del') { const idx = state.list.indexOf(item); state.list.splice(idx, 1); renderList(); persist(); toast(`Tolto <b>${esc(item.text)}</b>`, false, { label: 'Annulla', fn: () => { state.list.splice(idx, 0, item); renderList(); persist(); } }); }
+    else if (el.dataset.act === 'go') {   // dalla lista allo scontrino: nome già scritto, prezzo dalla memoria se c'è
+      const key = C.nameKey(item.text); const mem = key ? state.memory[key] : null;
+      openItem({ ean: null, name: mem ? mem.name : item.text, price: mem ? mem.price : undefined, loyaltyPrice: mem ? mem.loyaltyPrice : undefined, voucherOk: mem ? mem.voucherOk !== false : true, sourceLabel: mem ? 'prezzo ricordato dall\'ultima volta' : '' });
+    }
+  });
+  $('btnListClearDone').onclick = () => { const gone = state.list.filter(i => i.done); if (!gone.length) return; state.list = state.list.filter(i => !i.done); renderList(); persist(); toast(`Tolti ${gone.length} presi`, false, { label: 'Annulla', fn: () => { state.list = state.list.concat(gone); renderList(); persist(); } }); };
+  $('btnListClear').onclick = () => { if (!state.list.length) return; const backup = state.list; state.list = []; renderList(); persist(); toast('Lista svuotata', false, { label: 'Annulla', fn: () => { state.list = backup; renderList(); persist(); } }); };
+
+  /* ================= Tab ================= */
+  function showTab(which) {
+    const list = which === 'list';
+    $('receiptWrap').hidden = list; $('listWrap').hidden = !list;
+    $('tabReceipt').classList.toggle('on', !list); $('tabList').classList.toggle('on', list);
+    $('tabReceipt').setAttribute('aria-selected', String(!list)); $('tabList').setAttribute('aria-selected', String(list));
+    save(KEYS.tab, which);
+  }
+  $('tabReceipt').onclick = () => showTab('receipt');
+  $('tabList').onclick = () => showTab('list');
 
   /* ================= Sheet ================= */
   let openSheet = null;
@@ -593,7 +689,8 @@
       $('fVoucher').checked = info.voucherOk !== false && $('fVoucher').checked;
       openItem({ ...editing, name: $('fName').value, image: editing.image, source: info.source, sourceLabel: info.label, keepPrice: $('fPrice').value });
     };
-    $('prodBox').style.display = (ean || ctx.source === 'loading') ? '' : 'none';
+    $('prodBox').style.display = (ean || ctx.source === 'loading' || ctx.sourceLabel) ? '' : 'none';
+    if (!ean && ctx.source !== 'loading' && ctx.sourceLabel) $('prodBox').innerHTML = `<div class="ph">▤</div><div><div class="ean">senza codice</div><div class="src warn">${esc(ctx.sourceLabel)}</div></div>`;
     if (!ean && ctx.source === 'loading') $('prodBox').innerHTML = `<div class="ph">▤</div><div><div class="ean">senza codice</div><div class="src loading"></div></div>`;
     $('fName').value = isEdit ? it.name : (ctx.name || '');
     $('fPrice').value = isEdit ? it.price.toFixed(2).replace('.', ',') : (ctx.keepPrice != null ? ctx.keepPrice : (ctx.price != null ? ctx.price.toFixed(2).replace('.', ',') : ''));
@@ -644,6 +741,7 @@
       const it = { id: uid(), ean: editing.ean || null, name, price, loyaltyPrice, qty, voucherOk, image: editing.image || null };
       state.items.push(it); lastAddedId = it.id;
       remember(it.ean, it);
+      hide(); render(); scrollReceipt(); showTab('receipt'); tickListFor(it.name); return;
     }
     hide(); render(); scrollReceipt();
   };
@@ -651,7 +749,7 @@
     const key = ean || C.nameKey(it.name); if (!key) return;
     state.memory[key] = { name: it.name, price: it.price, loyaltyPrice: it.loyaltyPrice, voucherOk: it.voucherOk, image: it.image || null, store: state.settings.store || '', ts: Date.now() };
   }
-  function scrollReceipt() { const w = $('receiptWrap'); requestAnimationFrame(() => { w.scrollTop = w.scrollHeight; }); }
+  function scrollReceipt() { const w = $('receiptWrap'); requestAnimationFrame(() => { const li = w.querySelector('.line.new'); if (li && li.scrollIntoView) li.scrollIntoView({ block: 'nearest' }); else w.scrollTop = w.scrollHeight; }); }
   $('lines').addEventListener('click', (e) => { const li = e.target.closest('.line'); if (li) openItem({ id: li.dataset.id }); });
 
   /* ---- Pipeline: codice → prodotto ---- */
@@ -671,8 +769,9 @@
       const existing = state.items.find(i => i.ean === ean);
       if (existing) { existing.qty = Math.min(99, existing.qty + 1); lastAddedId = existing.id; }
       else { state.items.push({ id: uid(), ean, name: mem.name, price: mem.price, loyaltyPrice: (mem.loyaltyPrice != null && Number.isFinite(Number(mem.loyaltyPrice))) ? Number(mem.loyaltyPrice) : null, qty: 1, voucherOk: mem.voucherOk !== false, image: mem.image || null }); lastAddedId = state.items[state.items.length - 1].id; }
-      render(); scrollReceipt();
+      render(); scrollReceipt(); showTab('receipt');
       const it = state.items.find(i => i.ean === ean);
+      if (!existing) tickListFor(it.name);
       toast(`+1 <b>${esc(mem.name)}</b> ${C.fmtEUR(C.unitPrice(it, state.settings.loyaltyOn))}`, false, { label: 'Modifica', fn: () => openItem({ id: it.id }) });
       // In background: se il cartellino mostra un prezzo diverso da quello ricordato, aggiorno (i prezzi cambiano).
       if (frame) ocr.read(frame).then((lines) => {
@@ -1047,6 +1146,7 @@
 
   /* ================= Avvio ================= */
   render();
+  showTab(load(KEYS.tab, 'receipt') === 'list' ? 'list' : 'receipt');
   if (!('BarcodeDetector' in window)) { const el = document.createElement('script'); el.src = 'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js'; el.async = true; document.head.appendChild(el); }
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();

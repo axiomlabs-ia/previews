@@ -13,7 +13,8 @@ Zero backend, zero account, zero AI: tutto gira nel browser del telefono e resta
 2. La scheda si apre subito e si riempie man mano: prezzo e nome dall'OCR (Tesseract.js, testo sparso, due scale: 900 px per il testo piccolo e 450 px per le cifre giganti), codice dalle cifre stampate sotto il barcode delle etichette elettroniche, nome dagli archivi Open*Facts se il codice c'è, prezzo ricordato se il prodotto è già passato (anche senza codice: memoria per nome).
    Codice già visto → entra al volo; se il cartellino mostra un prezzo diverso, lo aggiorno e ti avviso.
 3. **Digita codice** se il barcode è rovinato, **Senza codice** per frutta, banco, sfuso.
-4. Tocchi una riga per correggere prezzo/quantità o eliminarla.
+4. Tocchi una riga per correggere prezzo/quantità o eliminarla. "Digita codice" e "aggiungi a mano" sono i link sopra lo scontrino.
+4b. Scheda **Lista**: la lista della spesa scritta prima di uscire (una voce per riga o separate da virgola). Quando un prodotto entra nello scontrino, la voce corrispondente si spunta da sola (confronto per parole, plurali inclusi). Da ogni voce, "+ €" apre la scheda con il nome già scritto e il prezzo ricordato se c'è.
 5. ⚙️ Impostazioni: supermercato, carta fedeltà on/off, valore e numero dei buoni pasto.
 
 Regole buoni pasto implementate: massimo 8 per spesa (DM 122/2017), il buono non dà resto,
